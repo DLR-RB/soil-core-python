@@ -1,0 +1,34 @@
+from typing import override
+
+from ..requests.request import Request, CompletedRequest
+
+from .level import LogLevel
+from .logger import Logger
+
+
+
+class NoLogger(Logger):
+    """
+    A logger that ignores all log messages, regardless of level
+    """
+
+    def __init__(self) -> None:
+        self._level = LogLevel.WARNING
+
+    @override
+    def setLevel(self, level: LogLevel | None) -> None:
+        self._level = level or LogLevel.WARNING
+
+    @override
+    def getLevel(self) -> LogLevel:
+        return self._level
+
+    @override
+    def child(self, component: str, level: LogLevel | None = None) -> Logger:
+        logger = NoLogger()
+        logger.setLevel(level)
+        return logger
+
+    @override
+    def log(self, level: LogLevel, message: str, *args: object) -> Request:
+        return CompletedRequest()

@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "soil"
+version = "0.1.0"
+description = "The core implementation of the SOIL principles"
+readme = "Readme.md"
+requires-python = ">=3.12"
+
+authors = [
+  {name = "Christoph Hagen", email = "christoph.hagen@dlr.de"}
+]
+
+dependencies = [
+  "requests>=2.31"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = true
