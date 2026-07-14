@@ -6,7 +6,7 @@ from ..framing.receiver import FrameReceiver
 from ..logging import Logger, NoLogger
 from .message import Message
 from ..requests.request import Request
-from ..utils.actor import Actor
+from ..utils.actor import Actor, synchronized, queued
 
 from .connection import MessageConnection
 from .receiver import MessageReceiver
@@ -39,7 +39,7 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
             If you use the constructor directly, then you must call `initialize()` on the new object.
             Alternatively, use `DecodedConnection.create()`
         """
-        super().__init__() # Initialize actor
+        Actor.__init__(self)
         self.connection = connection
         self.encoding = encoding
         self.receiver: MessageReceiver | None = None
@@ -73,6 +73,10 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
 
         Attempts to decode the message contained in the data and forwards it to the message connection.
         """
+        await self._didReceive(frame)
+
+    @queued(default=None)
+    async def _didReceive(self, frame: bytes) -> None:
         if self.receiver is None:
             self.logger.warning("No receiver for frame")
             return
@@ -87,7 +91,19 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         # Forward the decoded message to the component connection
         await self.receiver.didReceive(message)
 
-    def _send(self, message: Message) -> Request:
+    # MARK: Message Connection
+
+    def send(self, message: Message) -> Request:
+        """
+        Send a message to the component via the underlying transport layer.
+        - Parameter message: The message to send
+        - Returns: The transmission request, which can be awaited to wait for transmission.
+        - Note: The returned request does not wait for message delivery, only transmission.
+        """
+        return self._send(message)
+
+    @synchronized
+    async def _send(self, message: Message) -> None:
         """
         Send a message (actor-isolated) over the connection.
 
@@ -98,19 +114,8 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
             data = self.encoding.encode(message)
         except Exception as e:
             self.logger.error(f"Failed to encode frame: {e}")
-            return self.noOp()
-        return self.connection.send(data)
-
-    # MARK: Message Connection
-
-    def send(self, message: Message) -> Request:
-        """
-        Send a message to the component via the underlying transport layer.
-        - Parameter message: The message to send
-        - Returns: The transmission request, which can be awaited to wait for transmission.
-        - Note: The returned request does not wait for message delivery, only transmission.
-        """
-        return self._submit(self._send(message).wait)
+            return None
+        return await self.connection.send(data)
 
     async def setReceiver(self, receiver: MessageReceiver) -> None:
         """
