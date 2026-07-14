@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from .level import LogLevel
 
-from ..requests.request import Request
+from ..requests import Request
 
 
 class Logger(ABC):

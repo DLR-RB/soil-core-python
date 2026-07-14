@@ -3,7 +3,7 @@ from typing import Optional
 
 from soil.data.sample import Sample
 
-from ..data.immutable_sample_tree import ImmutableSampleTree
+from ..data.immutable_tree import ImmutableSampleTree
 from ..data.path import Path
 from ..data.sampletree import SampleTree
 from ..data.timestamp import Timestamp

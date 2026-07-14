@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from ..data.immutable_sample_tree import ImmutableSampleTree
+from ..data.immutable_tree import ImmutableSampleTree
 from ..data.path import Path
 from ..data.sample import Sample
 from ..data.sampletree import SampleTree

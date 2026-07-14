@@ -1,6 +1,6 @@
 from typing import override
 
-from ..requests.request import Request, CompletedRequest
+from ..requests import Request, CompletedRequest
 
 from .level import LogLevel
 from .logger import Logger

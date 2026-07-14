@@ -1,12 +1,12 @@
 from abc import abstractmethod
 
 from ..interfaces.receiver import Receiver
-from .message import Message
 from ..data.path import Path
 from ..data.sampletree import SampleTree
 from ..requests.request import Request
 from ..transport.connection import Connection
 
+from .message import Message
 from .receiver import MessageReceiver
 
 
