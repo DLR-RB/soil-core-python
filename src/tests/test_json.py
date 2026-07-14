@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from soil.data.immutable_sample_tree import ImmutableSampleTree
+from soil.data.immutable_tree import ImmutableSampleTree
 from soil.messaging import Message, MessageType
 from soil.data import Path, Sample, Timestamp, Value
 from soil.encoding.json import JsonEncoding
