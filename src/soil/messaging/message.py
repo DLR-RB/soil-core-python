@@ -24,7 +24,9 @@ class Message:
     type: MessageType = MessageType.DATA
     """ Indicate the message type (may be omitted for a data message) """
 
-    path: Path = Path()
+    path: Path = field(
+        default_factory=lambda: Path()
+    )
     """
     The identifying path of the data contained at the top level
     of this message.
