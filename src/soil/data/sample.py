@@ -75,6 +75,9 @@ class Sample:
             timestamp=Timestamp.current(),
         )
 
+    def isVeryCloseTo(self, other: Timestamp, maxDifference: float = 0.001) -> bool:
+        return self.time.isVeryCloseTo(other, maxDifference)
+
     def __lt__(self, other: object) -> bool:
         """
         Compare samples chronologically.

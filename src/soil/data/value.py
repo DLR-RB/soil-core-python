@@ -7,6 +7,10 @@ class Value:
     def __init__(self, value: int | str | float | bytes | Path | None) -> None:
         self.value: int | str | float | bytes | Path | None = value
 
+    @staticmethod
+    def path(*components: str) -> Value:
+        return Value(Path(components))
+
     @property
     def type(self) -> ValueType:
         match self.value:

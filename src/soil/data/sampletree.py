@@ -319,6 +319,6 @@ class SampleTree(ABC):
         Compare two sample trees.
         """
         if not isinstance(other, SampleTree):
-            return NotImplemented
+            return False
 
         return self.isEqualTo(other)

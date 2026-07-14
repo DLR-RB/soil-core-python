@@ -31,3 +31,7 @@ class Timestamp(datetime):
     def format(self) -> str:
         """ Convert the timestamp to a string with the date and time """
         return self.strftime("%d.%m.%Y %H:%M:%S")
+
+    def isVeryCloseTo(self, other: Timestamp, maxDifference: float = 0.001) -> bool:
+        return abs(self.timestamp() - other.timestamp()) < maxDifference
+

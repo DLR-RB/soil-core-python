@@ -32,3 +32,17 @@ class Path(list[str]):
     @override
     def __str__(self) -> str:
         return " > ".join(self)
+
+    def __add__(self, other: Iterable[str]) -> Path: # type: ignore
+        if not isinstance(other, list):
+            return NotImplemented
+        return type(self)(super().__add__(other))
+
+    def __radd__(self, other: Iterable[str]) -> Path:
+        if not isinstance(other, list):
+            return NotImplemented
+        return type(self)(other + list(self))
+
+    def __iadd__(self, other: Iterable[str]) -> Path:
+        super().__iadd__(other)
+        return self
