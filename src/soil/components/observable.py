@@ -1,13 +1,13 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Tuple
 
 from ..data import Path, SampleTree
 from ..requests import Request
 
-from .receiver import Receiver
+from .distributor import Distributor
 
 
-class Observable(ABC):
+class Observable(Distributor):
     """
     A component that tracks and responds to subscriptions.
 
@@ -21,30 +21,6 @@ class Observable(ABC):
     """
 
     @abstractmethod
-    def setReceiver(self, receiver: Receiver | None) -> None:
-        """
-        Set the receiver for subscription data
-
-        Parameters
-        ----------
-        receiver: Receiver | None
-            The receiver of data matching the subscription rules
-        """
-        pass
-
-    @abstractmethod
-    def getReceiver(self) -> Receiver | None:
-        """
-        Get the receiver for matching data.
-
-        Returns
-        -------
-        Receiver | None
-            The receiver, if set
-        """
-        pass
-
-    @abstractmethod
     def include(self, path: Path, depth: int | None) -> Request:
         """
         Include a path in the subscription.
@@ -55,6 +31,7 @@ class Observable(ABC):
             The path to include
         depth: int | None
             The depth of the inclusion (nil indicates the full sub-tree)
+
         Returns
         -------
         Request

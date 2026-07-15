@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from ..interfaces.receiver import Receiver
+from ..components.receiver import Receiver
 from ..data.path import Path
 from ..data.sampletree import SampleTree
 from ..requests.request import Request
