@@ -355,7 +355,6 @@ class Message:
     def include(
         cls,
         path: Path,
-        subscription: int,
         depth: int | None = None,
     ) -> Message:
         """
@@ -365,8 +364,6 @@ class Message:
         ----------
         path:
             The path to subscribe to.
-        subscription:
-            Subscription identifier.
         depth:
             Number of levels below the path to include.
 
@@ -382,7 +379,6 @@ class Message:
         """
         return cls.subscriptionRequest(
             MessageType.SUBSCRIPTION_INCLUSION,
-            subscription,
             path,
             depth,
         )
@@ -391,7 +387,6 @@ class Message:
     def exclude(
         cls,
         path: Path,
-        subscription: int,
         depth: int | None = None,
     ) -> Message:
         """
@@ -401,8 +396,6 @@ class Message:
         ----------
         path:
             The path to exclude.
-        subscription:
-            Subscription identifier.
         depth:
             Number of levels below the path to exclude.
 
@@ -418,7 +411,6 @@ class Message:
         """
         return cls.subscriptionRequest(
             MessageType.SUBSCRIPTION_EXCLUSION,
-            subscription,
             path,
             depth,
         )
@@ -427,7 +419,6 @@ class Message:
     def deleteRules(
         cls,
         path: Path,
-        subscription: int,
         depth: int | None = None,
     ) -> Message:
         """
@@ -437,8 +428,6 @@ class Message:
         ----------
         path:
             Path for which subscription rules should be removed.
-        subscription:
-            Subscription identifier.
         depth:
             Number of levels below the path affected.
 
@@ -454,7 +443,6 @@ class Message:
         """
         return cls.subscriptionRequest(
             MessageType.SUBSCRIPTION_DELETION,
-            subscription,
             path,
             depth,
         )
@@ -463,7 +451,6 @@ class Message:
     def subscriptionRequest(
         cls,
         messageType: MessageType,
-        subscription: int,
         path: Path,
         depth: int | None = None,
     ) -> Message:
@@ -495,8 +482,7 @@ class Message:
         return cls(
             type = messageType,
             path = path,
-            depth = depth,
-            id = subscription,
+            depth = depth
         )
 
     def __str__(self) -> str:

@@ -1,25 +1,15 @@
 from random import shuffle
-from typing import Dict, List, Tuple, TypeVar
-from unittest import IsolatedAsyncioTestCase, main
+from typing import Tuple
+from unittest import main
 
 from soil.components import Storage
 from soil.storage import InMemoryStorage
 from soil.data import ImmutableSampleTree, Path, Sample, Timestamp, Value
 
-T = TypeVar('T')
+from ..util import SoilAsyncTest
 
-class InMemoryTests(IsolatedAsyncioTestCase):
 
-    def _require(self, value: T | None) -> T:
-        self.assertIsNotNone(value)
-        if value is None: raise ValueError("")
-        return value
-
-    def assertEmpty(self, lst: List[T] | Dict[str, T]) -> None:
-        self.assertSize(lst, 0)
-
-    def assertSize(self, lst: List[T] | Dict[str, T], count: int) -> None:
-        self.assertEqual(len(lst), count)
+class InMemoryTests(SoilAsyncTest):
 
     async def testSingleValue(self):
         storage = InMemoryStorage()

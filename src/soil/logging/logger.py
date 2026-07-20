@@ -11,7 +11,7 @@ class Logger(ABC):
     """
 
     @abstractmethod
-    def setLevel(self, level: LogLevel | None) -> None:
+    def setLevel(self, level: LogLevel | None) -> Request:
         """
         Set the filtering level for this logger.
 
@@ -26,17 +26,33 @@ class Logger(ABC):
         pass
 
     @abstractmethod
-    def getLevel(self) -> LogLevel:
+    async def getLevel(self) -> LogLevel:
         """
         Get the current log level of this logger
         """
         pass
 
     @abstractmethod
-    def child(self, component: str, level: LogLevel | None = None) -> Logger:
+    def child(self, component: str) -> Logger:
         """
         Creates a child logger under this logger.
         The child may inherit the parent's log level threshold.
+
+        Parameters
+        ----------
+        component: str
+            The subcomponent name
+
+        Returns
+        -------
+        Logger
+            A new ``Logger`` instance representing the child
+        """
+        pass
+
+    def childWithLevel(self, component: str, level: LogLevel) -> Logger:
+        """
+        Creates a child logger under this logger.
 
         Parameters
         ----------
@@ -50,7 +66,9 @@ class Logger(ABC):
         Logger
             A new ``Logger`` instance representing the child
         """
-        pass
+        child = self.child(component)
+        child.setLevel(level)
+        return child
 
     @abstractmethod
     def log(self, level: LogLevel, message: str, *args: object) -> Request:
@@ -174,5 +192,3 @@ class Logger(ABC):
             A request to wait for completion
         """
         return self.log(LogLevel.ERROR, message, *args)
-
-

@@ -43,3 +43,7 @@ class LogLevel(IntEnum):
                 return "warning"
             case LogLevel.ERROR:
                 return "error"
+
+    @property
+    def stringValue(self) -> str:
+        return self.__str__()

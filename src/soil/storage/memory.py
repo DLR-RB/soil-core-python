@@ -21,11 +21,11 @@ class InMemoryStorage(Actor, Storage):
     """ The root node of the data tree, where all other data is stored """
 
     def __init__(self) -> None:
+        Actor.__init__(self)
         """
         Create an in-memory storage.
         """
         self.root: MutableSampleTree = MutableSampleTree()
-        Actor.__init__(self)
 
     @synchronized
     async def _accept(self, tree: SampleTree, path: Path):

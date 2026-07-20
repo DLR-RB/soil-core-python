@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Optional
+from typing import Callable
 
-from ..requests.request import Request
+from ..requests import Request
 
 
 class Connection(ABC):
@@ -11,20 +11,32 @@ class Connection(ABC):
 
     @abstractmethod
     async def isOpen(self) -> bool:
-        """ Indicate if the connection is open and can receive and transmit data """
+        """
+        Indicate whether the connection is open and can receive and
+        transmit data.
+
+        Returns:
+            True if the connection is open, otherwise False.
+        """
         pass
 
     @abstractmethod
     def close(self) -> Request:
-        """ Close the connection """
+        """
+        Close the connection.
+
+        Returns:
+            A request that can optionally be awaited to wait for the
+            connection to fully close.
+        """
         pass
 
     @abstractmethod
-    async def onClose(self, perform: Optional[Callable[[], None]]) -> None:
+    async def onClose(self, perform: Callable[[], None] | None) -> None:
         """
-        Execute a closure when the connection is closed
-        Parameters:
-            block ():
-                The closure to execute
+        Register a callback to execute when the connection is closed.
+
+        Args:
+            block: The callback to execute upon closure.
         """
         pass

@@ -83,7 +83,6 @@ class JsonTests(TestCase):
     def testSubscriptionInclusion(self):
         message = Message.include(
             path = Path.of("some", "path"),
-            subscription = 123,
             depth = 234
         )
         self._roundTrip(message)
@@ -91,7 +90,6 @@ class JsonTests(TestCase):
     def testSubscriptionExclusion(self):
         message = Message.exclude(
             path = Path.of("some", "path"),
-            subscription = 123,
             depth = 234
         )
         self._roundTrip(message)
@@ -99,7 +97,6 @@ class JsonTests(TestCase):
     def testSubscriptionRuleDeletion(self):
         message = Message.deleteRules(
             path = Path.of("some", "path"),
-            subscription = 123,
             depth = 234
         )
         self._roundTrip(message)

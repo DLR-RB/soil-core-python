@@ -6,7 +6,6 @@ from .level import LogLevel
 from .logger import Logger
 
 
-
 class NoLogger(Logger):
     """
     A logger that ignores all log messages, regardless of level
@@ -16,11 +15,12 @@ class NoLogger(Logger):
         self._level = LogLevel.WARNING
 
     @override
-    def setLevel(self, level: LogLevel | None) -> None:
+    def setLevel(self, level: LogLevel | None) -> Request:
         self._level = level or LogLevel.WARNING
+        return CompletedRequest()
 
     @override
-    def getLevel(self) -> LogLevel:
+    async def getLevel(self) -> LogLevel:
         return self._level
 
     @override

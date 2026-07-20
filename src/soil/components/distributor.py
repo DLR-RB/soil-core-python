@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from ..requests import Request
+
 from .receiver import Receiver
 
 
@@ -21,7 +23,7 @@ class Distributor(ABC):
     """
 
     @abstractmethod
-    def setReceiver(self, receiver: Receiver | None) -> None:
+    def setReceiver(self, receiver: Receiver | None) -> Request:
         """
         Set the receiver of data transmitted by the component
 
@@ -29,11 +31,16 @@ class Distributor(ABC):
         ----------
         receiver: Receiver | None
             The receiver of the transmitted data
+
+        Returns
+        -------
+        Request
+            The request to optionally wait for until the receiver is set
         """
         pass
 
     @abstractmethod
-    def getReceiver(self) -> Receiver | None:
+    async def getReceiver(self) -> Receiver | None:
         """
         Get the current receiver of data transmitted by the component
 

@@ -17,11 +17,12 @@ class PrintLogger(Logger):
         self.path: Path = path
 
     @override
-    def setLevel(self, level: LogLevel | None) -> None:
+    def setLevel(self, level: LogLevel | None) -> Request:
         self._level = level or LogLevel.WARNING
+        return CompletedRequest()
 
     @override
-    def getLevel(self) -> LogLevel:
+    async def getLevel(self) -> LogLevel:
         return self._level
 
     @override

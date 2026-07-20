@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from ..requests import Request
+
 
 class FrameReceiver(ABC):
     """
@@ -9,7 +11,7 @@ class FrameReceiver(ABC):
     """
 
     @abstractmethod
-    async def didReceive(self, frame: bytes) -> None:
+    def acceptFrame(self, frame: bytes) -> Request:
         """
         Process a received message.
 
@@ -20,7 +22,7 @@ class FrameReceiver(ABC):
                 The encoded message to process
 
         Returns:
-            Awaitable[None]:
+            Request:
                 An awaitable representing the asynchronous processing of the message
         """
         pass

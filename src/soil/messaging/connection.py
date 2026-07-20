@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import override
 
 from ..components.receiver import Receiver
 from ..data.path import Path
@@ -6,11 +7,11 @@ from ..data.sampletree import SampleTree
 from ..requests.request import Request
 from ..transport.connection import Connection
 
+from .distributor import MessageDistributor
 from .message import Message
-from .receiver import MessageReceiver
 
 
-class MessageConnection(Receiver, Connection):
+class MessageConnection(Receiver, MessageDistributor, Connection):
     """
     A connection to a component via a transport layer
     """
@@ -33,20 +34,10 @@ class MessageConnection(Receiver, Connection):
         """
         pass
 
-    @abstractmethod
-    async def setReceiver(self, receiver: MessageReceiver) -> None:
-        """
-        Set the receiver for messages produced by this connection.
-
-        Parameters:
-            receiver (MessageReceiver):
-                The receiver of the messages coming in over this connection.
-        """
-        pass
-
     # MARK: Receiver
 
-    def receive(self, tree: SampleTree, path: Path = Path()) -> Request:
+    @override
+    def accept(self, tree: SampleTree, path: Path = Path()) -> Request:
         """
         Send samples over the connection.
 

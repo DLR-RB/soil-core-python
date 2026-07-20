@@ -152,7 +152,7 @@ class Observable(Distributor):
             The path of the tree
         """
         # Get the receiver of the subscription data
-        receiver = self.getReceiver()
+        receiver = await self.getReceiver()
         if receiver is None:
             return
 

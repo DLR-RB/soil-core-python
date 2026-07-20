@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from ..requests import Request
+
 from .message import Message
 
 
@@ -9,7 +11,7 @@ class MessageReceiver(ABC):
     """
 
     @abstractmethod
-    async def didReceive(self, message: Message):
+    def acceptMessage(self, message: Message) -> Request:
         """
         Process a received message.
 

@@ -1,4 +1,5 @@
 from asyncio import Queue, Future, create_task, get_event_loop, CancelledError, QueueEmpty
+from types import CoroutineType
 from typing import Any, Awaitable, Callable, overload
 from collections.abc import Awaitable, Callable
 from functools import wraps
@@ -114,7 +115,7 @@ def synchronized(
     method: Callable[Concatenate[SelfT, P], Awaitable[None]],
 ) -> Callable[Concatenate[SelfT, P], Request]:
     """
-    An annotation to synchronize method access on an `Actor`.
+    Run an async function on the actor, and return a request
     """
     @wraps(method)
     def wrapper(
@@ -127,12 +128,33 @@ def synchronized(
         return self._submit(work) # pyright: ignore[reportPrivateUsage]
     return wrapper
 
+def queuedAsync(
+    method: Callable[Concatenate[SelfT, P], R],
+) -> Callable[Concatenate[SelfT, P], CoroutineType[Any, Any, R]]:
+    """
+    Run a synchronous function on the actor queue, returning the result
+    """
+    @wraps(method)
+    async def wrapper(
+        self: SelfT,
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> R:
+        async def work() -> R:
+            return method(self, *args, **kwargs)
+        future = self._enqueue(work) # pyright: ignore[reportPrivateUsage]
+        return await future
+    return wrapper
+
 @overload
 def queued(
     fn: Callable[Concatenate[SelfT, P], Awaitable[R]],
     /,
-) -> Callable[Concatenate[SelfT, P], Future[R]]: ...
-
+) -> Callable[Concatenate[SelfT, P], Future[R]]:
+    """
+    Run an async function on the actor, and return a future
+    """
+    ...
 
 @overload
 def queued(
@@ -141,7 +163,11 @@ def queued(
 ) -> Callable[
     [Callable[Concatenate[SelfT, P], Awaitable[R]]],
     Callable[Concatenate[SelfT, P], Future[R]],
-]: ...
+]:
+    """
+    Run an async function on the actor, and return a future
+    """
+    ...
 
 
 def queued(
