@@ -24,7 +24,7 @@ class NoLogger(Logger):
         return self._level
 
     @override
-    def child(self, component: str, level: LogLevel | None = None) -> Logger:
+    def childLogger(self, component: str, level: LogLevel | None = None) -> Logger:
         logger = NoLogger()
         logger.setLevel(level)
         return logger

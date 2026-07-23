@@ -1,4 +1,5 @@
 
+from .connection import Connection
 from .distributor import Distributor
 from .observable import Observable
 from .obs_storage import ObservableStorage
@@ -7,6 +8,7 @@ from .receiver import Receiver
 from .storage import Storage
 
 __all__ = [
+    'Connection',
     'Distributor',
     'Observable',
     'ObservableStorage',

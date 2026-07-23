@@ -1,13 +1,13 @@
 from typing import override
 
-from ..components import Observable, Receiver, Storage
+from ..components import ObservableStorage, Receiver, Storage
 from ..data import Path, SampleTree, Timestamp
 from ..requests import Request
 from ..subscriptions import SubscriptionTree
-from ..utils import Actor, synchronized, queuedAsync
+from ..utils import Actor, synchronized, synchronized
 
 
-class ObservableStorage(Actor, Observable, Storage):
+class ObservingStorage(Actor, ObservableStorage):
     """
     A wrapper to make a storage observable.
     """
@@ -39,7 +39,7 @@ class ObservableStorage(Actor, Observable, Storage):
         self._receiver = receiver
 
     @override
-    @queuedAsync
+    @synchronized
     def getReceiver(self) -> Receiver | None:
         """
         Get the receiver for matching data.
@@ -109,7 +109,7 @@ class ObservableStorage(Actor, Observable, Storage):
         self._subscriptions.deleteRules(path, depth=depth)
 
     @override
-    @queuedAsync
+    @synchronized
     def isSubscribed(self, path: Path) -> bool:
         """
         Check if a particular path is covered by the current subscription
@@ -124,7 +124,7 @@ class ObservableStorage(Actor, Observable, Storage):
         return self._subscriptions.isSubscribed(path)
 
     @override
-    @queuedAsync
+    @synchronized
     def reduce(
         self,
         tree: SampleTree,

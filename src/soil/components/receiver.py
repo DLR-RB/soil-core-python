@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, TYPE_CHECKING
 
 from ..data import ImmutableSampleTree, Path, Sample, SampleTree, Timestamp, Value
+
+if TYPE_CHECKING:
+    from ..logging import Logger, LogLevel
 from ..requests import Request
 
 
@@ -120,3 +123,31 @@ class Receiver(ABC):
         tree = ImmutableSampleTree(samples)
         return self.accept(tree, path)
 
+    # MARK: Logging
+
+    def logger(self, level: LogLevel, *path: str) -> Logger:
+        """
+        Create a logger that forwards log entries to the receiver as strings.
+
+        The log entries for the different levels are saved on sub-paths of the
+        provided path, with the node name equal to the log level string.
+
+        :param level: The log level.
+        :param path: The path under which the logs should be saved.
+        :return: The logger for the path.
+        """
+        return self.loggerAtPath(level, Path.of(*path))
+
+    def loggerAtPath(self, level: LogLevel, path: Path) -> Logger:
+        """
+        Create a logger that forwards log entries to the receiver as strings.
+
+        The log entries for the different levels are saved on sub-paths of the
+        provided path, with the node name equal to the log level string.
+
+        :param level: The log level.
+        :param path: The path under which the logs should be saved.
+        :return: The logger for the path.
+        """
+        from ..logging.default import DefaultLogger
+        return DefaultLogger(path, self, level)

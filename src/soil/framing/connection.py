@@ -6,8 +6,8 @@ if TYPE_CHECKING:
     from ..messaging.connection import MessageConnection
 
 from ..logging import Logger
-from ..requests.request import Request
-from ..transport.connection import Connection
+from ..requests import Request
+from ..components import Connection
 
 from .distributor import FrameDistributor
 

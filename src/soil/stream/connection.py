@@ -1,9 +1,9 @@
 from abc import abstractmethod
 
+from ..components import Connection
 from ..framing import FrameConnection, StreamFraming
 from ..logging import Logger
 from ..requests import Request
-from ..transport import Connection
 
 from .decoded import DecodedStream
 from .distributor import StreamDistributor

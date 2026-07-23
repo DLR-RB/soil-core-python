@@ -26,7 +26,7 @@ class PrintLogger(Logger):
         return self._level
 
     @override
-    def child(self, component: str, level: LogLevel | None = None) -> Logger:
+    def childLogger(self, component: str, level: LogLevel | None = None) -> Logger:
         logger = PrintLogger(self.path.appending(component), level)
         logger.setLevel(level)
         return logger

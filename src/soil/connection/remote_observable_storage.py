@@ -1,16 +1,15 @@
 from typing import override
 
-from ..components import Observable, Storage, Receiver
+from ..components import Connection, ObservableStorage, Receiver
 from ..data import Path, SampleTree, Timestamp
 from ..messaging import MessageConnection, Message, MessageReceiver, MessageType
 from ..requests import Request, AsyncRequest
-from ..transport import Connection
 
 from .remote_storage import RemoteStorage
 from .remote_observable import RemoteObservable
 
 
-class RemoteObservableStorage(MessageReceiver, Observable, Storage):
+class RemoteObservableStorage(MessageReceiver, ObservableStorage):
 
     """
     Create a connection to an observable storage over a connection.

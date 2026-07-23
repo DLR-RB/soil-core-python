@@ -1,8 +1,8 @@
 
 from .memory import InMemoryStorage
-from .observable import ObservableStorage
+from .observing import ObservingStorage
 
 __all__ = [
     'InMemoryStorage',
-    'ObservableStorage',
+    'ObservingStorage',
 ]

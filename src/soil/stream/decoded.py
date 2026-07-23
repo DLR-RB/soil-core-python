@@ -1,11 +1,12 @@
-from typing import Callable, override
+from typing import Callable, override, TYPE_CHECKING
 
 from ..framing import FrameDistributor, FrameConnection, FrameReceiver, StreamFraming
 from ..logging import Logger
 from ..requests import Request
-from ..utils import Actor, queuedAsync, synchronized
+from ..utils import Actor, synchronized, synchronized
 
-from .connection import StreamConnection
+if TYPE_CHECKING:
+    from .connection import StreamConnection
 from .receiver import StreamReceiver
 
 
@@ -128,7 +129,7 @@ class DecodedStream(Actor, FrameConnection, FrameDistributor, StreamReceiver):
         self._receiver = receiver
 
     @override
-    @queuedAsync
+    @synchronized
     def getReceiver(self) -> FrameReceiver | None:
         """
         Get the current frame receiver.

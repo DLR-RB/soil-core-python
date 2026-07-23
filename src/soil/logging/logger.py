@@ -11,7 +11,7 @@ class Logger(ABC):
     """
 
     @abstractmethod
-    def setLevel(self, level: LogLevel | None) -> Request:
+    def setLevel(self, level: LogLevel) -> Request:
         """
         Set the filtering level for this logger.
 
@@ -33,7 +33,7 @@ class Logger(ABC):
         pass
 
     @abstractmethod
-    def child(self, component: str) -> Logger:
+    def childLogger(self, component: str) -> Logger:
         """
         Creates a child logger under this logger.
         The child may inherit the parent's log level threshold.
@@ -66,7 +66,7 @@ class Logger(ABC):
         Logger
             A new ``Logger`` instance representing the child
         """
-        child = self.child(component)
+        child = self.childLogger(component)
         child.setLevel(level)
         return child
 

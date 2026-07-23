@@ -1,11 +1,9 @@
 from abc import abstractmethod
 from typing import override
 
-from ..components.receiver import Receiver
-from ..data.path import Path
-from ..data.sampletree import SampleTree
-from ..requests.request import Request
-from ..transport.connection import Connection
+from ..components import Connection, Receiver
+from ..data import Path, SampleTree
+from ..requests import Request
 
 from .distributor import MessageDistributor
 from .message import Message

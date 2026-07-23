@@ -5,7 +5,7 @@ from ..framing.connection import FrameConnection
 from ..framing.receiver import FrameReceiver
 from ..logging import Logger, NoLogger
 from ..requests import Request
-from ..utils.actor import Actor, synchronized, queuedAsync
+from ..utils.actor import Actor, synchronized, synchronized
 
 from .connection import MessageConnection
 from .message import Message
@@ -118,7 +118,7 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         self._receiver = receiver
 
     @override
-    @queuedAsync
+    @synchronized
     def getReceiver(self) -> MessageReceiver | None:
         return self._receiver
 

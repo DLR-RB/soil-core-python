@@ -1,5 +1,5 @@
 
-from .actor import Actor, synchronized, queued, queuedAsync
+from .actor import Actor, synchronized, queued, queuedAsync, ActorClosedError
 from .buffer import ByteRingBuffer
 
 __all__ = [
@@ -7,5 +7,6 @@ __all__ = [
     'synchronized',
     'queued',
     'queuedAsync',
+    'ActorClosedError',
     'ByteRingBuffer',
 ]

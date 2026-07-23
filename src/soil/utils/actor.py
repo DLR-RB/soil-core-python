@@ -1,11 +1,12 @@
-from asyncio import Queue, Future, create_task, get_event_loop, CancelledError, QueueEmpty
+from asyncio import Queue, Future, create_task, get_running_loop, CancelledError, QueueEmpty, InvalidStateError
+from contextlib import suppress
 from types import CoroutineType
 from typing import Any, Awaitable, Callable, overload
 from collections.abc import Awaitable, Callable
 from functools import wraps
 from typing import Concatenate, ParamSpec, TypeVar
 
-from ..requests import Request, FutureRequest, CompletedRequest
+from ..requests import Request, FutureRequest
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -33,6 +34,8 @@ class Actor:
 
     The annotation `@synchronized` can be used on methods to run them on the Queue,
     returning a `Request`. Use `@queued` to only return an asyncio Future.
+
+    Actor methods must not await other synchronized methods on the same actor.
     """
 
     def __init__(self):
@@ -41,27 +44,37 @@ class Actor:
         self._isClosed: bool = False
 
     async def _run(self):
-        try:
-            while True:
+        while True:
+            try:
                 item = await self._queue.get()
-                if isinstance(item, _StopSentinel):
-                    # Queue finished due to actor shutdown
-                    break
-                work, future = item
-                try:
-                    result = await work()
-                    future.set_result(result)
-                except Exception as e:
+            except CancelledError:
+                return
+            except Exception as e:
+                print(f"Actor: Failed to get next task ({type(e)}): {e}")
+                return
+            if isinstance(item, _StopSentinel):
+                # Queue finished due to actor shutdown
+                self._failAllPendingWork()
+                return
+            work, future = item
+            try:
+                result = await work()
+            except CancelledError:
+                future.cancel()
+                self._failAllPendingWork()
+                return
+            except Exception as e:
+                # Try to set the exception for the future,
+                # catch error if the future is already completed
+                with suppress(InvalidStateError):
                     future.set_exception(e)
-        except CancelledError:
-            raise
-
-        except Exception:
-            # Fatal actor failure.
-            raise
-
-        finally:
-            self._failAllPendingWork()
+                continue
+            # Try to set the result for the future,
+            # catch error if the future is already completed
+            with suppress(InvalidStateError):
+                future.set_result(result)
+            #
+        #
 
     def _failAllPendingWork(self) -> None:
         while True:
@@ -79,13 +92,11 @@ class Actor:
     async def shutdownActorQueue(self):
         if self._isClosed:
             return
-        self._isClosed = True
         await self._queue.put(_StopSentinel())
+        self._isClosed = True
 
     def _submit(self, work: Callable[[], Awaitable[None]]) -> Request:
         """ Create a future with the work item to be done, and put it one the queue. """
-        if self._isClosed:
-            return CompletedRequest()
         future = self._enqueue(work, default = None)
         return FutureRequest(future)
 
@@ -96,8 +107,7 @@ class Actor:
         default: R | _Missing = _MISSING,
     ) -> Future[R]:
         """ Create a future with the work item to be done, and put it one the queue. """
-        loop = get_event_loop()
-        future: Future[R] = loop.create_future()
+        future: Future[R] = get_running_loop().create_future()
         if not self._isClosed:
             self._queue.put_nowait((work, future))
             return future

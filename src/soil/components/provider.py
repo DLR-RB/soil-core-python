@@ -108,7 +108,7 @@ class Provider(ABC):
         """
         return (await self.tree(path, start, end, 0, limit)).samples
 
-    async def sample(self, path: Path, time: Timestamp) -> Sample | None:
+    async def sample(self, path: Path, time: Timestamp | None) -> Sample | None:
         """
         Get the value for a path at a specific point in time.
 
