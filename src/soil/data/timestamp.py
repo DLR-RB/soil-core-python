@@ -28,6 +28,17 @@ class Timestamp(datetime):
         """ Create a timestamp from the seconds since 1.1.1970 """
         return cls.fromtimestamp(seconds, timezone.utc)
 
+    @classmethod
+    def fromDatetime(cls, dt: datetime) -> 'Timestamp':
+        """ Create a timestamp from a datetime object """
+        return cls(
+            dt.year, dt.month, dt.day,
+            dt.hour, dt.minute, dt.second,
+            dt.microsecond,
+            tzinfo = dt.tzinfo,
+            fold = dt.fold,
+        )
+
     def format(self) -> str:
         """ Convert the timestamp to a string with the date and time """
         return self.strftime("%d.%m.%Y %H:%M:%S")

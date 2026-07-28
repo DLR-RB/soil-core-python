@@ -53,6 +53,11 @@ class RemoteConnection(Receiver, Distributor):
         await connection.setReceiver(self._batches)
         return self
 
+    @property
+    def connection(self) -> MessageConnection:
+        """ The connection to the remote """
+        return self._connection
+
     # MARK: - Receiver
 
     @override

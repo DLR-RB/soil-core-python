@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Self
+from typing import Dict, List, Self, Tuple
 
 from .path import Path
 from .sample import Sample
@@ -236,7 +236,7 @@ class SampleTree(ABC):
 
         return total
 
-    def containedTree(self) -> tuple[Path, "SampleTree"]:
+    def containedTree(self) -> Tuple[Path, 'SampleTree']:
         """
         Find the first meaningful subtree.
 
@@ -245,7 +245,7 @@ class SampleTree(ABC):
 
         Returns
         -------
-        tuple[Path, SampleTree]
+        Tuple[Path, SampleTree]
             The path to the subtree and the subtree itself.
         """
         path = Path()
@@ -260,6 +260,21 @@ class SampleTree(ABC):
             current = child
 
         return path, current
+
+    def containedTreeAtPath(self, path: Path) -> Tuple[Path, 'SampleTree']:
+        """
+        Find the first meaningful subtree, and combine it with a given path.
+
+        Traverses down chains of single-child nodes until a node
+        containing samples or multiple children is encountered.
+
+        Returns
+        -------
+        Tuple[Path, SampleTree]
+            The full path to the subtree and the subtree itself.
+        """
+        subPath, tree = self.containedTree()
+        return path.appending(subPath), tree
 
     def describe(
         self,
