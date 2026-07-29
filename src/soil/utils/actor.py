@@ -62,6 +62,11 @@ class Actor:
             work, future = item
             try:
                 result = await work()
+                # TODO: Fix type annotations properly
+                try:
+                    result = await result
+                except:
+                    pass
             except CancelledError:
                 future.cancel()
                 self._failAllPendingWork()
