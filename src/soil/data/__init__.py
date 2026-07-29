@@ -8,6 +8,7 @@ from .path import Path
 from .sample import Sample
 from .sampletree import SampleTree
 from .timestamp import Timestamp
+from .type import ValueType
 from .value import Value
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     'Sample',
     'SampleTree',
     'Timestamp',
+    'ValueType',
     'Value',
 ]
