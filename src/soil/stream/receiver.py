@@ -9,7 +9,7 @@ class StreamReceiver(ABC):
     """
 
     @abstractmethod
-    def acceptBytes(self, bytes: bytes | bytearray) -> Request:
+    def acceptBytes(self, bytes: bytes) -> Request:
         """
         Process received bytes from the stream.
 

@@ -5,7 +5,7 @@ from ..framing.connection import FrameConnection
 from ..framing.receiver import FrameReceiver
 from ..logging import Logger, NoLogger
 from ..requests import Request
-from ..utils.actor import Actor, synchronized, synchronized
+from ..utils.actor import Actor, synchronized, queuedAsync
 
 from .connection import MessageConnection
 from .message import Message
@@ -43,7 +43,7 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         self.connection = connection
         self.encoding = encoding
         self._receiver: MessageReceiver | None = None
-        self.logger = logger or NoLogger()
+        self.log = logger or NoLogger()
 
     async def initialize(self) -> None:
         await self.connection.setReceiver(self)
@@ -76,14 +76,14 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         Attempts to decode the message contained in the data and forwards it to the message connection.
         """
         if self._receiver is None:
-            self.logger.warning("No receiver for frame")
+            self.log.warning("No receiver for frame")
             return
 
         # Attempt to decode the message from the data
         try:
             message = self.encoding.decode(frame)
         except Exception as e:
-            self.logger.error(f"Failed to decode frame: {e}")
+            self.log.error(f"Failed to decode frame: {e}")
             return
 
         # Forward the decoded message to the component connection
@@ -102,7 +102,7 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         try:
             data = self.encoding.encode(message)
         except Exception as e:
-            self.logger.error(f"Failed to encode frame: {e}")
+            self.log.error(f"Failed to encode frame: {e}")
             return None
         return await self.connection.send(data)
 
@@ -118,7 +118,7 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         self._receiver = receiver
 
     @override
-    @synchronized
+    @queuedAsync
     def getReceiver(self) -> MessageReceiver | None:
         return self._receiver
 

@@ -3,7 +3,7 @@ from typing import Callable, override, TYPE_CHECKING
 from ..framing import FrameDistributor, FrameConnection, FrameReceiver, StreamFraming
 from ..logging import Logger
 from ..requests import Request
-from ..utils import Actor, synchronized, synchronized
+from ..utils import Actor, synchronized, queuedAsync
 
 if TYPE_CHECKING:
     from .connection import StreamConnection
@@ -18,7 +18,7 @@ class DecodedStream(Actor, FrameConnection, FrameDistributor, StreamReceiver):
 
     def __init__(
         self,
-        wrapping: StreamConnection,
+        wrapping: 'StreamConnection',
         framing: StreamFraming,
         logger: Logger | None = None,
     ):
@@ -47,7 +47,7 @@ class DecodedStream(Actor, FrameConnection, FrameDistributor, StreamReceiver):
     @classmethod
     async def create(
         cls,
-        wrapping: StreamConnection,
+        wrapping: 'StreamConnection',
         framing: StreamFraming,
         logger: Logger | None = None,
     ) -> "DecodedStream":
@@ -110,7 +110,7 @@ class DecodedStream(Actor, FrameConnection, FrameDistributor, StreamReceiver):
                 self._log.error(f"Failed to encode for stream: {exc}")
             return
 
-        await self._stream.send(framed).wait()
+        await self._stream.send(framed)
 
     # MARK: FrameDistributor
 
@@ -129,7 +129,7 @@ class DecodedStream(Actor, FrameConnection, FrameDistributor, StreamReceiver):
         self._receiver = receiver
 
     @override
-    @synchronized
+    @queuedAsync
     def getReceiver(self) -> FrameReceiver | None:
         """
         Get the current frame receiver.
