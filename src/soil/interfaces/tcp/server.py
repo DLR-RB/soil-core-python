@@ -13,13 +13,14 @@ class TcpSocketServer:
     TCP server exposing each connection as a StreamConnection
     """
 
-    def __init__(self, port: int, logger: Logger | None = None) -> None:
+    def __init__(self, *, host: str = "0.0.0.0", port: int, logger: Logger | None = None) -> None:
         """
         Create a TCP server for connection.
 
         :param port: The local port to use for the server.
         :param logger: The logger to use for internal messages and issues.
         """
+        self._requestedHost = host
         self._requestedPort = port
         self._server: asyncio.base_events.Server | None = None
         self._running = False
@@ -141,7 +142,7 @@ class TcpSocketServer:
         try:
             self._server = await asyncio.start_server(
                 self._handleConnection,
-                host="0.0.0.0",
+                host=self._requestedHost,
                 port=self._requestedPort,
             )
         except Exception as exc:

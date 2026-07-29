@@ -40,7 +40,7 @@ class RemoteStorage(MessageReceiver, Storage):
         cls,
         connection: MessageConnection,
         requestTimeout: float = 30.0,
-    ) -> "RemoteStorage":
+    ) -> 'RemoteStorage':
         requests = RemoteDataRequests()
         instance = cls(
             connection=connection,

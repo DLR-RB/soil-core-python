@@ -33,7 +33,7 @@ class Logger(ABC):
         pass
 
     @abstractmethod
-    def childLogger(self, component: str) -> Logger:
+    def childLogger(self, component: str) -> 'Logger':
         """
         Creates a child logger under this logger.
         The child may inherit the parent's log level threshold.
@@ -50,7 +50,7 @@ class Logger(ABC):
         """
         pass
 
-    def childWithLevel(self, component: str, level: LogLevel) -> Logger:
+    def childWithLevel(self, component: str, level: LogLevel) -> 'Logger':
         """
         Creates a child logger under this logger.
 

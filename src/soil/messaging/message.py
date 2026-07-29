@@ -105,7 +105,7 @@ class Message:
         request: int,
         path: Path,
         timestamp: Timestamp | None = None,
-    ) -> Message:
+    ) -> 'Message':
         """
         Create an empty acknowledgement message.
 
@@ -142,7 +142,7 @@ class Message:
         timestamp: Timestamp | None = None,
         request: int | None = None,
         totalMessages: int | None = None,
-    ) -> Message:
+    ) -> 'Message':
         """
         Create a data message containing a single value.
 
@@ -185,7 +185,7 @@ class Message:
         path: Path,
         request: int | None = None,
         totalMessages: int | None = None,
-    ) -> Message:
+    ) -> 'Message':
         """
         Create a data message containing multiple samples.
 
@@ -224,7 +224,7 @@ class Message:
         path: Path,
         request: int | None = None,
         totalMessages: int | None = None,
-    ) -> Message:
+    ) -> 'Message':
         """
         Create a data message containing a sample tree.
 
@@ -265,7 +265,7 @@ class Message:
         limit: int | None = None,
         depth: int | None = None,
         id: int | None = None,
-    ) -> Message:
+    ) -> 'Message':
         """
         Create a history request.
 
@@ -313,7 +313,7 @@ class Message:
         end: Timestamp | None = None,
         depth: int | None = None,
         id: int | None = None,
-    ) -> Message:
+    ) -> 'Message':
         """
         Create a deletion request.
 
@@ -356,7 +356,7 @@ class Message:
         cls,
         path: Path,
         depth: int | None = None,
-    ) -> Message:
+    ) -> 'Message':
         """
         Create a subscription inclusion request.
 
@@ -388,7 +388,7 @@ class Message:
         cls,
         path: Path,
         depth: int | None = None,
-    ) -> Message:
+    ) -> 'Message':
         """
         Create a subscription exclusion request.
 
@@ -420,7 +420,7 @@ class Message:
         cls,
         path: Path,
         depth: int | None = None,
-    ) -> Message:
+    ) -> 'Message':
         """
         Create a subscription rule deletion request.
 
@@ -453,7 +453,7 @@ class Message:
         messageType: MessageType,
         path: Path,
         depth: int | None = None,
-    ) -> Message:
+    ) -> 'Message':
         """
         Create a subscription modification request.
 

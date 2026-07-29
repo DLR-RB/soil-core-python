@@ -30,7 +30,7 @@ class HostedStorage(Actor, Storage, MessageReceiver):
         cls,
         storage: Storage,
         connection: MessageConnection,
-    ) -> HostedStorage:
+    ) -> 'HostedStorage':
         """
         Create a hosted storage.
 

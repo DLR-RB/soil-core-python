@@ -13,7 +13,7 @@ class LogLevel(IntEnum):
     ERROR = 4
 
     @staticmethod
-    def fromString(raw: str) -> LogLevel | None:
+    def fromString(raw: str) -> 'LogLevel | None':
         """
         Create a log level from a raw string
         """

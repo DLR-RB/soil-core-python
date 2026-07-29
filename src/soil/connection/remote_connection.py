@@ -32,7 +32,7 @@ class RemoteConnection(Receiver, Distributor):
         receiver: Receiver,
         connection: MessageConnection,
         batchTimeout: float = 30.0,
-    ) -> "RemoteConnection":
+    ) -> 'RemoteConnection':
         """
         Create an interface to a remote transmitter.
 

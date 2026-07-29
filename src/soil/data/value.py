@@ -8,7 +8,7 @@ class Value:
         self.value: int | str | float | bytes | Path | None = value
 
     @staticmethod
-    def path(*components: str) -> Value:
+    def path(*components: str) -> 'Value':
         return Value(Path(components))
 
     @property
@@ -20,8 +20,6 @@ class Value:
             case Path(): return ValueType.PATH
             case None: return ValueType.NONE
             case bytes(): return ValueType.DATA
-            case bytearray(): return ValueType.DATA
-            case memoryview(): return ValueType.DATA
 
     @property
     def intValue(self) -> int | None:
@@ -65,7 +63,6 @@ class Value:
             case Path(p): return str(p)
             case None: return 'null'
             case bytes(b): return b.hex() + ' (DATA)'
-            case bytearray(b): return b.hex() + ' (DATA)'
             case _: return f"{self.value} (Unknown)"
 
     def __eq__(self, value: object) -> bool:

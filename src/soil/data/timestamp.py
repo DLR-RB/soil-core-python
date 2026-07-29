@@ -13,7 +13,7 @@ class Timestamp(datetime):
         """ The current time in UTC """
         return cls.now(tz=timezone.utc)
 
-    def adding(self, interval: float) -> Timestamp:
+    def adding(self, interval: float) -> 'Timestamp':
         """ Create a new timestamp by adding the given interval to this timestamp """
         seconds = self.timeIntervalSince1970 + interval
         return Timestamp.fromTimeIntervalSince1970(seconds)
@@ -43,6 +43,6 @@ class Timestamp(datetime):
         """ Convert the timestamp to a string with the date and time """
         return self.strftime("%d.%m.%Y %H:%M:%S")
 
-    def isVeryCloseTo(self, other: Timestamp, maxDifference: float = 0.001) -> bool:
+    def isVeryCloseTo(self, other: 'Timestamp', maxDifference: float = 0.001) -> bool:
         return abs(self.timestamp() - other.timestamp()) < maxDifference
 

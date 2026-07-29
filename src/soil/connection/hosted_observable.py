@@ -26,7 +26,7 @@ class HostedObservable(MessageReceiver, Receiver):
         self.connection = connection
 
     @classmethod
-    async def create(cls, observable: Observable, connection: MessageConnection) -> HostedObservable:
+    async def create(cls, observable: Observable, connection: MessageConnection) -> 'HostedObservable':
         self = cls(observable, connection)
         await connection.setReceiver(self)
         await observable.setReceiver(self)

@@ -77,7 +77,7 @@ class MutableSampleTree(SampleTree):
             path.append(name)
         return (path, current)
 
-    def child(self, name: str) -> MutableSampleTree:
+    def child(self, name: str) -> 'MutableSampleTree':
         """
         Select a child of this node with a given name.
 
@@ -324,7 +324,7 @@ class MutableSampleTree(SampleTree):
 
     # MARK: Mutable Tree
 
-    def findOrCreateNode(self, path: Path) -> MutableSampleTree:
+    def findOrCreateNode(self, path: Path) -> 'MutableSampleTree':
         """
         Find an existing node, or create it in the tree.
 
@@ -337,17 +337,17 @@ class MutableSampleTree(SampleTree):
             node = node.child(component)
         return node
 
-    def createChild(self, name: str) -> MutableSampleTree:
+    def createChild(self, name: str) -> 'MutableSampleTree':
         child = MutableSampleTree()
         self._children[name] = child
         return child
 
-    def add(self, child: MutableSampleTree, name: str) -> None:
+    def add(self, child: 'MutableSampleTree', name: str) -> None:
         self._children[name] = child
 
     # MARK: Tree
 
-    def existingNode(self, path: Path) -> MutableSampleTree | None:
+    def existingNode(self, path: Path) -> 'MutableSampleTree | None':
         """
         Get a node for a path below the current node, if it exists.
 
@@ -363,7 +363,7 @@ class MutableSampleTree(SampleTree):
             current = child
         return current
 
-    def existingChild(self, name: str) -> MutableSampleTree | None:
+    def existingChild(self, name: str) -> 'MutableSampleTree | None':
         child = self._children.get(name)
         if child is None:
             return None
@@ -373,7 +373,7 @@ class MutableSampleTree(SampleTree):
         self._children[name] = newChild
         return newChild
 
-    def existingNodes(self, path: Path) -> List[MutableSampleTree]:
+    def existingNodes(self, path: Path) -> List['MutableSampleTree']:
         """
         Get all existing nodes in the tree on the way to a node corresponding to a path.
         - Note: Includes this node as the first element of the result

@@ -29,7 +29,7 @@ class HostedObservableStorage(Storage, MessageReceiver):
         cls,
         observable: ObservableStorage,
         connection: MessageConnection,
-    ) -> "HostedObservableStorage":
+    ) -> 'HostedObservableStorage':
         """
         Host an observable storage over a connection.
 

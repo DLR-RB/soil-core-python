@@ -14,7 +14,7 @@ class Path(list[str]):
             super().__init__(iterable)
 
     @staticmethod
-    def of(*components: str) -> Path:
+    def of(*components: str) -> 'Path':
         return Path(components)
 
     @property
@@ -25,7 +25,7 @@ class Path(list[str]):
     def size(self) -> int:
         return len(self)
 
-    def appending(self, suffix: str | List[str] | Path) -> Path:
+    def appending(self, suffix: 'str | List[str] | Path') -> 'Path':
         if isinstance(suffix, str):
             return Path(self + [suffix])
         elif isinstance(suffix, Path):
@@ -33,7 +33,7 @@ class Path(list[str]):
         else:
             return Path(self + suffix)
 
-    def hasPrefix(self, prefix: Path) -> bool:
+    def hasPrefix(self, prefix: 'Path') -> bool:
         """
         Check if the path starts with another path.
         - Parameter prefix: The path to check as the prefix
@@ -47,7 +47,7 @@ class Path(list[str]):
                 return False
         return True
 
-    def removingPrefix(self, prefix: Path) -> Path:
+    def removingPrefix(self, prefix: 'Path') -> 'Path':
         """
         Remove a prefix from the path.
         - Note: If the path does not start with the prefix, then it remains unchanged.
@@ -58,7 +58,7 @@ class Path(list[str]):
             return self
         return Path(self[prefix.size:])
 
-    def commonPrefix(self, other: Path) -> Path:
+    def commonPrefix(self, other: 'Path') -> 'Path':
         """
         Determine the maximum prefix that the path shares with another path
         - Parameter other: The second path to determine the common prefix
@@ -72,7 +72,7 @@ class Path(list[str]):
             common.append(self[index])
         return Path(common)
 
-    def extractCommonPrefix(self, other: Path) -> Tuple[Path, Path, Path]:
+    def extractCommonPrefix(self, other: 'Path') -> Tuple['Path', 'Path', 'Path']:
         """
         Compute the prefix of the path in common with a given path,
         and return the remaining relative paths.
@@ -109,16 +109,16 @@ class Path(list[str]):
     def __str__(self) -> str:
         return " > ".join(self)
 
-    def __add__(self, other: Iterable[str]) -> Path: # type: ignore
+    def __add__(self, other: Iterable[str]) -> 'Path': # type: ignore
         if not isinstance(other, list):
             return NotImplemented
         return type(self)(super().__add__(other))
 
-    def __radd__(self, other: Iterable[str]) -> Path:
+    def __radd__(self, other: Iterable[str]) -> 'Path':
         if not isinstance(other, list):
             return NotImplemented
         return type(self)(other + list(self))
 
-    def __iadd__(self, other: Iterable[str]) -> Path:
+    def __iadd__(self, other: Iterable[str]) -> 'Path':
         super().__iadd__(other)
         return self

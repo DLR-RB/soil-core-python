@@ -36,7 +36,7 @@ class FrameConnection(Connection, FrameDistributor):
         """
         pass
 
-    async def apply(self, encoding: MessageEncoding, logger: Logger | None = None) -> MessageConnection:
+    async def apply(self, encoding: 'MessageEncoding', logger: Logger | None = None) -> 'MessageConnection':
         """
         Convert this connector to a message connection using the provided encoding.
 

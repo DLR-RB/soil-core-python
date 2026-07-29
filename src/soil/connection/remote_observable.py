@@ -28,7 +28,7 @@ class RemoteObservable(Actor, MessageReceiver, Observable):
     async def create(
         cls,
         connection: MessageConnection,
-    ) -> RemoteObservable:
+    ) -> 'RemoteObservable':
         """
         Create an interface to work with a remote observable component.
 

@@ -125,7 +125,7 @@ class Receiver(ABC):
 
     # MARK: Logging
 
-    def logger(self, level: LogLevel, *path: str) -> Logger:
+    def logger(self, level: 'LogLevel', *path: str) -> 'Logger':
         """
         Create a logger that forwards log entries to the receiver as strings.
 
@@ -138,7 +138,7 @@ class Receiver(ABC):
         """
         return self.loggerAtPath(level, Path.of(*path))
 
-    def loggerAtPath(self, level: LogLevel, path: Path) -> Logger:
+    def loggerAtPath(self, level: 'LogLevel', path: Path) -> 'Logger':
         """
         Create a logger that forwards log entries to the receiver as strings.
 

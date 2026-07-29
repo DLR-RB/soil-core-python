@@ -1,10 +1,13 @@
 from asyncio import Queue, Future, create_task, get_running_loop, CancelledError, QueueEmpty, InvalidStateError
 from contextlib import suppress
-from types import CoroutineType
+from typing import TYPE_CHECKING
 from typing import Any, Awaitable, Callable, overload
 from collections.abc import Awaitable, Callable
 from functools import wraps
 from typing import Concatenate, ParamSpec, TypeVar
+
+if TYPE_CHECKING:
+    from types import CoroutineType
 
 from ..requests import Request, FutureRequest
 
@@ -140,7 +143,7 @@ def synchronized(
 
 def queuedAsync(
     method: Callable[Concatenate[SelfT, P], R],
-) -> Callable[Concatenate[SelfT, P], CoroutineType[Any, Any, R]]:
+) -> Callable[Concatenate[SelfT, P], 'CoroutineType[Any, Any, R]']:
     """
     Run a synchronous function on the actor queue, returning the result
     """

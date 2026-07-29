@@ -27,7 +27,7 @@ class SampleTree(ABC):
 
     @classmethod
     @abstractmethod
-    def create(cls, samples: List[Sample] | None = None, children: Dict[str, SampleTree] | None = None) -> Self:
+    def create(cls, samples: List[Sample] | None = None, children: Dict[str, 'SampleTree'] | None = None) -> Self:
         """
 
         Note: This function acts as a required constructor for all subclasses
@@ -50,7 +50,7 @@ class SampleTree(ABC):
         """
         pass
 
-    def isEqualTo(self, other: SampleTree) -> bool:
+    def isEqualTo(self, other: 'SampleTree') -> bool:
         """
         Compare two trees recursively.
 
@@ -96,7 +96,7 @@ class SampleTree(ABC):
         return cls.create()
 
     @classmethod
-    def ofSample(cls, sample: Sample, children: Dict[str, SampleTree] | None = None) -> Self:
+    def ofSample(cls, sample: Sample, children: Dict[str, 'SampleTree'] | None = None) -> Self:
         """
         Create a tree with a sample at the root.
 
@@ -115,7 +115,7 @@ class SampleTree(ABC):
         return cls.create([sample], children)
 
     @classmethod
-    def ofValue(cls, value: Value, timestamp: Timestamp | None = None, children: Dict[str, SampleTree] | None = None) -> Self:
+    def ofValue(cls, value: Value, timestamp: Timestamp | None = None, children: Dict[str, 'SampleTree'] | None = None) -> Self:
         """
         Create a tree with a value at the root.
 

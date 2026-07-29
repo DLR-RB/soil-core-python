@@ -237,7 +237,7 @@ class SubscriptionTree:
 
     # MARK: - Helpers
 
-    def child(self, name: str) -> SubscriptionTree:
+    def child(self, name: str) -> 'SubscriptionTree':
         """
         Select a child of this node with a given name.
 
@@ -253,7 +253,7 @@ class SubscriptionTree:
         self.children[name] = child
         return child
 
-    def findOrCreateNode(self, path: Path) -> SubscriptionTree:
+    def findOrCreateNode(self, path: Path) -> 'SubscriptionTree':
         """
         Find an existing node, or create it in the tree.
 
@@ -266,10 +266,10 @@ class SubscriptionTree:
             node = node.child(component)
         return node
 
-    def existingChild(self, name: str) -> SubscriptionTree | None:
+    def existingChild(self, name: str) -> 'SubscriptionTree | None':
         return self.children.get(name)
 
-    def existingNodes(self, path: Path) -> List[SubscriptionTree]:
+    def existingNodes(self, path: Path) -> List['SubscriptionTree']:
         """
         Get all existing nodes in the tree on the way to a node corresponding to a path.
         - Note: Includes this node as the first element of the result
@@ -335,7 +335,7 @@ class SubscriptionTree:
     def _allNodes(
         self,
         path: Path,
-    ) -> list["SubscriptionTree"]:
+    ) -> List['SubscriptionTree']:
         """
         Get all nodes along a path, including dummy nodes if needed.
 
@@ -360,7 +360,7 @@ class SubscriptionTree:
     def reduceNode(
         self,
         tree: SampleTree,
-        parents: list["SubscriptionTree"] | None = None,
+        parents: List['SubscriptionTree'] | None = None,
     ) -> SampleTree | None:
         """
         Use the subscriptions to remove all excluded parts of a tree.
@@ -423,7 +423,7 @@ class SubscriptionTree:
 
     def _isSubscribed(
         self,
-        parentNodes: list["SubscriptionTree"],
+        parentNodes: List['SubscriptionTree'],
         depth: int,
     ) -> bool:
         """
