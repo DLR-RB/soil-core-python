@@ -10,7 +10,7 @@ class PrintReceiver(Receiver):
     A simple receiver that prints all received data to stdout.
     """
 
-    def __init__(self, dateFormat: str = "HH:mm:ss dd.MM.yyyy") -> None:
+    def __init__(self, dateFormat: str = "%H:%M:%S %d.%m.%Y") -> None:
         """
         Create a receiver that prints to stdout using a European date format.
 
