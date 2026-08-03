@@ -62,7 +62,7 @@ def _encodeTree(tree: SampleTree, container: Dict[str, Any], canUseRoot: bool) -
         # Encode a single sample at the top-level of the container,
         # but only if the 'time' field is not already used
         _encodeSampleToContainer(samples[0], container)
-    else:
+    elif len(samples) > 1:
         container['samples'] = [_encodeSample(s) for s in samples]
 
     children = tree.children
