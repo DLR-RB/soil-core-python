@@ -2,8 +2,8 @@ from abc import abstractmethod
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from ..encoding.encoding import MessageEncoding
     from ..messaging.connection import MessageConnection
+    from ..messaging.encoding import MessageEncoding
 
 from ..logging import Logger
 from ..requests import Request

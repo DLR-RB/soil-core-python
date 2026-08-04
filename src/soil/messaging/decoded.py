@@ -1,6 +1,5 @@
 from typing import Callable, Optional, override
 
-from ..encoding.encoding import MessageEncoding
 from ..framing.connection import FrameConnection
 from ..framing.receiver import FrameReceiver
 from ..logging import Logger, NoLogger
@@ -8,6 +7,7 @@ from ..requests import Request
 from ..utils.actor import Actor, synchronized, queuedAsync
 
 from .connection import MessageConnection
+from .encoding import MessageEncoding
 from .message import Message
 from .receiver import MessageReceiver
 

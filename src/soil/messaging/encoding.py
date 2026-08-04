@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from ..messaging.message import Message
+from .message import Message
 
 
 class MessageEncoding(ABC):

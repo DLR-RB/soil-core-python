@@ -7,12 +7,12 @@ from soil.data.path import Path
 from soil.data.timestamp import Timestamp
 from soil.data.type import ValueType
 
-from ..messaging.message import Message
-from ..messaging.message_type import MessageType
-from ..data.sample import Sample
-from ..data.sampletree import SampleTree
-from ..data.value import Value
-from .encoding import MessageEncoding
+from ...messaging.encoding import MessageEncoding
+from ...messaging.message import Message
+from ...messaging.message_type import MessageType
+from ...data.sample import Sample
+from ...data.sampletree import SampleTree
+from ...data.value import Value
 
 
 class JsonEncoding(MessageEncoding):
