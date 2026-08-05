@@ -19,13 +19,13 @@ class JsonKey(StrEnum):
     MESSAGE_TYPE = "m"
     COUNT = "c"
     DEPTH = "d"
-    TIME = "b"
+    TIME = "t"
     END = "e"
     ID = "i"
     CHILDREN = "n"
     SAMPLES = "s"
     VALUE = "v"
-    VALUE_TYPE = "t"
+    VALUE_TYPE = "h" # "h" for  type "hint"
     PATH = "p"
 
 
@@ -47,7 +47,7 @@ def _convertMessageToDict(message: Message) -> Dict[str, Any]:
     result:  Dict[str, Any] = dict()
     # Only encode message type if not a data message
     if message.type != MessageType.DATA:
-        result[JsonKey.MESSAGE_TYPE] = str(message.type)
+        result[JsonKey.MESSAGE_TYPE] = _encodeMessageType(message.type)
     # If the path is absent, then it defaults to an empty path
     if not message.path.isEmpty:
         result[JsonKey.PATH] = message.path
@@ -117,7 +117,7 @@ def _convertJsonToMessage(raw: Any) -> Message:
         raise ValueError("Top-level JSON is not a dict")
     #
     container: Dict[str, Any] = raw # pyright: ignore[reportUnknownVariableType]
-    type = _decodeMessageType(container)
+    type = _decodeMessageTypeField(container)
     path = _decodePath(container)
     count = _decodeInt(container, JsonKey.COUNT)
     depth = _decodeInt(container, JsonKey.DEPTH)
@@ -128,13 +128,13 @@ def _convertJsonToMessage(raw: Any) -> Message:
 
     return Message(type, path, data, count, depth, time, end, id)
 
-def _decodeMessageType(container: Dict[str, Any]) -> MessageType:
+def _decodeMessageTypeField(container: Dict[str, Any]) -> MessageType:
     rawType = container.get(JsonKey.MESSAGE_TYPE)
     if rawType is None:
         return MessageType.DATA
-    if not isinstance(rawType, str):
-        raise ValueError("Message type is not a string")
-    return MessageType(rawType)
+    if not isinstance(rawType, int):
+        raise ValueError("Message type is not a integer")
+    return _decodeMessageType(rawType)
 
 def _decodePath(container: Dict[str, Any]) -> Path:
     rawPath = container.get('p')
@@ -301,3 +301,24 @@ def _encodeValueType(type: ValueType) -> int:
         case ValueType.STRING: return 3
         case ValueType.DATA: return 4
         case ValueType.PATH: return 5
+
+# MARK: Message type
+
+def _decodeMessageType(raw: int) -> MessageType:
+    match raw:
+        case 0: return MessageType.DATA
+        case 1: return MessageType.REQUEST
+        case 2: return MessageType.DELETION
+        case 3: return MessageType.SUBSCRIPTION_INCLUSION
+        case 4: return MessageType.SUBSCRIPTION_EXCLUSION
+        case 5: return MessageType.SUBSCRIPTION_DELETION
+        case _: raise ValueError(f"Unknown message type {raw}")
+
+def _encodeMessageType(type: MessageType) -> int:
+    match type:
+        case MessageType.DATA: return 0
+        case MessageType.REQUEST: return 1
+        case MessageType.DELETION: return 2
+        case MessageType.SUBSCRIPTION_INCLUSION: return 3
+        case MessageType.SUBSCRIPTION_EXCLUSION: return 4
+        case MessageType.SUBSCRIPTION_DELETION: return 5
