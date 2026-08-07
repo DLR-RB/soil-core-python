@@ -97,7 +97,7 @@ class Actor:
                 continue
             future.set_exception(ActorClosedError())
 
-    async def shutdownActorQueue(self):
+    async def shutdown(self):
         if self._isClosed:
             return
         await self._queue.put(_StopSentinel())
