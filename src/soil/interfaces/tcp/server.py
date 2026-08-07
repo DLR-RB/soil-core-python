@@ -224,7 +224,7 @@ class TcpSocketServer:
             try:
                 self._log.info("Closing socket")
                 self._server.close()
-                self._cancelConnections()
+                await self._cancelConnections()
                 await self._server.wait_closed()
             except Exception as exc:
                 self._log.warning(f"Failed to close server socket: {exc}")
@@ -247,8 +247,12 @@ class TcpSocketServer:
         for connection in self._connections:
             if await connection.isOpen():
                 remaining.append(connection)
+            else:
+                await connection.shutdown()
         self._connections = remaining
 
-    def _cancelConnections(self):
+    async def _cancelConnections(self):
         for connection in self._connections:
-            connection.close()
+            await connection.close()
+            await connection.shutdown() # Stop actor loop
+        self._connections = []
