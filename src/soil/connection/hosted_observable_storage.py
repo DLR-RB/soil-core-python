@@ -180,3 +180,6 @@ class HostedObservableStorage(Storage, MessageReceiver):
             A request that can be used to wait until completion.
         """
         return self._storage.delete(path, start, end, depth)
+
+    async def shutdown(self):
+        await self._storage.shutdown()
