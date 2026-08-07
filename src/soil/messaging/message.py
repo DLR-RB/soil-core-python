@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Optional
 
 from soil.data.sample import Sample
 
@@ -50,7 +49,7 @@ class Message:
     - Data message: The tree associated with the path
     """
 
-    count: Optional[int] = None
+    count: int | None = None
     """
     A generic count or limit.
 
@@ -60,7 +59,7 @@ class Message:
     - Request message: The maximum number of samples to return
     """
 
-    depth: Optional[int] = None
+    depth: int | None = None
     """
     The depth of a tree.
 
@@ -70,7 +69,7 @@ class Message:
     - Subscription exclusion: The depth of the exclusion
     """
 
-    time: Optional[Timestamp] = None
+    time: Timestamp | None = None
     """
     A (start) date.
 
@@ -80,7 +79,7 @@ class Message:
     - Request message: Used as the start date for the request
     """
 
-    end: Optional[Timestamp] = None
+    end: Timestamp | None = None
     """
     The end date used in requests.
 
@@ -88,7 +87,7 @@ class Message:
     - Request message: Used to indicate the end of a request interval
     """
 
-    id: Optional[int] = None
+    id: int | None = None
     """
     The id of the request or subscription.
 
@@ -496,7 +495,7 @@ class Message:
         """
         content = [f"type: {self.type}"]
 
-        if self.path.isEmpty:
+        if not self.path.isEmpty:
             content.append(f"path: {self.path}")
 
         if self.count is not None:
