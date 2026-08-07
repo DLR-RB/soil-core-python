@@ -3,7 +3,7 @@ from unittest import main
 
 from soil.components import Receiver
 from soil.connection import DataMessageSplitter, RemoteTransmitter
-from soil.encoding import JsonEncoding
+from soil.encoding.json import JsonEncoding
 from soil.messaging import MessageReceiver, Message
 from soil.data import ImmutableSampleTree, Path, Sample, SampleTree, Timestamp, Value
 from soil.utils import Actor, synchronized, queuedAsync
@@ -93,6 +93,9 @@ class DataMessageSplitterTest(SoilAsyncTest):
         await splitter.send(Message.tree(tree, Path.of("xyz"))).wait()
         self.assertEqual(await receiver.getCount(), 4)
 
+        await one.shutdown()
+        await two.shutdown()
+
     async def testSplitBatchCorrectly(self):
         """ Send separate messages of a batch to the splitter, and recombine them """
 
@@ -161,6 +164,9 @@ class DataMessageSplitterTest(SoilAsyncTest):
         # Keep a reference so the object isn't optimized away.
         await combiner.setReceiver(receiver).wait()
 
+        await one.shutdown()
+        await two.shutdown()
+
     async def testRecombineMessages(self):
         """Recombine split messages into a single tree."""
 
@@ -225,6 +231,9 @@ class DataMessageSplitterTest(SoilAsyncTest):
 
         # Keep a reference so the object isn't optimized away.
         await combiner.setReceiver(receiver).wait()
+
+        await one.shutdown()
+        await two.shutdown()
 
 
 if __name__ == "__main__":

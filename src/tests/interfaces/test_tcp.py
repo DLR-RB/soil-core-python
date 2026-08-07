@@ -20,7 +20,7 @@ from ..util import TestStorage
 class TcpSocketTest(IsolatedAsyncioTestCase):
 
     async def testRemoteStorageWriteRead(self):
-        server = TcpSocketServer(0)
+        server = TcpSocketServer(port = 0)
         serverHandler = TestServer()
 
         server.onConnection(serverHandler.accept)
@@ -82,12 +82,14 @@ class TcpSocketTest(IsolatedAsyncioTestCase):
             self.assertTrue(await server.stop())
             await socket.close()
 
+        await serverHandler.shutdown()
+
     async def testMultipleMessagesInterleaving(self):
         printer = PrintReceiver()
 
         logger = printer.loggerAtPath(LogLevel.DEBUG, Path.of())
 
-        server = TcpSocketServer(12345)
+        server = TcpSocketServer(port = 12345)
         serverHandler = TestServer()
 
         server.onConnection(serverHandler.accept)
@@ -138,6 +140,7 @@ class TcpSocketTest(IsolatedAsyncioTestCase):
         await connectionToServer.acceptValue(Value("Even more"), Path.of("more"))
 
         await server.stop()
+        await serverHandler.shutdown()
 
 
 class ReceptionCounter(MessageReceiver):
@@ -178,3 +181,9 @@ class TestServer:
         if len(self._clients) == 0:
             return None
         return self._clients[-1]
+
+    async def shutdown(self):
+        for connection in self._clients:
+            await connection.shutdown()
+        for storage in self._storages:
+            await storage.shutdown()
