@@ -23,5 +23,11 @@ dependencies = [
 To run the tests:
 
 ```bash
-python -m unittest discover -s tests
+python -m unittest discover -s src
+```
+
+Or run single tests:
+
+```bash
+python -m unittest src.tests.encoding.test_binary.BinaryTests.testTree
 ```
