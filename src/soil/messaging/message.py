@@ -43,7 +43,7 @@ class Message:
         default_factory=lambda: ImmutableSampleTree.empty()
     )
     """
-    A data associated with the ``path``.
+    Data associated with the ``path``.
 
     Usage:
     - Data message: The tree associated with the path
@@ -71,11 +71,9 @@ class Message:
 
     time: Timestamp | None = None
     """
-    A (start) date.
+    The start date.
 
     Usage:
-    - Data message: Used together with ``data`` to indicate the
-      timestamp (``None`` represents the current time)
     - Request message: Used as the start date for the request
     """
 
