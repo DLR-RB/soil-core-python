@@ -225,9 +225,12 @@ class TcpSocketServer:
                 self._log.info("Closing socket")
                 self._server.close()
                 await self._cancelConnections()
-                await self._server.wait_closed()
-            except Exception as exc:
-                self._log.warning(f"Failed to close server socket: {exc}")
+                # Note: self._server may be set null by another task
+                if self._server is not None: # pyright: ignore[reportUnnecessaryComparison]
+                    await self._server.wait_closed()
+            except Exception as e:
+                self._log.warning(f"Failed to close server socket: {e}")
+                print(f"Failed to close server: {e}")
                 return False
 
             self._log.info("Socket closed")
