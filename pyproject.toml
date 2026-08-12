@@ -14,7 +14,8 @@ authors = [
 ]
 
 dependencies = [
-  "requests>=2.31"
+  "requests>=2.31",
+  "websockets",
 ]
 
 [project.optional-dependencies]

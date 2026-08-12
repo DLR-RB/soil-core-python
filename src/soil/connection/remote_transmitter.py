@@ -1,5 +1,8 @@
 from typing import override
 
+from soil.data.path import Path
+from soil.data.sampletree import SampleTree
+
 from ..components import Distributor, Receiver
 from ..messaging import MessageConnection
 from ..requests import Request
@@ -7,7 +10,7 @@ from ..requests import Request
 from .remote_data_collector import RemoteDataCollector
 
 
-class RemoteTransmitter(Distributor):
+class RemoteTransmitter(Distributor, Receiver):
     """
     Process data from a remote component that transmits data.
     """
@@ -36,8 +39,8 @@ class RemoteTransmitter(Distributor):
     @classmethod
     async def create(
         cls,
-        receiver: Receiver,
         connection: MessageConnection,
+        receiver: Receiver | None = None,
         batchTimeout: float = 30.0,
     ) -> 'RemoteTransmitter':
         """
@@ -66,6 +69,7 @@ class RemoteTransmitter(Distributor):
         await connection.setReceiver(batches)
         return instance
 
+    # MARK: Distributor
 
     @override
     def setReceiver(self, receiver: Receiver | None) -> Request:
@@ -86,3 +90,9 @@ class RemoteTransmitter(Distributor):
         Get the receiver of incoming messages of this connection.
         """
         return await self._batches.getReceiver()
+
+    # MARK: Receiver
+
+    @override
+    def accept(self, tree: SampleTree, path: Path) -> Request:
+        return self.connection.accept(tree, path)

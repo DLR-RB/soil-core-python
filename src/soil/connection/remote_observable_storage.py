@@ -323,5 +323,6 @@ class RemoteObservableStorage(MessageReceiver, ObservableStorage, Connection):
     def close(self) -> Request:
         return self._observable.close()
 
+    @override
     def onClose(self, perform: Callable[[], None] | None) -> Request:
         return self._observable.onClose(perform)
