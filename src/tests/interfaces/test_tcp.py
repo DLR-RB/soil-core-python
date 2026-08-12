@@ -7,12 +7,11 @@ from soil.data import Path, SampleTree, Value
 from soil.debug import PrintReceiver
 from soil.encoding.json import JsonEncoding
 from soil.framing import SyncByteLengthFraming
+from soil.interfaces.tcp import TcpSocketClient, TcpSocketServer, TcpSocketConnection
 from soil.logging import LogLevel
 from soil.messaging import MessageReceiver, Message
 from soil.requests import Request, CompletedRequest
 from soil.storage import ObservingStorage
-
-from soil.interfaces.tcp import TcpSocketClient, TcpSocketServer, TcpSocketConnection
 
 from ..util import TestStorage
 
@@ -49,7 +48,8 @@ class TcpSocketTest(IsolatedAsyncioTestCase):
             )
 
             serverHandler.storage.resetWaiting()
-
+            await remote.shutdown()
+            await conn.close()
             await socket.close()
 
         except Exception as exc:
@@ -74,6 +74,8 @@ class TcpSocketTest(IsolatedAsyncioTestCase):
 
             sample = tree.samples[0]
             self.assertEqual(sample.value, Value(123))
+            await remote.shutdown()
+            await conn.close()
             await socket.close()
 
         except Exception as exc:
@@ -141,6 +143,7 @@ class TcpSocketTest(IsolatedAsyncioTestCase):
 
         await server.stop()
         await serverHandler.shutdown()
+        await connectionToServer.close()
 
 
 class ReceptionCounter(MessageReceiver):
@@ -187,3 +190,4 @@ class TestServer:
             await connection.shutdown()
         for storage in self._storages:
             await storage.shutdown()
+        await self.storage.shutdown()

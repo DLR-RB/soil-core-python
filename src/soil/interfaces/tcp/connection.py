@@ -33,7 +33,7 @@ class TcpSocketConnection(Actor, StreamConnection):
         self._receiver: StreamReceiver | None = None
 
         #: Internal state to cancel the reading thread
-        self._running = True
+        self._running: bool = True
 
         #: Counter to track the number of received bytes
         self._receivedByteCount = 0
@@ -172,8 +172,11 @@ class TcpSocketConnection(Actor, StreamConnection):
         The callback provided to onClose() is run after the connection is closed.
         """
         if self._writer.is_closing():
+            self._running = False
+            await self.shutdown()
             return
-
+        if not self._running:
+            return
         self._running = False
 
         try:
@@ -191,6 +194,7 @@ class TcpSocketConnection(Actor, StreamConnection):
             self._readTask.cancel()
             with suppress(CancelledError):
                 await self._readTask
+        await self.shutdown()
 
     def __eq__(self, other: object) -> bool:
         if self is other:

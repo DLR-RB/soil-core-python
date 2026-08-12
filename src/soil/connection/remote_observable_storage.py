@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import override
 
 from ..components import Connection, ObservableStorage, Receiver
@@ -9,7 +10,7 @@ from .remote_storage import RemoteStorage
 from .remote_observable import RemoteObservable
 
 
-class RemoteObservableStorage(MessageReceiver, ObservableStorage):
+class RemoteObservableStorage(MessageReceiver, ObservableStorage, Connection):
 
     """
     Create a connection to an observable storage over a connection.
@@ -36,6 +37,10 @@ class RemoteObservableStorage(MessageReceiver, ObservableStorage):
 
         await connection.setReceiver(instance).wait()
         return instance
+
+    async def shutdown(self):
+        """ Shut down the actor of the wrapped observable """
+        await self._observable.shutdown()
 
     @property
     def connection(self) -> Connection:
@@ -307,3 +312,16 @@ class RemoteObservableStorage(MessageReceiver, ObservableStorage):
             end = end,
             depth = depth,
         )
+
+    # MARK: Connection
+
+    @override
+    async def isOpen(self) -> bool:
+        return await self._observable.isOpen()
+
+    @override
+    def close(self) -> Request:
+        return self._observable.close()
+
+    def onClose(self, perform: Callable[[], None] | None) -> Request:
+        return self._observable.onClose(perform)

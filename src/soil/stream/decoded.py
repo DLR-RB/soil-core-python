@@ -2,7 +2,6 @@ from typing import Callable, override, TYPE_CHECKING
 
 from ..framing import FrameDistributor, FrameConnection, FrameReceiver, StreamFraming
 from ..logging import Logger
-from ..requests import Request
 from ..utils import Actor, synchronized, queuedAsync
 
 if TYPE_CHECKING:
@@ -58,6 +57,14 @@ class DecodedStream(Actor, FrameConnection, FrameDistributor, StreamReceiver):
         self = cls(wrapping, framing, logger)
         await wrapping.setReceiver(self).wait()
         return self
+
+    @override
+    async def shutdown(self) -> None:
+        """ Stop the actor queues and close the stream """
+        if isinstance(self._framing, Actor):
+            await self._framing.shutdown()
+        await self._stream.close()
+        await Actor.shutdown(self)
 
     # MARK: StreamReceiver
 
@@ -146,11 +153,12 @@ class DecodedStream(Actor, FrameConnection, FrameDistributor, StreamReceiver):
         return await self._stream.isOpen()
 
     @override
-    def close(self) -> Request:
+    @synchronized
+    async def close(self) -> None:
         """
         Close the underlying stream connection.
         """
-        return self._stream.close()
+        await self.shutdown()
 
     @override
     @synchronized

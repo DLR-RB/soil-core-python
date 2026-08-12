@@ -15,6 +15,8 @@ class InMemoryStorage(Actor, Storage):
     The database storage is not optimized for extreme performance.
     Each sample for a tree node is inserted separately, which may result in many array operations, even if batch inserts may be possible.
     The assumption is that mostly current samples will be received, which can be appended to the sorted internal array of history values.
+
+    Note: The storage should be shut down using `shutdown()` after use.
     """
 
     root: MutableSampleTree

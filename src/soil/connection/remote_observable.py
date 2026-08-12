@@ -1,6 +1,7 @@
+from collections.abc import Callable
 from typing import override
 
-from ..components import Receiver, Observable
+from ..components import Receiver, Observable, Connection
 from ..data import SampleTree, Path
 from ..messaging import MessageConnection, MessageReceiver, Message, MessageType
 from ..requests import Request, CompletedRequest
@@ -8,7 +9,7 @@ from ..subscriptions import SubscriptionTree
 from ..utils import Actor, synchronized
 
 
-class RemoteObservable(Actor, MessageReceiver, Observable):
+class RemoteObservable(Actor, MessageReceiver, Observable, Connection):
     """
     Connect to an observable component via a transport layer.
     """
@@ -41,6 +42,11 @@ class RemoteObservable(Actor, MessageReceiver, Observable):
         await connection.setReceiver(self)
 
         return self
+
+    @override
+    async def shutdown(self) -> None:
+        await self.connection.close()
+        await super().shutdown()
 
     # MARK: - Transport Layer Interaction
 
@@ -226,3 +232,18 @@ class RemoteObservable(Actor, MessageReceiver, Observable):
             The reduced tree, if any inclusion rules match, otherwise ``None``.
         """
         return self._subscriptions.reduce(tree, path)
+
+    # MARK: Connection
+
+    @override
+    async def isOpen(self) -> bool:
+        return await self.connection.isOpen()
+
+    @override
+    @synchronized
+    async def close(self) -> None:
+        await self.shutdown()
+
+    @override
+    def onClose(self, perform: Callable[[], None] | None) -> Request:
+        return self.connection.onClose(perform)

@@ -95,6 +95,7 @@ class DataMessageSplitterTest(SoilAsyncTest):
 
         await one.shutdown()
         await two.shutdown()
+        await receiver.shutdown()
 
     async def testSplitBatchCorrectly(self):
         """ Send separate messages of a batch to the splitter, and recombine them """
@@ -166,6 +167,7 @@ class DataMessageSplitterTest(SoilAsyncTest):
 
         await one.shutdown()
         await two.shutdown()
+        await receiver.shutdown()
 
     async def testRecombineMessages(self):
         """Recombine split messages into a single tree."""
@@ -234,6 +236,7 @@ class DataMessageSplitterTest(SoilAsyncTest):
 
         await one.shutdown()
         await two.shutdown()
+        await receiver.shutdown()
 
 
 if __name__ == "__main__":

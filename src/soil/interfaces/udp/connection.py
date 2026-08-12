@@ -116,4 +116,5 @@ class UdpConnection(Actor, FrameConnection):
         if self._closeCallback is not None:
             self._closeCallback()
 
+        await self.shutdown()
         # TODO: Notify UdpSocket that this connection is closed?

@@ -1,13 +1,14 @@
+from collections.abc import Callable
 from typing import override
 
-from ..components import Storage
+from ..components import Storage, Connection
 from ..data import Path, SampleTree, Timestamp
 from ..messaging import MessageConnection, Message, MessageType, MessageReceiver
 from ..requests import Request
 from ..utils import Actor, synchronized
 
 
-class HostedStorage(Actor, Storage, MessageReceiver):
+class HostedStorage(Actor, Storage, MessageReceiver, Connection):
     """
     Expose a storage over a transport interface.
 
@@ -316,3 +317,19 @@ class HostedStorage(Actor, Storage, MessageReceiver):
             A request that can be used to wait until completion.
         """
         return self._storage.delete(path, start, end, depth)
+
+    # MARK: Connection
+
+    @override
+    async def isOpen(self) -> bool:
+        return await self.connection.isOpen()
+
+    @override
+    @synchronized
+    async def close(self) -> None:
+        await self.connection.close()
+        await self.shutdown()
+
+    @override
+    def onClose(self, perform: Callable[[], None] | None) -> Request:
+        return self.connection.onClose(perform)

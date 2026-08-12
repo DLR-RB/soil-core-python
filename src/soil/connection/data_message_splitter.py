@@ -178,8 +178,10 @@ class DataMessageSplitter(Actor, MessageConnection, MessageReceiver):
         return await self._connection.isOpen()
 
     @override
-    def close(self) -> Request:
-        return self._connection.close()
+    @synchronized
+    async def close(self) -> None:
+        await self._connection.close()
+        await self.shutdown()
 
     @override
     def onClose(self, perform: Optional[Callable[[], None]]) -> Request:

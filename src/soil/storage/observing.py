@@ -4,12 +4,14 @@ from ..components import ObservableStorage, Receiver, Storage
 from ..data import Path, SampleTree, Timestamp
 from ..requests import Request
 from ..subscriptions import SubscriptionTree
-from ..utils import Actor, synchronized, synchronized
+from ..utils import Actor, synchronized, queuedAsync
 
 
 class ObservingStorage(Actor, ObservableStorage):
     """
     A wrapper to make a storage observable.
+
+    Note: The storage should be shut down using `shutdown()` after use.
     """
 
     def __init__(self, wrapping: Storage):
@@ -39,7 +41,7 @@ class ObservingStorage(Actor, ObservableStorage):
         self._receiver = receiver
 
     @override
-    @synchronized
+    @queuedAsync
     def getReceiver(self) -> Receiver | None:
         """
         Get the receiver for matching data.
@@ -109,7 +111,7 @@ class ObservingStorage(Actor, ObservableStorage):
         self._subscriptions.deleteRules(path, depth=depth)
 
     @override
-    @synchronized
+    @queuedAsync
     def isSubscribed(self, path: Path) -> bool:
         """
         Check if a particular path is covered by the current subscription
@@ -124,7 +126,7 @@ class ObservingStorage(Actor, ObservableStorage):
         return self._subscriptions.isSubscribed(path)
 
     @override
-    @synchronized
+    @queuedAsync
     def reduce(
         self,
         tree: SampleTree,

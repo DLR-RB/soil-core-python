@@ -3,7 +3,6 @@ from typing import Callable, Optional, override
 from ..framing.connection import FrameConnection
 from ..framing.receiver import FrameReceiver
 from ..logging import Logger, NoLogger
-from ..requests import Request
 from ..utils.actor import Actor, synchronized, queuedAsync
 
 from .connection import MessageConnection
@@ -64,6 +63,13 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         decoded = DecodedConnection(connection, encoding, logger)
         await decoded.initialize()
         return decoded
+
+    @override
+    async def shutdown(self) -> None:
+        if isinstance(self.encoding, Actor):
+            await self.encoding.shutdown()
+        await self.connection.close()
+        await Actor.shutdown(self)
 
     # MARK: Frame Connection
 
@@ -129,8 +135,9 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         return await self.connection.isOpen()
 
     @override
-    def close(self) -> Request:
-        return self.connection.close()
+    @synchronized
+    async def close(self) -> None:
+        await self.shutdown()
 
     @override
     @synchronized
