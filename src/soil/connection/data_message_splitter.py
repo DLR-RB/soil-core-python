@@ -182,13 +182,13 @@ class DataMessageSplitter(Actor, MessageConnection, MessageReceiver):
         return self._connection.close()
 
     @override
-    async def onClose(self, perform: Optional[Callable[[], None]]):
+    def onClose(self, perform: Optional[Callable[[], None]]) -> Request:
         def wrapped():
             self._removeAll()
             if perform is not None:
                 perform()
 
-        await self._connection.onClose(wrapped)
+        return self._connection.onClose(wrapped)
 
     # MARK: Incoming messages
 

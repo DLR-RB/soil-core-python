@@ -124,11 +124,15 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
 
     # MARK: Connection
 
+    @override
     async def isOpen(self) -> bool:
         return await self.connection.isOpen()
 
+    @override
     def close(self) -> Request:
         return self.connection.close()
 
+    @override
+    @synchronized
     async def onClose(self, perform: Optional[Callable[[], None]]):
         await self.connection.onClose(perform)

@@ -59,7 +59,7 @@ class TcpSocketConnection(Actor, StreamConnection):
 
     @override
     @synchronized
-    async def send(self, bytes: bytes) -> None:
+    async def send(self, bytes: bytes | bytearray) -> None:
         """
         Send bytes to the component via the underlying transport layer.
 
@@ -159,8 +159,8 @@ class TcpSocketConnection(Actor, StreamConnection):
         return not self._writer.is_closing()
 
     @override
-    @queuedAsync
-    def onClose(self, perform: Callable[[], None] | None) -> None:
+    @synchronized
+    async def onClose(self, perform: Callable[[], None] | None) -> None:
         self._onClose = perform
 
     @override

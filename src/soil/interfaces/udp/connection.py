@@ -2,7 +2,7 @@ from asyncio import DatagramTransport
 from typing import Callable, override
 
 from ...framing import FrameConnection, FrameReceiver
-from ...utils import Actor, synchronized, synchronized
+from ...utils import Actor, synchronized, queuedAsync
 
 
 class UdpConnection(Actor, FrameConnection):
@@ -90,7 +90,7 @@ class UdpConnection(Actor, FrameConnection):
         self._receiver = receiver
 
     @override
-    @synchronized
+    @queuedAsync
     def getReceiver(self) -> FrameReceiver | None:
         return self._receiver
 
@@ -101,6 +101,7 @@ class UdpConnection(Actor, FrameConnection):
         return self._open and not self._transport.is_closing()
 
     @override
+    @synchronized
     async def onClose(self, perform: Callable[[], None] | None) -> None:
         self._closeCallback = perform
 

@@ -105,6 +105,7 @@ class TestConnection(Actor, FrameConnection, FrameReceiver):
         return CompletedRequest()
 
     @override
+    @synchronized
     async def onClose(self, perform: Callable[[], None] | None) -> None:
         """
         Register a callback for connection closure.

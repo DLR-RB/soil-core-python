@@ -32,11 +32,13 @@ class Connection(ABC):
         pass
 
     @abstractmethod
-    async def onClose(self, perform: Callable[[], None] | None) -> None:
+    def onClose(self, perform: Callable[[], None] | None) -> Request:
         """
         Register a callback to execute when the connection is closed.
 
         Args:
             block: The callback to execute upon closure.
+        Returns:
+            A request to wait for completion
         """
         pass

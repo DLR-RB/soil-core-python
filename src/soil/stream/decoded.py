@@ -153,6 +153,7 @@ class DecodedStream(Actor, FrameConnection, FrameDistributor, StreamReceiver):
         return self._stream.close()
 
     @override
+    @synchronized
     async def onClose(self, perform: Callable[[], None] | None) -> None:
         """
         Register a callback to execute when the connection closes.
