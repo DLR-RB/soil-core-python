@@ -6,6 +6,12 @@ from .message import Message
 class MessageEncoding(ABC):
     """
     An interface to convert messages for the transport layer.
+
+    There may be encodings of messages to only support
+    a reduced feature set, such as only encoding a single sample,
+    or a single path. In this case, a separate component should
+    be inserted into the connection that can split and recombine the
+    messages as needed. An example would be `DataMessageSplitter` in `soil.connection`.
     """
 
     @abstractmethod
