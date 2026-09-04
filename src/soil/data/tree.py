@@ -8,7 +8,7 @@ class Tree[T]:
     A generic tree structure that can hold a value for each tree node.
     """
 
-    def __init__(self, value: T | None = None, children: Dict[str, Tree[T]] | None = None) -> None:
+    def __init__(self, value: T | None = None, children: Dict[str, 'Tree[T]'] | None = None) -> None:
         self.value: T | None = value
         if children is None:
             self.children: Dict[str, Tree[T]] = dict()
@@ -171,7 +171,7 @@ class Tree[T]:
         """
         self.findOrCreateNode(path).value = value
 
-    def mergeAtPath(self, tree: Tree[T], path: Path):
+    def mergeAtPath(self, tree: 'Tree[T]', path: Path):
         """
         Insert a tree into this tree.
         - Parameter tree: The tree to add
@@ -180,7 +180,7 @@ class Tree[T]:
         """
         self.findOrCreateNode(path).merge(tree)
 
-    def merge(self, tree: Tree[T]) -> None:
+    def merge(self, tree: 'Tree[T]') -> None:
         """
         Insert a tree into this tree.
         - Parameter tree: The tree to add
