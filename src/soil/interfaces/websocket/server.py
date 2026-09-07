@@ -22,7 +22,10 @@ class WebSocketServer:
     ) -> None:
         self.host = host
         self.port = port
-        self.path = path
+        if path is not None:
+            self.path = "/" + path.lstrip("/").rstrip("/") # Ensure a single slash leading the path
+        else:
+            self.path = None
         self.log = logger or NoLogger()
         self._server = None
 
@@ -67,7 +70,7 @@ class WebSocketServer:
         base = f"{self.host}:{self.port}"
         if self.path is None:
             return base
-        return base + "/" + self.path
+        return base + self.path # Path contains leading slash
 
     async def _handler(self, websocket: ServerConnection):
         """
@@ -77,7 +80,7 @@ class WebSocketServer:
             if websocket.request is None:
                 self.log.warning("Ignoring connection without a request")
                 return
-            if websocket.request.path != self.path:
+            if websocket.request.path != self.path: # Path contains leading slash
                 self.log.warning(f"Ingnoring connection on invalid path: {websocket.request.path}")
                 await websocket.close(code=1008, reason="Invalid path")
                 return
