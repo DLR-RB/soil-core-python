@@ -55,17 +55,33 @@ class WebSocketServer:
             return True
         try:
             self._server = await websockets.serve(self._handler, self.host, self.port)
-            self.log.info(f"Listening on ws://{self.host}:{self.port}")
+            self.log.info(f"Listening on ws://{self._connectionUri}")
             return True
         except Exception as e:
-            self.log.error(f"Failed to start on ws://{self.host}:{self.port}: {e}")
+            self.log.error(f"Failed to start on ws://{self._connectionUri}: {e}")
             return False
         #
+
+    @property
+    def _connectionUri(self) -> str:
+        base = f"{self.host}:{self.port}"
+        if self.path is None:
+            return base
+        return base + "/" + self.path
 
     async def _handler(self, websocket: ServerConnection):
         """
         Handles each incoming connection.
         """
+        if self.path is not None:
+            if websocket.request is None:
+                self.log.warning("Ignoring connection without a request")
+                return
+            if websocket.request.path != self.path:
+                self.log.warning(f"Ingnoring connection on invalid path: {websocket.request.path}")
+                await websocket.close(code=1008, reason="Invalid path")
+                return
+            #
         self.log.info(f"New client connected: {websocket.remote_address} ({websocket.state})")
         if self._connectionListener is None:
             self.log.warning("No handler registered for connected client")
