@@ -26,3 +26,13 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["src"]
 namespaces = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[tool.unittest]
+# unittest-spezifische Einstellungen für VS Code und andere Tools
+start-discovery = true
+verbose = 2
+pattern = "test_*.py"
+top-level-directory = "."
