@@ -167,3 +167,9 @@ class UdpSocket(DatagramProtocol):
         self._connections.clear()
         self._connectionListener = None
         self._closed = True
+
+    async def ready(self) -> None:
+        """
+        Block until the socket is bound. Raises if binding failed.
+        """
+        await self._ready
