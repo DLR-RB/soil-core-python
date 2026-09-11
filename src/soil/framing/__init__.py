@@ -9,6 +9,7 @@ from .error import FramingError
 from .framing import StreamFraming
 from .receiver import FrameReceiver
 from .sync import SyncByteLengthFraming
+from .logger import LoggingFraming
 
 __all__ = [
     'FrameConnection',
@@ -17,4 +18,5 @@ __all__ = [
     'StreamFraming',
     'FrameReceiver',
     'SyncByteLengthFraming',
+    'LoggingFraming',
 ]
