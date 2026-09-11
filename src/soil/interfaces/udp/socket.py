@@ -137,7 +137,7 @@ class UdpSocket(DatagramProtocol):
 
         TODO: Handle/log some errors, close after repeated failures.
         """
-        pass
+        print(f"UDP ERROR: {exc}")   
 
     @override
     def connection_lost(self, exc: Optional[Exception]) -> None:
