@@ -28,6 +28,8 @@ class UdpConnection(Actor, FrameConnection):
         :param transport: The shared datagram transport.
         :param remote: The address of the remote.
         """
+        super().__init__()
+        
         #: The shared datagram transport, provided by a UdpSocket instance
         self._transport = transport
 
