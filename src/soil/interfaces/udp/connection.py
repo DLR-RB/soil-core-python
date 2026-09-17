@@ -51,6 +51,8 @@ class UdpConnection(Actor, FrameConnection):
         """
         self._open = True
 
+        self._pending_frames: list[bytes] = []
+
     # MARK: UDP data flow
 
     async def deliver(self, frame: bytes) -> None:
@@ -61,6 +63,7 @@ class UdpConnection(Actor, FrameConnection):
         :param frame: The received frame.
         """
         if self._receiver is None:
+            self._pending_frames.append(frame)
             return
 
         await self._receiver.acceptFrame(frame)
@@ -90,6 +93,11 @@ class UdpConnection(Actor, FrameConnection):
     @synchronized
     async def setReceiver(self, receiver: FrameReceiver | None) -> None:
         self._receiver = receiver
+
+        if receiver is not None and self._pending_frames:
+            for frame in self._pending_frames:
+                await receiver.acceptFrame(frame)
+            self._pending_frames.clear()
 
     @override
     @queuedAsync
