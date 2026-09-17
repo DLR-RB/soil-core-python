@@ -42,6 +42,7 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         self.connection = connection
         self.encoding = encoding
         self._receiver: MessageReceiver | None = None
+        self._pending_frames: list[bytes] = []
         self.log = logger or NoLogger()
 
     async def initialize(self) -> None:
@@ -82,7 +83,7 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         Attempts to decode the message contained in the data and forwards it to the message connection.
         """
         if self._receiver is None:
-            self.log.warning("No receiver for frame")
+            self._pending_frames.append(frame)
             return
 
         # Attempt to decode the message from the data
@@ -122,6 +123,16 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         - Parameter receiver: The receiver of the messages coming in over this connection.
         """
         self._receiver = receiver
+
+        if receiver is not None:
+            while self._pending_frames:
+                frame = self._pending_frames.pop(0)
+                try:
+                    message = self.encoding.decode(frame)
+                except Exception as e:
+                    self.log.error(f"Failed to decode frame: {e}")
+                    continue
+                await receiver.acceptMessage(message)
 
     @override
     @queuedAsync
