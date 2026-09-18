@@ -53,7 +53,6 @@ class UdpConnection(Actor, FrameConnection):
         """
         self._open = True
 
-        self._send_count = 0
 
 
     # MARK: UDP data flow
@@ -65,7 +64,6 @@ class UdpConnection(Actor, FrameConnection):
 
         :param frame: The received frame.
         """
-        print(f"deliver: len={len(frame)} receiver={'set' if self._receiver else 'None'}")
         if self._receiver is None:
             self._pending_frames.append(frame)
             return
@@ -84,8 +82,6 @@ class UdpConnection(Actor, FrameConnection):
         """
         if not self._open:
             return
-        self._send_count += 1
-        print(f"send #{self._send_count}") 
         try:
             self._transport.sendto(message, self._remote)
         except Exception:
@@ -102,7 +98,6 @@ class UdpConnection(Actor, FrameConnection):
         if receiver is not None:
             while self._pending_frames:
                 frame = self._pending_frames.pop(0)
-                print(f"flush frame len={len(frame)} to {receiver}")
                 await receiver.acceptFrame(frame)
 
     @override
