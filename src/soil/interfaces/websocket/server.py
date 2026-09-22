@@ -55,6 +55,7 @@ class WebSocketServer:
             return True
         try:
             self._server = await websockets.serve(self._handler, self.host, self.port)
+            self.port = self._server.sockets[0].getsockname()[1]
             self.log.info(f"Listening on ws://{self._connectionUri}")
             return True
         except Exception as e:
@@ -77,7 +78,8 @@ class WebSocketServer:
             if websocket.request is None:
                 self.log.warning("Ignoring connection without a request")
                 return
-            if websocket.request.path != self.path:
+            expected_path = f"/{self.path}"
+            if websocket.request.path != expected_path:
                 self.log.warning(f"Ingnoring connection on invalid path: {websocket.request.path}")
                 await websocket.close(code=1008, reason="Invalid path")
                 return
