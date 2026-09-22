@@ -1,13 +1,13 @@
 from abc import abstractmethod
 
-from soil.components import Provider
-from soil.data import Sample, SampleTree, Timestamp, Value
-from soil.nodes.tree import TreeNode
+from ...components import Provider
+from ...data import Sample, SampleTree, Timestamp, Value
+from ..tree import TreeNode
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from soil.nodes.provider.defaults import *
-    from soil.nodes.provider.typed import *
+    from .defaults import *
+    from .typed import *
 
 
 class ProviderNode(TreeNode):

@@ -1,5 +1,6 @@
 
 from ....data import Path, Timestamp, Value
+from ....requests import Request
 
 from ...receiver import ReceiverNode
 
@@ -9,7 +10,7 @@ class PathReceiverNode(ReceiverNode):
     A node that can receive paths.
     """
 
-    async def setPath(self, value: Path, timestamp: Timestamp | None = None) -> None:
+    def setPath(self, value: Path, timestamp: Timestamp | None = None) -> Request:
         """
         Ingest a path value.
 
@@ -17,6 +18,6 @@ class PathReceiverNode(ReceiverNode):
         :param timestamp: The timestamp associated with the value.
         """
         if timestamp is None:
-            await super().set(Value(value))
+            return super().set(Value(value))
         else:
-            await super().set(Value(value), timestamp)
+            return super().set(Value(value), timestamp)

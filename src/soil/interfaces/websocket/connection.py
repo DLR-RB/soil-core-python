@@ -8,7 +8,7 @@ from websockets.asyncio.connection import Connection as WsConnection
 from soil.framing.receiver import FrameReceiver
 
 from ...framing import FrameConnection
-from ...logging import Logger, NoLogger
+from ...logging import Logger, OptionalLogger
 from ...utils import Actor, synchronized, queuedAsync
 
 
@@ -23,9 +23,12 @@ class WebSocketConnection(Actor, FrameConnection):
 
         self._clientConnection: WsConnection | None = connection
         self._receiver: FrameReceiver | None = receiver
-        self.log = logger or NoLogger()
+        self.log = OptionalLogger(logger)
         self._onClose: Callable[[], None] | None = None
         self._readTask: Task[None] | None = create_task(self._readUntilClosed())
+
+    def getLogger(self) -> Logger | None:
+        return self.log.getLogger()
 
     @override
     @synchronized

@@ -1,8 +1,12 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 from abc import abstractmethod
 
-from soil.components import Receiver
-from soil.data import Sample, SampleTree, Timestamp, Value
+from soil.data.path import Path
+
+from ...requests import Request
+
+from ...components import Receiver
+from ...data import Sample, SampleTree, Timestamp, Value
 from ..tree import TreeNode
 
 if TYPE_CHECKING:
@@ -10,7 +14,7 @@ if TYPE_CHECKING:
     from soil.nodes.receiver.typed import *
 
 
-class ReceiverNode(TreeNode):
+class ReceiverNode(TreeNode, Receiver):
     """
     A node in the tree of a receiver.
     """
@@ -26,7 +30,7 @@ class ReceiverNode(TreeNode):
 
     # MARK: Set
 
-    async def set(self, value: Value, timestamp: Timestamp | None = None) -> None:
+    def set(self, value: Value, timestamp: Timestamp | None = None) -> Request:
         """
         Ingest a new value.
 
@@ -35,37 +39,37 @@ class ReceiverNode(TreeNode):
         :param value: The new value for the node.
         :param timestamp: Optional timestamp associated with the value.
         """
-        await self.receiver().acceptValue(value, self.path(), timestamp)
+        return self.receiver().acceptValue(value, self.path(), timestamp)
 
-    async def setNull(self) -> None:
+    def setNull(self) -> Request:
         """
         Set the node to null.
         """
-        await self.set(Value(None))
+        return self.set(Value(None))
 
-    async def setSample(self, sample: Sample) -> None:
+    def setSample(self, sample: Sample) -> Request:
         """
         Ingest a new timestamped value.
 
         :param sample: The sample to set.
         """
-        await self.receiver().acceptSample(sample, self.path())
+        return self.receiver().acceptSample(sample, self.path())
 
-    async def setSamples(self, samples: list[Sample]) -> None:
+    def setSamples(self, samples: list[Sample]) -> Request:
         """
         Ingest samples for the node.
 
         :param samples: The samples to store.
         """
-        await self.receiver().acceptSamples(samples, self.path())
+        return self.receiver().acceptSamples(samples, self.path())
 
-    async def setTree(self, tree: SampleTree) -> None:
+    def setTree(self, tree: SampleTree) -> Request:
         """
         Ingest a tree.
 
         :param tree: The tree to store.
         """
-        await self.receiver().accept(tree, self.path())
+        return self.receiver().accept(tree, self.path())
 
     def childReceiver(self, name: str) -> ReceiverNode:
         """
@@ -127,3 +131,9 @@ class ReceiverNode(TreeNode):
             self.receiver(),
             self.path().appending(name),
         )
+
+    # MARK: Receiver
+
+    @override
+    def accept(self, tree: SampleTree, path: Path) -> Request:
+        return self.receiver().accept(tree, self.path() + path)

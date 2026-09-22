@@ -1,5 +1,6 @@
 
 from ....data import Timestamp, Value
+from ....requests import Request
 
 from ...receiver import ReceiverNode
 
@@ -9,7 +10,7 @@ class DataReceiverNode(ReceiverNode):
     A node that can receive data.
     """
 
-    async def setData(self, value: bytes, timestamp: Timestamp | None = None) -> None:
+    async def setData(self, value: bytes, timestamp: Timestamp | None = None) -> Request:
         """
         Ingest a data value.
 
@@ -17,6 +18,6 @@ class DataReceiverNode(ReceiverNode):
         :param timestamp: The timestamp associated with the value.
         """
         if timestamp is None:
-            await super().set(Value(value))
+            return super().set(Value(value))
         else:
-            await super().set(Value(value), timestamp)
+            return super().set(Value(value), timestamp)
