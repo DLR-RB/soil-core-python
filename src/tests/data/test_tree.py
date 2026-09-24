@@ -3,7 +3,7 @@ from unittest import TestCase, main
 from soil.data import ImmutableSampleTree, Path, Value
 
 
-class TimestampTests(TestCase):
+class TreeTests(TestCase):
 
     def testContainedTree(self):
         top = ImmutableSampleTree.ofValue(Value(123))
