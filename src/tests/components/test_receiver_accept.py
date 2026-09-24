@@ -2,7 +2,10 @@ import unittest
 from soil.data import Path, Sample, Value, ImmutableSampleTree, Timestamp, SampleTree
 from soil.components import Receiver
 
-def test_receiver_interface_logic(self):
+
+class TestReceiverInterfaceLogic(unittest.TestCase):
+
+    def test_receiver_interface_logic(self):
         
         fake_receiver = MyTestReceiver()
 
@@ -10,12 +13,12 @@ def test_receiver_interface_logic(self):
         sample = Sample(Value(50), ts)
         tree_to_send = ImmutableSampleTree.create(samples=[sample])
 
-        request = fake_receiver.accept(tree_to_send, Path.of("test"))
+        fake_receiver.accept(tree_to_send, Path.of("test"))
 
         self.assertTrue(fake_receiver.received_data, "Der Fake-Empfänger wurde nicht aufgerufen!")
         
         received_tree = fake_receiver.last_received_tree
-        self.assertEqual(received_tree, 1)
+        self.assertEqual(received_tree, tree_to_send)
 
 
 class MyTestReceiver(Receiver):
