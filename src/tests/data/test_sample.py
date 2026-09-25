@@ -23,7 +23,7 @@ MOCK_CURRENT_TIME_PLUS_1.format.return_value = "2026-09-09 09:09:10.009"
 
 # Tests
 @patch('soil.data.sample.Timestamp.current', return_value=MOCK_CURRENT_TIME)
-class testSampleTimeProperty(TestCase):
+class testSample(TestCase):
 
     def test_time_returns_timestamp(self, mock_current):
         sample = Sample(value=Value(3.0), timestamp=mockTimestamp)
