@@ -5,6 +5,9 @@ from .type import ValueType
 class Value:
 
     def __init__(self, value: int | str | float | bytes | Path | None) -> None:
+        if isinstance(value, bool):
+            raise TypeError("bool is not a supported Value type; use str or int (1, 0)")
+
         self.value: int | str | float | bytes | Path | None = value
 
     @staticmethod
@@ -65,7 +68,7 @@ class Value:
             case bytes(b): return b.hex() + ' (DATA)'
             case _: return f"{self.value} (Unknown)"
 
-    def __eq__(self, value: object) -> bool:
+    def __eq__(self, value: object) -> bool: # bei Value(1.0) == Value(1) -> True aber eigtl nt oder?
         if not isinstance(value, Value):
             return False
         return self.value == value.value
