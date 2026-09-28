@@ -4,8 +4,7 @@ from typing import Dict, List, Self, Tuple
 from .path import Path
 from .sample import Sample
 from .timestamp import Timestamp
-from .value import Value
-
+from .convertible import ValueConvertible
 
 class SampleTree(ABC):
 
@@ -115,7 +114,7 @@ class SampleTree(ABC):
         return cls.create([sample], children)
 
     @classmethod
-    def ofValue(cls, value: Value, timestamp: Timestamp | None = None, children: Dict[str, 'SampleTree'] | None = None) -> Self:
+    def ofValue(cls, value: ValueConvertible, timestamp: Timestamp | None = None, children: Dict[str, 'SampleTree'] | None = None) -> Self:
         """
         Create a tree with a value at the root.
 
@@ -189,14 +188,14 @@ class SampleTree(ABC):
         return result
 
     @property
-    def currentValue(self) -> Value | None:
+    def currentValue(self) -> ValueConvertible | None:
         """
-        The value of the current sample.
+        The value_convertible of the current sample.
 
         Returns
         -------
-        Value | None
-            The value associated with ``currentSample``.
+        ValueConvertible | None
+            The value_convertible associated with ``currentSample``.
         """
         sample = self.currentSample
         return None if sample is None else sample.value

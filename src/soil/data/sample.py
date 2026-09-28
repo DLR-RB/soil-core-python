@@ -1,22 +1,19 @@
-from dataclasses import dataclass
 from functools import total_ordering
-from typing import Self
+from typing import Any, Self
 
+from .convertible import ValueConvertible
 from .timestamp import Timestamp
-from .value import Value
+
 
 @total_ordering
-@dataclass(frozen=True, slots=True)
 class Sample:
     """
     A value with a timestamp.
     """
 
-    #: The value associated with the timestamp.
-    value: Value
-
-    #: The timestamp of the value.
-    timestamp: Timestamp | None = None
+    def __init__(self, value: ValueConvertible, timestamp: Timestamp | None = None) -> None:
+        self.value = value.toValue()
+        self.timestamp = timestamp
 
     @property
     def time(self) -> Timestamp:
@@ -34,7 +31,7 @@ class Sample:
     @classmethod
     def fromUnixTimestamp(
         cls,
-        value: Value,
+        value: ValueConvertible,
         time_interval_since_1970: float,
     ) -> Self:
         """

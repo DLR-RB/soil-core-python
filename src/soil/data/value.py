@@ -3,15 +3,26 @@ from typing import Dict, List
 
 from .path import Path
 from .type import ValueType
+from .convertible import ValueConvertible
 
-
-class Value:
+class Value(ValueConvertible):
 
     value: int | str | float | bytes | Path| List[Value] | Dict[str, Value] | None
     """ The wrapped value """
 
     def __init__(self, value: int | str | float | bytes | Path| List[Value] | Dict[str, Value] | None ) -> None:
         self.value = value
+
+    def toValue(self) -> Value:
+        """
+        Convert the instance to a value
+        """
+        return self
+
+    @classmethod
+    def fromValue(cls, value: Value) -> Value | None:
+        return value if isinstance(value, Value) else None
+
 
     @staticmethod
     def path(*components: str) -> Value:

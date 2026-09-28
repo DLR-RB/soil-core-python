@@ -1,8 +1,10 @@
 
+from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
-from .value import Value
+if TYPE_CHECKING:
+    from .value import Value
 
 
 class ValueConvertible(ABC):
