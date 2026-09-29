@@ -32,7 +32,7 @@ class WebsocketTests(IsolatedAsyncioTestCase):
         level=LogLevel.WARNING
 
         server = WebSocketServer(
-            port = 12345,
+            port = 0,
             path = "some",
             logger = PrintLogger(path=Path.of("server"), level=level)
         )
@@ -44,13 +44,15 @@ class WebsocketTests(IsolatedAsyncioTestCase):
         server.onConnection(acceptClient)
         await server.serve()
 
+        actual_port = server.port
+
         client = WebSocketClient(
-            port = 12345,
+            port = actual_port,
             path = "some",
             logger = PrintLogger(path=Path.of("client"), level=level)
         )
         clientToServer = await client.connect(logger = PrintLogger(path=Path.of("socket c->s"), level=level))
-
+        await sleep(0.1)
         self.assertIsNotNone(self.serverToClient)
         if self.serverToClient is None: return None
 

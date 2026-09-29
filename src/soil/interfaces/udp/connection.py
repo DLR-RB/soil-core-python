@@ -28,6 +28,10 @@ class UdpConnection(Actor, FrameConnection):
         :param transport: The shared datagram transport.
         :param remote: The address of the remote.
         """
+        super().__init__()
+
+        self._pending_frames: list[bytes] = []
+        
         #: The shared datagram transport, provided by a UdpSocket instance
         self._transport = transport
 
@@ -49,6 +53,8 @@ class UdpConnection(Actor, FrameConnection):
         """
         self._open = True
 
+
+
     # MARK: UDP data flow
 
     async def deliver(self, frame: bytes) -> None:
@@ -59,6 +65,7 @@ class UdpConnection(Actor, FrameConnection):
         :param frame: The received frame.
         """
         if self._receiver is None:
+            self._pending_frames.append(frame)
             return
 
         await self._receiver.acceptFrame(frame)
@@ -75,7 +82,6 @@ class UdpConnection(Actor, FrameConnection):
         """
         if not self._open:
             return
-
         try:
             self._transport.sendto(message, self._remote)
         except Exception:
@@ -88,6 +94,11 @@ class UdpConnection(Actor, FrameConnection):
     @synchronized
     async def setReceiver(self, receiver: FrameReceiver | None) -> None:
         self._receiver = receiver
+
+        if receiver is not None:
+            while self._pending_frames:
+                frame = self._pending_frames.pop(0)
+                await receiver.acceptFrame(frame)
 
     @override
     @queuedAsync

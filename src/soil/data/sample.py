@@ -126,3 +126,6 @@ class Sample:
             time_string = self.timestamp.format()
 
         return f"{self.value} ({time_string})"
+
+    def __repr__(self):
+        return f"Sample(value={self.value!r}, timestamp={self.timestamp!r})"

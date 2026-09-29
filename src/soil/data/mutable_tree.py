@@ -63,21 +63,6 @@ class MutableSampleTree(SampleTree):
             node = self.child(name)
             node.merge(child)
 
-    def containedTree(self) -> Tuple[Path, SampleTree]:
-        """
-        Compute the path of the first node in the tree that has samples or more than one child,
-        and return this path and the sub-tree at this node.
-        """
-        path = Path()
-        current: SampleTree = self
-        # If there are samples, then we need to directly return the tree
-        # If there is more than one child, or no children, the return the entire tree, which may contain samples
-        while len(current.samples) == 0 and len(current.children) == 1:
-            name, child = current.children.popitem()
-            current = child
-            path.append(name)
-        return (path, current)
-
     def child(self, name: str) -> 'MutableSampleTree':
         """
         Select a child of this node with a given name.
@@ -287,6 +272,9 @@ class MutableSampleTree(SampleTree):
         """
         # Delete samples at this node
         self.deleteSamples(start, end)
+
+        if depth == 0:
+            return
 
         # Recurse to delete child samples
         newDepth = depth - 1 if depth is not None else None
