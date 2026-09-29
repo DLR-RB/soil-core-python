@@ -69,7 +69,7 @@ class SampleTree:
 
 
     @classmethod
-    def empty(cls) -> 'SampleTree':
+    def empty(cls) -> Self:
         """
         Create an empty tree.
         """
@@ -119,7 +119,15 @@ class SampleTree:
     def newestSample(self) -> Sample | None:
         """
         The most recent sample at this node.
-        ...
+
+        Only samples at this node are considered,
+        not those of descendant nodes.
+
+        Returns
+        -------
+        Sample | None
+            The sample with the latest timestamp, or None
+            if no samples exist at this node.
         """
         if not self.samples:
             return None
@@ -165,6 +173,15 @@ class SampleTree:
     
     @property
     def numberOfNodesWithSamples(self) -> int:
+        """
+        The number of nodes in the subtree (including this node)
+        that contain at least one sample.
+
+        Returns
+        -------
+        int
+            The count of nodes holding samples.
+        """
         count = 1 if self.samples else 0
         for child in self.children.values():
             count += child.numberOfNodesWithSamples
@@ -173,6 +190,15 @@ class SampleTree:
 
     @property
     def totalNumberOfSamples(self) -> int:
+        """
+        The total number of samples across this node
+        and all descendant nodes.
+
+        Returns
+        -------
+        int
+            The cumulative sample count of the subtree.
+        """
         total = len(self.samples)
         for child in self.children.values():
             total += child.totalNumberOfSamples
@@ -628,11 +654,39 @@ class SampleTree:
         return node
 
     def createChild(self, name: str) -> SampleTree:
+        """
+        Create a new empty child node with the given name.
+
+        Unlike ``child``, this method does not check whether
+        a child with that name already exists and will overwrite it.
+
+        Parameters
+        ----------
+        name:
+            The path component name for the new child node.
+
+        Returns
+        -------
+        SampleTree
+            The newly created child node.
+        """
         child = SampleTree()
         self._children[name] = child
         return child
 
     def add(self, child: SampleTree, name: str) -> None:
+        """
+        Attach an existing tree as a child of this node.
+
+        If a child with the same name already exists, it is replaced.
+
+        Parameters
+        ----------
+        child:
+            The tree to attach.
+        name:
+            The path component name under which the tree is stored.
+        """
         self._children[name] = child
 
     def existingNode(self, path: Path) -> SampleTree | None:
@@ -652,6 +706,21 @@ class SampleTree:
         return current
 
     def existingChild(self, name: str) -> SampleTree | None:
+        """
+        Select a child of this node by name without creating it.
+
+        This is the read-only counterpart to ``child``.
+
+        Parameters
+        ----------
+        name:
+            The path component name to look up.
+
+        Returns
+        -------
+        SampleTree | None
+            The child node, or None if no child with that name exists.
+        """
         return self._children.get(name)
 
     def existingNodes(self, path: Path) -> List[SampleTree]:
