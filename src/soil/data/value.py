@@ -106,6 +106,40 @@ class Value(ValueConvertible):
         return self.value == value.value
 
 
+    def __getitem__(self, key: str):
+        """
+        Access a map entry by string key or a list entry by index.
+        Raises KeyError / IndexError like dict / list.
+        """
+        if isinstance(key, str):
+            data_map = self.mapValue
+            if data_map is None:
+                raise TypeError(f"Value of type {self.type} is not a map")
+            return data_map[key]
+        if isinstance(key, int):
+            data_list = self.listValue
+            if data_list is None:
+                raise TypeError(f"Value of type {self.type} is not a list")
+            return data_list[key]
+        raise TypeError(f"Invalid key type: {type(key)!r}")
+
+    def __contains__(self, key):
+        """"key" in value (map) or value-element in value (list)."""
+        if self.mapValue is not None:
+            return key in self.mapValue
+        if self.listValue is not None:
+            return any(element == key for element in self.listValue)
+        raise TypeError(f"Value of type {self.type} does not support 'in'")
+
+    def __iter__(self):
+        """list: elements. map: keys."""
+        if self.listValue is not None:
+            return iter(self.listValue)
+        if self.mapValue is not None:
+            return iter(self.mapValue)
+        raise TypeError(f"Value of type {self.type} is not iterable")
+
+
 def formatFloat(x: float) -> str:
     s = f"{x:.16f}".rstrip("0")
     if s.endswith("."):
