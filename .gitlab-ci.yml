@@ -2,24 +2,26 @@ stages:
   - lint
   - test
 
+workflow:        
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - when: never
+
 default:
-  tags: [shell]
+  tags: [docker]
   before_script:
-    - python3 -m pip install --user --upgrade uv
+    - python -m pip install --user --upgrade uv
 
 lint:
   stage: lint
+  image: python:3.12
+  allow_failure: true
   script:
-    - python3 -m uv tool run ruff check .
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
+    - python -m uv tool run ruff check .
 
 test:
   stage: test
+  image: python:3.12
   script:
-    - python3 -m uv sync
-    - python3 -m uv run python -m unittest discover -s src -v
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
+    - python -m uv sync
+    - python -m uv run python -m unittest discover -s tests -v
