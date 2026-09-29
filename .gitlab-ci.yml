@@ -3,7 +3,6 @@ stages:
   - test
 
 default:
-  tags: [shell]
   before_script:
     - python3 -m pip install --user --upgrade uv
 
