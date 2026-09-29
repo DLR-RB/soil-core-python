@@ -2,13 +2,13 @@ from typing import Optional, override
 
 from ..components import Storage
 from ..data import Path, Timestamp, Value
-from ..nodes import StorageNode
+from ..nodes import DefaultStringStorageNode
 from ..requests import Request, AsyncRequest
 from .logger import Logger
 from .level import LogLevel
 
 
-class HierarchicalLogger(Logger):
+class HierarchicalLogger(DefaultStringStorageNode, Logger):
     """
     A logger implementation that uses the log level of parent nodes
     if no specific log level is set.
@@ -23,26 +23,12 @@ class HierarchicalLogger(Logger):
     defaultLevel: LogLevel = LogLevel.WARNING
     """ The default level for logging when no explicit level is set. """
 
-    def __init__(self, node: StorageNode, parent: Optional[Logger] = None) -> None:
-        self._parent = parent
-        self._logNode = node
-        self._levelNode = node.child(named="level")
-
-    @classmethod
-    def create(cls, storage: Storage, path: Path | None = None) -> 'HierarchicalLogger':
-        """
-        Create a logger for a storage at a path.
-
-        Args:
-            storage: The storage to use as the logging backend.
-            path: The path to use for the logger.
-        """
+    def __init__(self, storage: Storage, parent: 'Optional[HierarchicalLogger]' = None, path: Path | None = None) -> None:
         if path is None:
             path = Path()
-
-        return cls(
-            node=StorageNode(storage=storage, path=path),
-        )
+        super().__init__(storage, path)
+        self._parent = parent
+        self._levelNode = self.stringChild(name="level")
 
     @override
     def setLevel(self, level: LogLevel | None) -> Request:
@@ -71,7 +57,7 @@ class HierarchicalLogger(Logger):
         If no explicit level is set for this logger,
         then the level of the parent is used.
         """
-        raw = await self._levelNode.stringValue()
+        raw = await self._levelNode.getString()
 
         if raw is not None:
             level = LogLevel.fromString(raw)
@@ -106,9 +92,9 @@ class HierarchicalLogger(Logger):
             if level < effectiveLevel:
                 return
 
-            self._logNode.acceptValue(
+            await self.receiver().acceptValue(
                 Value(message),
-                path = Path.of(level.stringValue),
+                path = self.path() + Path.of(level.stringValue),
                 timestamp = Timestamp.current(),
             )
 
@@ -117,7 +103,7 @@ class HierarchicalLogger(Logger):
     # MARK: Child loggers
 
     @override
-    def child(self, component: str) -> Logger:
+    def childLogger(self, component: str) -> Logger:
         """
         Creates a child logger under this logger.
         The child may inherit the parent's log level threshold.
@@ -129,6 +115,7 @@ class HierarchicalLogger(Logger):
             A new ``Logger`` instance representing the child.
         """
         return HierarchicalLogger(
-            parent=self,
-            node=self._logNode.child(named=component),
+            storage = self.storage(),
+            parent = self,
+            path = self.path().appending(component)
         )

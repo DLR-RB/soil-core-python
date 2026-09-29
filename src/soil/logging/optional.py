@@ -69,7 +69,7 @@ class OptionalLogger(Logger):
         level: LogLevel | None = None,
     ) -> Logger:
         if self._logger is None:
-            raise RuntimeError("OptionalLogger.child() is unavailable")
+            return OptionalLogger()
 
         if level is None:
             return self._logger.childLogger(component)

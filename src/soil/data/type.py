@@ -21,3 +21,9 @@ class ValueType(StrEnum):
     PATH = "path"
     """ A path value, represented as 'Path' """
 
+    LIST = "list"
+    """ A list of values """
+
+    MAP = "map"
+    """ A map of values keyed by strings """
+

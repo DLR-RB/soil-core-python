@@ -45,6 +45,7 @@ class Actor:
         self._queue: Queue[tuple[Callable[[], Awaitable[Any]], Future[Any]] | _StopSentinel] = Queue()
         self._task = create_task(self._run())
         self._isClosed: bool = False
+        """ Indicate if the actor queue is closed """
 
     async def _run(self):
         while True:

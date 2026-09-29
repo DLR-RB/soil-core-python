@@ -2,7 +2,7 @@ from collections.abc import Awaitable, Callable
 import websockets
 from websockets import ServerConnection
 
-from ...logging import Logger, NoLogger, PrintLogger, LogLevel
+from ...logging import Logger, NoLogger
 
 from .connection import WebSocketConnection
 
@@ -22,8 +22,12 @@ class WebSocketServer:
     ) -> None:
         self.host = host
         self.port = port
-        self.path = path
+        if path is not None:
+            self.path = "/" + path.lstrip("/").rstrip("/") # Ensure a single slash leading the path
+        else:
+            self.path = None
         self.log = logger or NoLogger()
+        self._connectionListener: Callable[[WebSocketConnection], Awaitable[None]] | None = None
         self._server = None
 
     def onConnection(
@@ -61,14 +65,14 @@ class WebSocketServer:
         except Exception as e:
             self.log.error(f"Failed to start on ws://{self._connectionUri}: {e}")
             return False
-        #
+        
 
     @property
     def _connectionUri(self) -> str:
         base = f"{self.host}:{self.port}"
         if self.path is None:
             return base
-        return base + "/" + self.path
+        return base + self.path
 
     async def _handler(self, websocket: ServerConnection):
         """
@@ -78,17 +82,16 @@ class WebSocketServer:
             if websocket.request is None:
                 self.log.warning("Ignoring connection without a request")
                 return
-            expected_path = f"/{self.path}"
-            if websocket.request.path != expected_path:
-                self.log.warning(f"Ingnoring connection on invalid path: {websocket.request.path}")
+            if websocket.request.path != self.path: # Path contains leading slash
+                self.log.warning(f"Ignoring connection on invalid path: {websocket.request.path}")
                 await websocket.close(code=1008, reason="Invalid path")
                 return
-            #
+            
         self.log.info(f"New client connected: {websocket.remote_address} ({websocket.state})")
         if self._connectionListener is None:
             self.log.warning("No handler registered for connected client")
             return
-        connection = WebSocketConnection(websocket, logger=PrintLogger(level = LogLevel.INFO))
+        connection = WebSocketConnection(websocket, logger=self.log)
         await self._connectionListener(connection)
         await websocket.wait_closed()
 

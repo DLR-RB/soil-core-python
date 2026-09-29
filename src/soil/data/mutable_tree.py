@@ -6,6 +6,7 @@ from .path import Path
 from .sample import Sample
 from .sampletree import SampleTree
 from .timestamp import Timestamp
+from .convertible import ValueConvertible
 
 class MutableSampleTree(SampleTree):
 
@@ -82,6 +83,22 @@ class MutableSampleTree(SampleTree):
         newChild = MutableSampleTree(child.samples, child.children)
         self._children[name] = newChild
         return newChild
+
+    def childWithValue(self, name: str, value: ValueConvertible) -> 'MutableSampleTree':
+        """
+        Select a child of this node with a given name, and insert a value as a new sample.
+
+        The child will be created, if it doesn't exist.
+        This function is used for write operations.
+
+        - Parameter name: The name of the child.
+        - Parameter value: The value to insert into the child (accepted as ValueConvertible, stored as Value).
+        - Returns: The node of the child.
+        """
+        child = self.child(name)
+        child.insertSampleIntoHistory(Sample(value, Timestamp.current()))
+        return child
+
 
     def save(self, tree: SampleTree) -> None:
         """

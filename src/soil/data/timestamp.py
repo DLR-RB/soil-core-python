@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
+from .convertible import ValueConvertible
+from .value import Value
 
-
-class Timestamp(datetime):
+class Timestamp(datetime, ValueConvertible):
     """
     A SOIL timestamp.
 
@@ -46,3 +47,26 @@ class Timestamp(datetime):
     def isVeryCloseTo(self, other: 'Timestamp', maxDifference: float = 0.001) -> bool:
         return abs(self.timestamp() - other.timestamp()) < maxDifference
 
+
+    @classmethod
+    def fromValue(cls, value: Value) -> Timestamp:
+        """
+        Create a timestamp from a DOUBLE value (seconds since 1970).
+
+        Raises
+        ------
+        TypeError
+            If ``value`` is not a ``Value``.
+        ValueError
+            If ``value`` is not a DOUBLE.
+        """
+        if not isinstance(value, Value):
+            raise TypeError(f"expected a Value, got {type(value).__name__}")
+        seconds = value.doubleValue
+        if seconds is None:
+            raise ValueError(f"expected a DOUBLE value, got {value.type}")
+        return cls.fromTimeIntervalSince1970(seconds)
+
+    def toValue(self) -> Value:
+        """ Convert timestamp into value type"""
+        return Value(self.timeIntervalSince1970)
