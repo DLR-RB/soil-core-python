@@ -94,15 +94,17 @@ class TestMutableTree(unittest.TestCase):
         self.assertTrue(root.existingChild("new_child_from_func"))
 
 
-    def testSaveSamples(self): # __eq__ Timestamp missing!!!
+    def testSaveSamples(self):
         root = MutableSampleTree()
         sample_list_time = [Sample(Value(1), Timestamp(1,3,1)), Sample(Value(2), Timestamp(1,1,1)), 
                             Sample(Value(1), Timestamp(3,1,1)), Sample(Value(2), Timestamp(2,1,1))]
 
         root.saveSamples(sample_list_time)
 
-        self.assertEqual(root.samples, [Sample(Value(1), Timestamp(1,1,1)), Sample(Value(2), Timestamp(1,3,1)), 
-                            Sample(Value(1), Timestamp(2,1,1)), Sample(Value(2), Timestamp(3,1,1))])
+        self.assertEqual(root.samples, [Sample(Value(2), Timestamp(1,1,1)),
+                                        Sample(Value(1), Timestamp(1,3,1)),
+                                        Sample(Value(2), Timestamp(2,1,1)),
+                                        Sample(Value(1), Timestamp(3,1,1))])
 
 
     def testInsertSampleIntoHistory(self):
@@ -263,8 +265,9 @@ class TestMutableTree(unittest.TestCase):
         root.saveSamples([Sample(Value(1), Timestamp(1, 1, 2)), Sample(Value(2), Timestamp(1, 2, 1)), Sample(Value(3), Timestamp(2, 2, 1))])
         root.delete(Timestamp(1,2,1), None, None)
         
-        self.assertEqual(root.samples, [Sample(Value(2), Timestamp(1, 1, 3)), Sample(Value(3), Timestamp(2, 2, 1))])
+        self.assertEqual(root.samples, [Sample(Value(1), Timestamp(1, 1, 2)), Sample(Value(2), Timestamp(1, 2, 1))])
 
+        
     def testDeleteRangeEnd(self):
         root = MutableSampleTree()
         root.saveSamples([Sample(Value(1), Timestamp(1, 1, 2)), Sample(Value(2), Timestamp(1, 2, 1)), Sample(Value(3), Timestamp(2, 2, 1))])
@@ -337,3 +340,34 @@ class TestMutableTree(unittest.TestCase):
         self.assertEqual(root.existingNodes(Path.of("a", "b", "c")), [root, a, ab])
         self.assertEqual(root.existingNodes(Path.of("x")), [root])
         self.assertEqual(root.existingNodes(Path()), [root])   
+
+
+    def testDeleteDepthOne(self):
+        """ depth=1: Root und eine Ebene werden gelöscht, Enkel bleiben """
+        root = MutableSampleTree()
+        root.saveSamples([Sample(Value(1), Timestamp(1, 1, 2))])
+        child = root.child("sat")
+        child.saveSamples([Sample(Value(7), Timestamp(1, 1, 5))])
+        grandchild = child.child("temp")
+        grandchild.saveSamples([Sample(Value(9), Timestamp(1, 1, 6))])
+
+        root.delete(None, None, depth=1)
+
+        self.assertEqual(root.samples, [])
+        self.assertEqual(child.samples, [])
+        self.assertEqual(grandchild.samples, [Sample(Value(9), Timestamp(1, 1, 6))])
+
+    def testDeleteUnlimitedDepth(self):
+        """ depth=None: der komplette Baum wird gelöscht, egal wie tief """
+        root = MutableSampleTree()
+        root.saveSamples([Sample(Value(1), Timestamp(1, 1, 2))])
+        child = root.child("sat")
+        child.saveSamples([Sample(Value(7), Timestamp(1, 1, 5))])
+        grandchild = child.child("temp")
+        grandchild.saveSamples([Sample(Value(9), Timestamp(1, 1, 6))])
+
+        root.delete(None, None, depth=None)
+
+        self.assertEqual(root.samples, [])
+        self.assertEqual(child.samples, [])
+        self.assertEqual(grandchild.samples, [])
