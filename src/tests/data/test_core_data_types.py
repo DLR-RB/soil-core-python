@@ -1,5 +1,5 @@
 import unittest
-from soil.data import Path, Sample, Value, ImmutableSampleTree, Timestamp
+from soil.data import Path, Sample, Value, SampleTree, Timestamp
 
 class TestCoreDataTypes(unittest.TestCase):
 
@@ -26,7 +26,7 @@ class TestCoreDataTypes(unittest.TestCase):
         self.assertEqual(sample.value.value, 23.5)
 
     def test_empty_tree(self):
-        empty_tree = ImmutableSampleTree.empty()
+        empty_tree = SampleTree.empty()
         
         self.assertTrue(empty_tree.isEmpty)
 
@@ -34,7 +34,7 @@ class TestCoreDataTypes(unittest.TestCase):
         ts = Timestamp.current()
         sample = Sample(Value(100), ts)
         
-        my_tree = ImmutableSampleTree.create(samples=[sample])
+        my_tree = SampleTree.create(samples=[sample])
         
         self.assertFalse(my_tree.isEmpty)
         

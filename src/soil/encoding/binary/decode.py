@@ -1,7 +1,7 @@
 from struct import unpack
 from typing import Dict
 
-from ...data import ImmutableSampleTree, Path, Sample, SampleTree, Timestamp, Value, ValueType
+from ...data import Path, Sample, SampleTree, Timestamp, Value, ValueType
 from ...messaging import Message, MessageType
 
 def decodeMessage(data: bytes) -> Message:
@@ -132,7 +132,7 @@ class MessageDecoder:
             name = self.decodeString()
             child = self.decodeTree()
             children[name] = child
-        return ImmutableSampleTree(samples, children)
+        return SampleTree(samples, children)
 
     def decodeSample(self) -> Sample:
         firstByte = self.nextByte()

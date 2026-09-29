@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, TYPE_CHECKING
 
-from ..data import ImmutableSampleTree, Path, Sample, SampleTree, Timestamp, Value
+from ..data import Path, Sample, SampleTree, Timestamp, Value
 
 if TYPE_CHECKING:
     from ..logging import Logger, LogLevel
@@ -120,7 +120,7 @@ class Receiver(ABC):
         Request
             A request handle, to optionally wait until the data is stored.
         """
-        tree = ImmutableSampleTree(samples)
+        tree = SampleTree(samples)
         return self.accept(tree, path)
 
     # MARK: Logging

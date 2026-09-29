@@ -1,5 +1,5 @@
 import unittest
-from soil.data import Path, Sample, Value, ImmutableSampleTree, Timestamp, SampleTree
+from soil.data import Path, Sample, Value, Timestamp, SampleTree
 from soil.components import Receiver
 
 
@@ -11,7 +11,7 @@ class TestReceiverInterfaceLogic(unittest.TestCase):
 
         ts = Timestamp.current()
         sample = Sample(Value(50), ts)
-        tree_to_send = ImmutableSampleTree.create(samples=[sample])
+        tree_to_send = SampleTree.create(samples=[sample])
 
         fake_receiver.accept(tree_to_send, Path.of("test"))
 

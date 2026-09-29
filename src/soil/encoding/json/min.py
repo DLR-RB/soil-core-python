@@ -3,7 +3,7 @@ from typing import Any, Dict, List, override
 from json import dumps, loads
 from base64 import b64decode, b64encode
 
-from soil.data.immutable_tree import ImmutableSampleTree
+from soil.data.sampletree import SampleTree
 from soil.data.path import Path
 from soil.data.timestamp import Timestamp
 from soil.data.type import ValueType

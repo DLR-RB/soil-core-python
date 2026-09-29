@@ -1,7 +1,7 @@
 
 from typing import List
 
-from ..data import Path, SampleTree, ImmutableSampleTree
+from ..data import Path, SampleTree
 
 
 class SubscriptionTree:
@@ -416,7 +416,7 @@ class SubscriptionTree:
         if not samples and not reduced:
             return None
 
-        return ImmutableSampleTree(
+        return SampleTree(
             samples=samples,
             children=reduced,
         )
