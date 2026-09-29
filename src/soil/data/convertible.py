@@ -12,9 +12,16 @@ class ValueConvertible(ABC):
 
     @classmethod
     @abstractmethod
-    def fromValue(cls, value: Value) -> Self | None:
+    def fromValue(cls, value: Value) -> Self:
         """
-        Create an instance of the type from a value, if possible
+        Create an instance of the type from a value.
+
+        Raises
+        ------
+        TypeError
+            If ``value`` is not a ``Value``.
+        ValueError
+            If ``value`` does not have the structure this type expects.
         """
         ...
 

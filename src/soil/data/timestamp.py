@@ -49,10 +49,23 @@ class Timestamp(datetime, ValueConvertible):
 
 
     @classmethod
-    def fromValue(cls, value: Value) -> Timestamp | None:
-        """ Convert value type into timestamp"""
+    def fromValue(cls, value: Value) -> Timestamp:
+        """
+        Create a timestamp from a DOUBLE value (seconds since 1970).
+
+        Raises
+        ------
+        TypeError
+            If ``value`` is not a ``Value``.
+        ValueError
+            If ``value`` is not a DOUBLE.
+        """
+        if not isinstance(value, Value):
+            raise TypeError(f"expected a Value, got {type(value).__name__}")
         seconds = value.doubleValue
-        return cls.fromTimeIntervalSince1970(seconds) if seconds is not None else None
+        if seconds is None:
+            raise ValueError(f"expected a DOUBLE value, got {value.type}")
+        return cls.fromTimeIntervalSince1970(seconds)
 
     def toValue(self) -> Value:
         """ Convert timestamp into value type"""

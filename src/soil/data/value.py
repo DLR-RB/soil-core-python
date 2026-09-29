@@ -20,8 +20,18 @@ class Value(ValueConvertible):
         return self
 
     @classmethod
-    def fromValue(cls, value: Value) -> Value | None:
-        return value if isinstance(value, Value) else None
+    def fromValue(cls, value: Value) -> Value:
+        """
+        Return the value itself, if it is a Value.
+
+        Raises
+        ------
+        TypeError
+            If the argument is not a Value.
+        """
+        if not isinstance(value, Value):
+            raise TypeError(f"expected a Value, got {type(value).__name__}")
+        return value
 
 
     @staticmethod
