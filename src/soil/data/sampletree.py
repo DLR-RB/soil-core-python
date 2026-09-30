@@ -1,4 +1,7 @@
-from typing import Callable, Dict, List, Protocol, Self, Sequence, Tuple, TypeVar
+from __future__ import annotations
+
+from collections.abc import Callable, Sequence
+from typing import Protocol, Self, TypeVar
 
 from .convertible import ValueConvertible
 from .path import Path
@@ -13,7 +16,7 @@ class SampleTree:
     Each node stores a list of samples and children indexed by path component.
     """
 
-    def __init__(self, samples: List[Sample] | None = None, children: Dict[str, SampleTree] | None = None) -> None:
+    def __init__(self, samples: list[Sample] | None = None, children: dict[str, SampleTree] | None = None) -> None:
         """
         Create a tree with samples and children.
 
@@ -26,25 +29,25 @@ class SampleTree:
 
         Note: Defaults are None, because otherwise the same list or dict would be assigned to all objects.
         """
-        self._samples: List[Sample] = samples if samples is not None else list()
-        self._children: Dict[str, SampleTree] = children if children is not None else dict()
+        self._samples: list[Sample] = samples if samples is not None else list()
+        self._children: dict[str, SampleTree] = children if children is not None else dict()
 
     @property
-    def samples(self) -> List[Sample]:
+    def samples(self) -> list[Sample]:
         """
         The samples at this tree node.
         """
         return self._samples
 
     @property
-    def children(self) -> Dict[str, SampleTree]:
+    def children(self) -> dict[str, SampleTree]:
         """
         The child nodes of the tree, indexed by path component.
         """
         return self._children
 
     @classmethod
-    def create(cls, samples: List[Sample] | None = None, children: Dict[str, SampleTree] | None = None) -> Self:
+    def create(cls, samples: list[Sample] | None = None, children: dict[str, SampleTree] | None = None) -> Self:
         """
         Create a tree with samples and children.
         """
@@ -76,7 +79,7 @@ class SampleTree:
         return cls.create()
 
     @classmethod
-    def ofSample(cls, sample: Sample, children: Dict[str, SampleTree] | None = None) -> Self:
+    def ofSample(cls, sample: Sample, children: dict[str, SampleTree] | None = None) -> Self:
         """
         Create a tree with a sample at the root.
 
@@ -95,7 +98,7 @@ class SampleTree:
         return cls.create([sample], children)
 
     @classmethod
-    def ofValue(cls, value: ValueConvertible, timestamp: Timestamp | None = None, children: Dict[str, SampleTree] | None = None) -> Self:
+    def ofValue(cls, value: ValueConvertible, timestamp: Timestamp | None = None, children: dict[str, SampleTree] | None = None) -> Self:
         """
         Create a tree with a value at the root.
 
@@ -219,7 +222,7 @@ class SampleTree:
         return None if sample is None else sample.value
 
 
-    def containedTree(self) -> Tuple[Path, SampleTree]:
+    def containedTree(self) -> tuple[Path, SampleTree]:
         """
         Find the first meaningful subtree.
 
@@ -244,7 +247,7 @@ class SampleTree:
 
         return path, current
 
-    def containedTreeAtPath(self, path: Path) -> Tuple[Path, SampleTree]:
+    def containedTreeAtPath(self, path: Path) -> tuple[Path, SampleTree]:
         """
         Find the first meaningful subtree, and combine it with a given path.
 
@@ -354,7 +357,7 @@ class SampleTree:
         return self.isEqualTo(other)
 
 
-    def insert(self, samples: List[Sample], path: Path) -> None:
+    def insert(self, samples: list[Sample], path: Path) -> None:
         """
         Insert samples into the tree.
         - Parameter samples: The samples to add
@@ -427,7 +430,7 @@ class SampleTree:
         for name, subTree in tree.children.items():
             self.child(name).save(subTree)
 
-    def saveSamples(self, samples: List[Sample]) -> None:
+    def saveSamples(self, samples: list[Sample]) -> None:
         """
         Save samples at this node.
         - Parameter samples: The samples to save for this node.
@@ -472,14 +475,14 @@ class SampleTree:
             return SampleTree(samples)
 
         newDepth = depth - 1 if depth is not None else None
-        children: Dict[str, SampleTree] = dict()
+        children: dict[str, SampleTree] = dict()
 
         for name, child in self._children.items():
             children[name] = child.tree(start, end, newDepth, limitPerNode)
 
         return SampleTree(samples, children)
 
-    def getSamples(self, start: Timestamp | None, end: Timestamp | None, limit: int | None) -> List[Sample]:
+    def getSamples(self, start: Timestamp | None, end: Timestamp | None, limit: int | None) -> list[Sample]:
         """
         Provides the values in a given date range for a path, regardless of the value type.
 
@@ -524,7 +527,7 @@ class SampleTree:
         endIndex = self._firstIndexAfter(end)
         return self.selectAscending(startIndex, endIndex, limit)
 
-    def selectAscending(self, start: int, end: int, limit: int | None) -> List[Sample]:
+    def selectAscending(self, start: int, end: int, limit: int | None) -> list[Sample]:
         """
         Select all samples between two indices in storage (ascending) order, limited to a maximum count.
         - Parameter range: The range to select from `history`
@@ -536,7 +539,7 @@ class SampleTree:
             limitedEndIndex = min(end, start + limit)
         return list(self._samples[start:limitedEndIndex])
 
-    def selectDescendingInterval(self, start: Timestamp, end: Timestamp, limit: int | None) -> List[Sample]:
+    def selectDescendingInterval(self, start: Timestamp, end: Timestamp, limit: int | None) -> list[Sample]:
         """
         Select samples in the history in a date range in descending order, optionally limited to a maximum count.
         - Parameter start: The lower bound of the interval (inclusive)
@@ -552,7 +555,7 @@ class SampleTree:
         # Now we select the subrange in descending order, with the limit applied from the higher index
         return self.selectDescending(lowerIndex, higherIndex, limit)
 
-    def selectDescending(self, start: int, end: int, limit: int | None) -> List[Sample]:
+    def selectDescending(self, start: int, end: int, limit: int | None) -> list[Sample]:
         """
         Select all samples between two indices in reverse (descending) order, limited to a maximum count.
 
@@ -723,14 +726,14 @@ class SampleTree:
         """
         return self._children.get(name)
 
-    def existingNodes(self, path: Path) -> List[SampleTree]:
+    def existingNodes(self, path: Path) -> list[SampleTree]:
         """
         Get all existing nodes in the tree on the way to a node corresponding to a path.
         - Note: Includes this node as the first element of the result
         - Parameter path: The path to the node.
         - Returns: All existing nodes along the path.
         """
-        result: List[SampleTree] = [self]
+        result: list[SampleTree] = [self]
         last = self
         for component in path:
             child = last.existingChild(component)
@@ -765,7 +768,7 @@ def partitioningIndex(
 
 
 class Comparable(Protocol):
-    def __lt__(self, other: "Comparable", /) -> bool: ...
+    def __lt__(self, other: Comparable, /) -> bool: ...
 
 
 TT = TypeVar("TT", bound=Comparable)

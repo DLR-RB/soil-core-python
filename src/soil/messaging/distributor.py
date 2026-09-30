@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 from ..requests import Request
-
 from .receiver import MessageReceiver
 
 
@@ -25,7 +24,6 @@ class MessageDistributor(ABC):
         Request
             The request to optionally wait for until the receiver is set
         """
-        pass
 
     @abstractmethod
     async def getReceiver(self) -> MessageReceiver | None:
@@ -37,4 +35,3 @@ class MessageDistributor(ABC):
         Receiver | None
             The current receiver, if set
         """
-        pass

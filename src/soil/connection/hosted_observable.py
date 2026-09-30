@@ -1,9 +1,9 @@
 from typing import override
 
 from ..components import Observable, Receiver
-from ..data import SampleTree, Path
-from ..messaging import MessageConnection, MessageReceiver, Message, MessageType
-from ..requests import Request, CompletedRequest
+from ..data import Path, SampleTree
+from ..messaging import Message, MessageConnection, MessageReceiver, MessageType
+from ..requests import CompletedRequest, Request
 
 
 class HostedObservable(MessageReceiver, Receiver):

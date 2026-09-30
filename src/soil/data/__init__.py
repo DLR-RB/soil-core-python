@@ -6,19 +6,18 @@ from .convertible import ValueConvertible
 from .sampletree import SampleTree
 from .path import Path
 from .sample import Sample
-from .sampletree import SampleTree
 from .timestamp import Timestamp
 from .tree import Tree
 from .type import ValueType
 from .value import Value
 
 __all__ = [
-    'ValueConvertible',
     'Path',
     'Sample',
     'SampleTree',
     'Timestamp',
     'Tree',
-    'ValueType',
     'Value',
+    'ValueConvertible',
+    'ValueType',
 ]

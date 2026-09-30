@@ -2,7 +2,6 @@ from websockets import connect
 
 from ...framing.receiver import FrameReceiver
 from ...logging import Logger, NoLogger
-
 from .connection import WebSocketConnection
 
 

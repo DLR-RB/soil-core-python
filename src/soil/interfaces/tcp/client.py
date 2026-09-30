@@ -1,7 +1,6 @@
 from asyncio import open_connection
 
 from ...logging import Logger
-
 from .connection import TcpSocketConnection
 
 

@@ -1,10 +1,10 @@
 from collections.abc import Callable
 from typing import override
 
-from ..components import Receiver, Observable, Connection
-from ..data import SampleTree, Path
-from ..messaging import MessageConnection, MessageReceiver, Message, MessageType
-from ..requests import Request, CompletedRequest
+from ..components import Connection, Observable, Receiver
+from ..data import Path, SampleTree
+from ..messaging import Message, MessageConnection, MessageReceiver, MessageType
+from ..requests import CompletedRequest, Request
 from ..subscriptions import SubscriptionTree
 from ..utils import Actor, synchronized
 

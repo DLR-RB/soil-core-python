@@ -1,16 +1,16 @@
-from typing import List, override
-from unittest import IsolatedAsyncioTestCase
 from asyncio import sleep
+from typing import override
+from unittest import IsolatedAsyncioTestCase
 
 from soil.connection import HostedObservableStorage, RemoteObservableStorage
 from soil.data import Path, SampleTree, Value
 from soil.debug import PrintReceiver
 from soil.encoding.json import JsonEncoding
 from soil.framing import SyncByteLengthFraming
-from soil.interfaces.tcp import TcpSocketClient, TcpSocketServer, TcpSocketConnection
+from soil.interfaces.tcp import TcpSocketClient, TcpSocketConnection, TcpSocketServer
 from soil.logging import LogLevel
-from soil.messaging import MessageReceiver, Message
-from soil.requests import Request, CompletedRequest
+from soil.messaging import Message, MessageReceiver
+from soil.requests import CompletedRequest, Request
 from soil.storage import ObservingStorage
 
 from ..util import TestStorage
@@ -162,8 +162,8 @@ class TestServer:
     def __init__(self):
         self.storage = TestStorage()
 
-        self._clients: List[TcpSocketConnection] = []
-        self._storages: List[HostedObservableStorage] = []
+        self._clients: list[TcpSocketConnection] = []
+        self._storages: list[HostedObservableStorage] = []
 
     async def accept(self, connection: TcpSocketConnection):
         messageConnection = await (await connection.apply(SyncByteLengthFraming())).apply(JsonEncoding())

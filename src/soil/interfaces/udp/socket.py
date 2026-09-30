@@ -1,5 +1,6 @@
 from asyncio import DatagramProtocol, DatagramTransport, create_task, get_running_loop
-from typing import Awaitable, Callable, Optional, Tuple, override
+from collections.abc import Awaitable, Callable
+from typing import override
 
 from .connection import UdpConnection
 
@@ -30,7 +31,7 @@ class UdpSocket(DatagramProtocol):
         self._transport: DatagramTransport | None = None
 
         #: A map of all established connections
-        self._connections: dict[Tuple[str, int], UdpConnection] = {}
+        self._connections: dict[tuple[str, int], UdpConnection] = {}
 
         #: The consumer of new incoming connections
         self._connectionListener: Callable[[UdpConnection], Awaitable[None]] | None = None
@@ -58,7 +59,7 @@ class UdpSocket(DatagramProtocol):
     def connect(
         self,
         host: str | tuple[str, int],
-        port: Optional[int] = None,
+        port: int | None = None,
     ) -> UdpConnection:
         """
         Create a connection to a remote.
@@ -140,7 +141,7 @@ class UdpSocket(DatagramProtocol):
         print(f"UDP ERROR: {exc}")   
 
     @override
-    def connection_lost(self, exc: Optional[Exception]) -> None:
+    def connection_lost(self, exc: Exception | None) -> None:
         """
         Called by asyncio when the UDP transport is closed.
         """

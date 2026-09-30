@@ -1,5 +1,5 @@
 from functools import total_ordering
-from typing import Any, Self
+from typing import Self
 
 from .convertible import ValueConvertible
 from .timestamp import Timestamp

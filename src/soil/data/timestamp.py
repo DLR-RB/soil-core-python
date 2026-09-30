@@ -1,6 +1,8 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from .convertible import ValueConvertible
 from .value import Value
+
 
 class Timestamp(datetime, ValueConvertible):
     """
@@ -12,7 +14,7 @@ class Timestamp(datetime, ValueConvertible):
     @classmethod
     def current(cls) -> 'Timestamp':
         """ The current time in UTC """
-        return cls.now(tz=timezone.utc)
+        return cls.now(tz=UTC)
 
     def adding(self, interval: float) -> 'Timestamp':
         """ Create a new timestamp by adding the given interval to this timestamp """
@@ -27,7 +29,7 @@ class Timestamp(datetime, ValueConvertible):
     @classmethod
     def fromTimeIntervalSince1970(cls, seconds: float) -> 'Timestamp':
         """ Create a timestamp from the seconds since 1.1.1970 """
-        return cls.fromtimestamp(seconds, timezone.utc)
+        return cls.fromtimestamp(seconds, UTC)
 
     @classmethod
     def fromDatetime(cls, dt: datetime) -> 'Timestamp':
@@ -49,7 +51,7 @@ class Timestamp(datetime, ValueConvertible):
 
 
     @classmethod
-    def fromValue(cls, value: Value) -> Timestamp:
+    def fromValue(cls, value: Value) -> 'Timestamp':
         """
         Create a timestamp from a DOUBLE value (seconds since 1970).
 

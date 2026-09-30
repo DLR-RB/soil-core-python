@@ -1,12 +1,13 @@
+from __future__ import annotations
+
 from abc import abstractmethod
+from typing import TYPE_CHECKING, override
 
 from ...components import Provider, Receiver, Storage
 from ...data import Timestamp
-
 from ..provider.node import ProviderNode
 from ..receiver.node import ReceiverNode
 
-from typing import TYPE_CHECKING, override
 if TYPE_CHECKING:
     from soil.nodes.storage.defaults import *
     from soil.nodes.storage.typed import *

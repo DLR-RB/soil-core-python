@@ -1,8 +1,8 @@
 from struct import unpack
-from typing import Dict
 
 from ...data import Path, Sample, SampleTree, Timestamp, Value, ValueType
 from ...messaging import Message, MessageType
+
 
 def decodeMessage(data: bytes) -> Message:
     if len(data) == 0:
@@ -127,7 +127,7 @@ class MessageDecoder:
         if sampleCount == 0b1111:
             sampleCount = self.decodeUnsignedInt()
         samples = [self.decodeSample() for _ in range(sampleCount)]
-        children: Dict[str, SampleTree] = dict()
+        children: dict[str, SampleTree] = dict()
         for _ in range(childCount):
             name = self.decodeString()
             child = self.decodeTree()

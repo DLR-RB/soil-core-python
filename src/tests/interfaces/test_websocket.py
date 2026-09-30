@@ -1,20 +1,24 @@
 from asyncio import sleep
-from typing import Tuple, override
+from typing import override
 from unittest import IsolatedAsyncioTestCase
 
 from soil.components import Receiver
 from soil.connection import RemoteTransmitter
 from soil.data import Path, SampleTree, Value
 from soil.encoding.json import JsonEncoding
-from soil.interfaces.websocket import WebSocketServer, WebSocketClient, WebSocketConnection
-from soil.logging import PrintLogger, LogLevel
-from soil.requests import Request, CompletedRequest
+from soil.interfaces.websocket import (
+    WebSocketClient,
+    WebSocketConnection,
+    WebSocketServer,
+)
+from soil.logging import LogLevel, PrintLogger
+from soil.requests import CompletedRequest, Request
 
 
 class TestReceiver(Receiver):
 
     def __init__(self) -> None:
-        self.received: Tuple[SampleTree, Path] | None = None
+        self.received: tuple[SampleTree, Path] | None = None
 
     @override
     def accept(self, tree: SampleTree, path: Path) -> Request:
@@ -54,7 +58,7 @@ class WebsocketTests(IsolatedAsyncioTestCase):
         clientToServer = await client.connect(logger = PrintLogger(path=Path.of("socket c->s"), level=level))
         await sleep(0.1)
         self.assertIsNotNone(self.serverToClient)
-        if self.serverToClient is None: return None
+        if self.serverToClient is None: return
 
         self.assertTrue(await self.serverToClient.isOpen())
         self.assertTrue(await clientToServer.isOpen())

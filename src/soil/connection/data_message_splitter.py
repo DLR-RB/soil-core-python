@@ -1,5 +1,6 @@
 import random
-from typing import Callable, Dict, List, Optional, Tuple, Any, override
+from collections.abc import Callable
+from typing import Any, override
 
 from ..data import Path, SampleTree, Timestamp, Value
 from ..logging import Logger
@@ -13,11 +14,11 @@ class MessageSequence:
     A sequence of messages to transmit that belong to a batch.
     """
 
-    def __init__(self, request: Optional[int]):
+    def __init__(self, request: int | None):
         self.request = request
 
         # List of (path, value, timestamp)
-        self.messages: List[Tuple[Any, Any, Any]] = []
+        self.messages: list[tuple[Any, Any, Any]] = []
 
         # Number of messages received
         self.received: int = 0
@@ -25,15 +26,14 @@ class MessageSequence:
         # Total messages expected
         self.total: int = 0
 
-    def _update(self, count: Optional[int]) -> None:
+    def _update(self, count: int | None) -> None:
         """Update the expected message count."""
         if count is not None and count > self.total:
             self.total = count
 
     def _didReceiveMessage(self) -> None:
         self.received += 1
-        if self.received > self.total:
-            self.total = self.received
+        self.total = max(self.total, self.received)
 
     def add(self, message: Message) -> None:
         """Add the contents of a message."""
@@ -55,7 +55,7 @@ class MessageSequence:
     def isComplete(self) -> bool:
         return self.received == self.total
 
-    def countAndId(self) -> Tuple[int | None, int | None]:
+    def countAndId(self) -> tuple[int | None, int | None]:
         """
         Compute the outgoing batch count and id.
         """
@@ -92,7 +92,7 @@ class DataMessageSplitter(Actor, MessageConnection, MessageReceiver):
         self._log: Logger | None = None
         """ The logger for internal errors """
 
-        self._outgoingMessages: Dict[int, MessageSequence] = {}
+        self._outgoingMessages: dict[int, MessageSequence] = {}
         """
         The cached outgoing message batches,
         so that the total number of messages can be calculated
@@ -143,7 +143,7 @@ class DataMessageSplitter(Actor, MessageConnection, MessageReceiver):
             )
             await self._connection.send(out)
 
-    def _createOrGet(self, request: Optional[int]) -> MessageSequence:
+    def _createOrGet(self, request: int | None) -> MessageSequence:
         if request is None:
             # Sequence is not stored, because it's immediatelly sent
             return MessageSequence(None)
@@ -184,7 +184,7 @@ class DataMessageSplitter(Actor, MessageConnection, MessageReceiver):
         await self.shutdown()
 
     @override
-    def onClose(self, perform: Optional[Callable[[], None]]) -> Request:
+    def onClose(self, perform: Callable[[], None] | None) -> Request:
         def wrapped():
             self._removeAll()
             if perform is not None:

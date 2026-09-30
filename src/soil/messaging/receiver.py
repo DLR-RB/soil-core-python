@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 from ..requests import Request
-
 from .message import Message
 
 
@@ -19,4 +18,3 @@ class MessageReceiver(ABC):
             message (Message):
                 The message to receive
         """
-        pass

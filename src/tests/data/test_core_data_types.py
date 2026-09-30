@@ -1,5 +1,7 @@
 import unittest
-from soil.data import Path, Sample, Value, SampleTree, Timestamp
+
+from soil.data import Path, Sample, SampleTree, Timestamp, Value
+
 
 class TestCoreDataTypes(unittest.TestCase):
 

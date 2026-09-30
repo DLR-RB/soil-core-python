@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 
 class StreamFraming(ABC):
@@ -25,7 +24,7 @@ class StreamFraming(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def processStreamBytes(self, data: bytes) -> List[bytes]:
+    async def processStreamBytes(self, data: bytes) -> list[bytes]:
         """
         Extract frames from binary stream data.
 

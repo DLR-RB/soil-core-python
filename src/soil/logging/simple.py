@@ -3,8 +3,7 @@ from typing import override
 
 from ..components import Receiver
 from ..data import Path, Timestamp, Value
-from ..requests import Request, CompletedRequest, AsyncRequest
-
+from ..requests import AsyncRequest, CompletedRequest, Request
 from .level import LogLevel
 from .logger import Logger
 

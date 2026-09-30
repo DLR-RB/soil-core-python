@@ -25,4 +25,3 @@ class FrameReceiver(ABC):
             Request:
                 An awaitable representing the asynchronous processing of the message
         """
-        pass

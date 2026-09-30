@@ -7,4 +7,3 @@ class DefaultPathStorageNode(DefaultStorageNode, PathStorageNode):
     """
     A node in a tree that is expected to contain paths as the value.
     """
-    pass
