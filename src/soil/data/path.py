@@ -1,7 +1,7 @@
 
 
 from collections.abc import Iterable
-from typing import override
+from typing import Self, override
 
 
 class Path(list[str]):
@@ -120,6 +120,6 @@ class Path(list[str]):
             return NotImplemented
         return type(self)(other + list(self))
 
-    def __iadd__(self, other: Iterable[str]) -> 'Path':
+    def __iadd__(self, other: Iterable[str]) -> Self:
         super().__iadd__(other)
         return self

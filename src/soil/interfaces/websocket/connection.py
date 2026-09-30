@@ -74,7 +74,7 @@ class WebSocketConnection(Actor, FrameConnection):
             # Attempt to fix strings, which might be JSON messages
             try:
                 message = message.encode('utf-8')
-            except:
+            except Exception:
                 self.log.warning("Received string message that could not be encoded as UTF-8")
                 return
         self.log.debug(f"Received message with {len(message)} bytes")

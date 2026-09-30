@@ -80,7 +80,7 @@ class Actor:
                 # TODO: Fix type annotations properly
                 try:
                     result = await result
-                except:
+                except Exception: # noqa: S110 -- future already completed, nothing to report
                     pass
             except CancelledError:
                 future.cancel()

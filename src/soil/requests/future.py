@@ -15,7 +15,7 @@ class FutureRequest(Request):
     async def wait(self) -> None:
         try:
             await self._future
-        except (CancelledError, Exception):
+        except (CancelledError, Exception): # noqa: S110 -- intentional: cancel is fire-and-forget
             pass
 
     @override
