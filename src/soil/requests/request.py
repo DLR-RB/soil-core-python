@@ -1,6 +1,6 @@
-from collections.abc import Awaitable
 from abc import ABC, abstractmethod
-from typing import Any, Generator
+from collections.abc import Awaitable, Generator
+from typing import Any
 
 
 class Request(ABC, Awaitable[None]):
@@ -12,9 +12,7 @@ class Request(ABC, Awaitable[None]):
     @abstractmethod
     async def wait(self) -> None:
         """Wait until the request completes."""
-        pass
 
     @abstractmethod
     def __await__(self) -> Generator[Any, Any, None]:
         """Wait until the request completes."""
-        pass

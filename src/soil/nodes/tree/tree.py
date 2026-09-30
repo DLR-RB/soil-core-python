@@ -15,4 +15,3 @@ class TreeNode(ABC):
 
         :return: The path of this node.
         """
-        pass

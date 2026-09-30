@@ -1,6 +1,7 @@
 from typing import override
 
 from soil.data import Path
+
 from .tree import TreeNode
 
 

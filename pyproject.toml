@@ -36,3 +36,16 @@ start-discovery = true
 verbose = 2
 pattern = "test_*.py"
 top-level-directory = "."
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["I001"]
+"src/tests/**/__init__.py" = ["F401"]
+
+[tool.ruff.lint]
+ignore = [
+    "TRY004",   # ValueError instead TypeError
+    "C408",     # list()/dict() as empty constructor
+    "BLE001",   # excepts
+    "B008",     # Path()-Defaults
+    "UP047",    # maybe later for refactoring
+]

@@ -3,7 +3,7 @@ from typing import override
 from ..components import Storage
 from ..data import MutableSampleTree, Path, SampleTree, Timestamp
 from ..requests import Request
-from ..utils.actor import Actor, synchronized, queued
+from ..utils.actor import Actor, queued, synchronized
 
 
 class InMemoryStorage(Actor, Storage):

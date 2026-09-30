@@ -3,11 +3,10 @@ from typing import override
 
 from ..components import Connection, ObservableStorage, Receiver
 from ..data import Path, SampleTree, Timestamp
-from ..messaging import MessageConnection, Message, MessageReceiver, MessageType
-from ..requests import Request, AsyncRequest
-
-from .remote_storage import RemoteStorage
+from ..messaging import Message, MessageConnection, MessageReceiver, MessageType
+from ..requests import AsyncRequest, Request
 from .remote_observable import RemoteObservable
+from .remote_storage import RemoteStorage
 
 
 class RemoteObservableStorage(MessageReceiver, ObservableStorage, Connection):

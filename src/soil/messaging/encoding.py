@@ -27,7 +27,6 @@ class MessageEncoding(ABC):
             (bytes)
                 The binary data of the encoded message
         """
-        pass
 
     @abstractmethod
     def decode(self, data: bytes) -> Message:
@@ -42,4 +41,3 @@ class MessageEncoding(ABC):
             Message
                 The decoded message
         """
-        pass

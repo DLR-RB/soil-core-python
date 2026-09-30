@@ -1,6 +1,6 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
-from soil.data import ImmutableSampleTree, Path, Value, Tree
+from soil.data import ImmutableSampleTree, Path, Tree, Value
 
 
 class TreeTests(TestCase):

@@ -1,12 +1,13 @@
+from datetime import UTC, datetime
 from unittest import TestCase, main
-from datetime import datetime, timezone
 
 from soil.data import Timestamp
+
 
 class TimestampTests(TestCase):
 
     def testCurrentTime(self):
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         current = Timestamp.current()
 
         self.assertAlmostEqual(now.timestamp(), current.timestamp(), 3)

@@ -1,8 +1,7 @@
 from typing import override
 
 from ..data.path import Path
-from ..requests import Request, CompletedRequest
-
+from ..requests import CompletedRequest, Request
 from .level import LogLevel
 from .logger import Logger
 

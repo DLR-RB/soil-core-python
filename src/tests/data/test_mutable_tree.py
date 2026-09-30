@@ -1,6 +1,13 @@
 import unittest
-from soil.data import Path, Sample, Value, MutableSampleTree, Timestamp, ImmutableSampleTree
 
+from soil.data import (
+    ImmutableSampleTree,
+    MutableSampleTree,
+    Path,
+    Sample,
+    Timestamp,
+    Value,
+)
 
 sample_list = [Sample(Value(1)), Sample(Value(2))]
 children_list = {"chil1": MutableSampleTree(sample_list),

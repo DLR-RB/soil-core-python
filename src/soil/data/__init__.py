@@ -14,7 +14,6 @@ from .type import ValueType
 from .value import Value
 
 __all__ = [
-    'ValueConvertible',
     'ImmutableSampleTree',
     'MutableSampleTree',
     'Path',
@@ -22,6 +21,7 @@ __all__ = [
     'SampleTree',
     'Timestamp',
     'Tree',
-    'ValueType',
     'Value',
+    'ValueConvertible',
+    'ValueType',
 ]

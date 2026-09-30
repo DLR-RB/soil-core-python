@@ -4,8 +4,8 @@ from .distributor import StreamDistributor
 from .receiver import StreamReceiver
 
 __all__ = [
-    'StreamConnection',
     'DecodedStream',
+    'StreamConnection',
     'StreamDistributor',
     'StreamReceiver'
 ]

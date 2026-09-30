@@ -1,7 +1,13 @@
-from typing import List
 from asyncio import Future, Task
 
-from ..data import ImmutableSampleTree, MutableSampleTree, Path, Sample, SampleTree, Timestamp
+from ..data import (
+    ImmutableSampleTree,
+    MutableSampleTree,
+    Path,
+    Sample,
+    SampleTree,
+    Timestamp,
+)
 from ..messaging import Message
 
 
@@ -130,7 +136,7 @@ class DataRequest:
 
         return True
 
-    def _limit(self, samples: List[Sample]) -> List[Sample]:
+    def _limit(self, samples: list[Sample]) -> list[Sample]:
         """
         Restrict the samples to the requested interval
         """
@@ -187,8 +193,7 @@ class DataRequest:
         # We just use the higher value, since the component may have "found"
         # additional messages to send.
         # TODO: Propagate warning about count mismatch
-        if count > self.expectedMessages:
-            self.expectedMessages = count
+        self.expectedMessages = max(self.expectedMessages, count)
 
     @property
     def hasReceivedAllExpectedMessages(self) -> bool:

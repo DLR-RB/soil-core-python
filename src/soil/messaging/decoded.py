@@ -1,10 +1,10 @@
-from typing import Callable, Optional, override
+from collections.abc import Callable
+from typing import override
 
 from ..framing.connection import FrameConnection
 from ..framing.receiver import FrameReceiver
 from ..logging import Logger, NoLogger
-from ..utils.actor import Actor, synchronized, queuedAsync
-
+from ..utils.actor import Actor, queuedAsync, synchronized
 from .connection import MessageConnection
 from .encoding import MessageEncoding
 from .message import Message
@@ -152,5 +152,5 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
 
     @override
     @synchronized
-    async def onClose(self, perform: Optional[Callable[[], None]]):
+    async def onClose(self, perform: Callable[[], None] | None):
         await self.connection.onClose(perform)

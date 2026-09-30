@@ -1,14 +1,13 @@
 from abc import abstractmethod
-
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from ..messaging.connection import MessageConnection
     from ..messaging.encoding import MessageEncoding
 
+from ..components import Connection
 from ..logging import Logger
 from ..requests import Request
-from ..components import Connection
-
 from .distributor import FrameDistributor
 
 
@@ -34,7 +33,6 @@ class FrameConnection(Connection, FrameDistributor):
                 An awaitable representing the transmission request.
                 Note: Does not guarantee delivery, only that the message was transmitted.
         """
-        pass
 
     async def apply(self, encoding: 'MessageEncoding', logger: Logger | None = None) -> 'MessageConnection':
         """

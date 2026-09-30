@@ -1,6 +1,7 @@
 import unittest
-from soil.data import Path, Sample, Value, ImmutableSampleTree, Timestamp, SampleTree
+
 from soil.components import Receiver
+from soil.data import ImmutableSampleTree, Path, Sample, SampleTree, Timestamp, Value
 
 
 class TestReceiverInterfaceLogic(unittest.TestCase):

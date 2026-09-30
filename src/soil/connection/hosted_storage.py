@@ -1,9 +1,9 @@
 from collections.abc import Callable
 from typing import override
 
-from ..components import Storage, Connection
+from ..components import Connection, Storage
 from ..data import Path, SampleTree, Timestamp
-from ..messaging import MessageConnection, Message, MessageType, MessageReceiver
+from ..messaging import Message, MessageConnection, MessageReceiver, MessageType
 from ..requests import Request
 from ..utils import Actor, synchronized
 

@@ -1,16 +1,16 @@
 from __future__ import annotations
-from typing import Dict, List
 
+from .convertible import ValueConvertible
 from .path import Path
 from .type import ValueType
-from .convertible import ValueConvertible
+
 
 class Value(ValueConvertible):
 
-    value: int | str | float | bytes | Path| List[Value] | Dict[str, Value] | None
+    value: int | str | float | bytes | Path| list[Value] | dict[str, Value] | None
     """ The wrapped value """
 
-    def __init__(self, value: int | str | float | bytes | Path| List[Value] | Dict[str, Value] | None ) -> None:
+    def __init__(self, value: str | float | bytes | Path | list[Value] | dict[str, Value] | None ) -> None:
         self.value = value
 
     def toValue(self) -> Value:
@@ -85,13 +85,13 @@ class Value(ValueConvertible):
         return self.value is None
 
     @property
-    def listValue(self) -> List[Value] | None:
+    def listValue(self) -> list[Value] | None:
         if isinstance(self.value, list) and not isinstance(self.value, Path):
             return self.value
         return None
 
     @property
-    def mapValue(self) -> Dict[str, Value] | None:
+    def mapValue(self) -> dict[str, Value] | None:
         if isinstance(self.value, dict):
             return self.value
         return None

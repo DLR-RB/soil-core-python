@@ -1,7 +1,6 @@
 
-from typing import List
 
-from ..data import Path, SampleTree, ImmutableSampleTree
+from ..data import ImmutableSampleTree, Path, SampleTree
 
 
 class SubscriptionTree:
@@ -269,14 +268,14 @@ class SubscriptionTree:
     def existingChild(self, name: str) -> 'SubscriptionTree | None':
         return self.children.get(name)
 
-    def existingNodes(self, path: Path) -> List['SubscriptionTree']:
+    def existingNodes(self, path: Path) -> list['SubscriptionTree']:
         """
         Get all existing nodes in the tree on the way to a node corresponding to a path.
         - Note: Includes this node as the first element of the result
         - Parameter path: The path to the node.
         - Returns: All existing nodes along the path.
         """
-        result: List[SubscriptionTree] = [self]
+        result: list[SubscriptionTree] = [self]
         last: SubscriptionTree = self
         for component in path:
             child = last.existingChild(component)
@@ -335,7 +334,7 @@ class SubscriptionTree:
     def _allNodes(
         self,
         path: Path,
-    ) -> List['SubscriptionTree']:
+    ) -> list['SubscriptionTree']:
         """
         Get all nodes along a path, including dummy nodes if needed.
 
@@ -360,7 +359,7 @@ class SubscriptionTree:
     def reduceNode(
         self,
         tree: SampleTree,
-        parents: List['SubscriptionTree'] | None = None,
+        parents: list['SubscriptionTree'] | None = None,
     ) -> SampleTree | None:
         """
         Use the subscriptions to remove all excluded parts of a tree.
@@ -423,7 +422,7 @@ class SubscriptionTree:
 
     def _isSubscribed(
         self,
-        parentNodes: List['SubscriptionTree'],
+        parentNodes: list['SubscriptionTree'],
         depth: int,
     ) -> bool:
         """

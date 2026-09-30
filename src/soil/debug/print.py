@@ -2,7 +2,7 @@ from typing import override
 
 from ..components import Receiver
 from ..data import Path, SampleTree, Timestamp
-from ..requests import Request, CompletedRequest
+from ..requests import CompletedRequest, Request
 
 
 class PrintReceiver(Receiver):

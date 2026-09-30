@@ -5,8 +5,8 @@ from .future import FutureRequest
 from .request import Request
 
 __all__ = [
-    'Request',
     'AsyncRequest',
     'CompletedRequest',
     'FutureRequest',
+    'Request',
 ]

@@ -4,7 +4,6 @@ from typing import override
 from ..components import Connection, Receiver
 from ..data import Path, SampleTree
 from ..requests import Request
-
 from .distributor import MessageDistributor
 from .message import Message
 
@@ -30,7 +29,6 @@ class MessageConnection(Receiver, MessageDistributor, Connection):
         Note:
             The returned request does not wait for message delivery, only transmission.
         """
-        pass
 
     # MARK: Receiver
 
