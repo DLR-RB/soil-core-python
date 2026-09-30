@@ -52,3 +52,8 @@ ignore = [
 
 [tool.coverage.run]
 source = ["soil"]
+
+[dependency-groups]
+dev = [
+    "coverage>=7.16.2",
+]

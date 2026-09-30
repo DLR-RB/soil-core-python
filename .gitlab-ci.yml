@@ -24,7 +24,7 @@ test:
   image: python:3.12
   script:
     - python -m uv sync
-    - python -m uv run python -m unittest discover -s tests -v
+    - python -m uv run coverage run -m unittest discover -s tests -v
     - python -m uv tool run coverage report
     - python -m uv tool run coverage xml -o coverage.xml  
   coverage: '/^TOTAL.+?(\d+\%)$/'  
