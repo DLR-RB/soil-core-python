@@ -2,7 +2,7 @@ from random import shuffle
 from unittest import main
 
 from soil.components import Storage
-from soil.data import ImmutableSampleTree, Path, Sample, Timestamp, Value
+from soil.data import Path, Sample, SampleTree, Timestamp, Value
 from soil.storage import InMemoryStorage
 
 from ..util import SoilAsyncTest
@@ -112,13 +112,13 @@ class InMemoryTests(SoilAsyncTest):
 
         now = Timestamp.current()
 
-        cTree = ImmutableSampleTree.ofValue(value = Value("hello"), timestamp = now)
-        fTree = ImmutableSampleTree.ofValue(value = Value(3.14), timestamp = now)
-        bTree = ImmutableSampleTree(children = {"c" : cTree, "f" : fTree})
-        eTree = ImmutableSampleTree.ofValue(value = Value.path("z", "x"), timestamp = now)
-        dTree = ImmutableSampleTree(children = {"e" : eTree})
-        aTree = ImmutableSampleTree.ofValue(value = Value(123), timestamp = now, children = { "d" : dTree })
-        tree = ImmutableSampleTree(children = {"a" : aTree, "b" : bTree})
+        cTree = SampleTree.ofValue(value = Value("hello"), timestamp = now)
+        fTree = SampleTree.ofValue(value = Value(3.14), timestamp = now)
+        bTree = SampleTree(children = {"c" : cTree, "f" : fTree})
+        eTree = SampleTree.ofValue(value = Value.path("z", "x"), timestamp = now)
+        dTree = SampleTree(children = {"e" : eTree})
+        aTree = SampleTree.ofValue(value = Value(123), timestamp = now, children = { "d" : dTree })
+        tree = SampleTree(children = {"a" : aTree, "b" : bTree})
         await storage.accept(tree, Path()).wait()
 
 

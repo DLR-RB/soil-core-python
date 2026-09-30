@@ -1,6 +1,6 @@
 
 
-from ..data import ImmutableSampleTree, Path, SampleTree
+from ..data import Path, SampleTree
 
 
 class SubscriptionTree:
@@ -415,7 +415,7 @@ class SubscriptionTree:
         if not samples and not reduced:
             return None
 
-        return ImmutableSampleTree(
+        return SampleTree(
             samples=samples,
             children=reduced,
         )

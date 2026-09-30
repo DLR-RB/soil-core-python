@@ -4,7 +4,7 @@ from unittest import IsolatedAsyncioTestCase
 
 from soil.components import Receiver
 from soil.connection import RemoteTransmitter
-from soil.data import ImmutableSampleTree, Path, SampleTree, Value
+from soil.data import Path, SampleTree, Value
 from soil.encoding.json import JsonEncoding
 from soil.interfaces.websocket import (
     WebSocketClient,
@@ -76,7 +76,7 @@ class WebsocketTests(IsolatedAsyncioTestCase):
         self.assertIsNotNone(receiver.received)
         if receiver.received is None: return
         receivedTree, receivedPath = receiver.received
-        self.assertEqual(receivedTree, ImmutableSampleTree.ofValue(Value(123)))
+        self.assertEqual(receivedTree, SampleTree.ofValue(Value(123)))
         self.assertEqual(receivedPath, Path.of("a", "b"))
 
         await toServer.close()

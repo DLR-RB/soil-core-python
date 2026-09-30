@@ -1,7 +1,7 @@
 from unittest import TestCase, main
 
 from soil.data import Path, Sample, Timestamp, Value
-from soil.data.immutable_tree import ImmutableSampleTree
+from soil.data.sampletree import SampleTree
 from soil.encoding.binary import BinaryEncoding
 from soil.encoding.binary.decode import MessageDecoder
 from soil.encoding.binary.encode import MessageEncoder
@@ -61,11 +61,11 @@ class BinaryTests(TestCase):
 
     def testTree(self):
         now = Timestamp.current()
-        data = ImmutableSampleTree(
+        data = SampleTree(
             samples = [Sample(Value("val"), now)],
             children = {
-                "child" : ImmutableSampleTree.ofValue(Value(234), now.adding(1.0), {
-                    "nested" : ImmutableSampleTree.ofValue(Value(123), now.adding(2.0))
+                "child" : SampleTree.ofValue(Value(234), now.adding(1.0), {
+                    "nested" : SampleTree.ofValue(Value(123), now.adding(2.0))
                 })
             }
         )

@@ -1,14 +1,6 @@
 from struct import unpack
 
-from ...data import (
-    ImmutableSampleTree,
-    Path,
-    Sample,
-    SampleTree,
-    Timestamp,
-    Value,
-    ValueType,
-)
+from ...data import Path, Sample, SampleTree, Timestamp, Value, ValueType
 from ...messaging import Message, MessageType
 
 
@@ -140,7 +132,7 @@ class MessageDecoder:
             name = self.decodeString()
             child = self.decodeTree()
             children[name] = child
-        return ImmutableSampleTree(samples, children)
+        return SampleTree(samples, children)
 
     def decodeSample(self) -> Sample:
         firstByte = self.nextByte()

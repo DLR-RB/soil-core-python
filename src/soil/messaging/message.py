@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 
 from soil.data.sample import Sample
 
-from ..data.immutable_tree import ImmutableSampleTree
 from ..data.path import Path
 from ..data.sampletree import SampleTree
 from ..data.timestamp import Timestamp
@@ -39,7 +38,7 @@ class Message:
     """
 
     data: SampleTree = field(
-        default_factory=lambda: ImmutableSampleTree.empty()
+        default_factory=lambda: SampleTree.empty()
     )
     """
     Data associated with the ``path``.
@@ -169,7 +168,7 @@ class Message:
         return cls(
             type = MessageType.DATA,
             path = path,
-            data = ImmutableSampleTree.ofValue(value, timestamp),
+            data = SampleTree.ofValue(value, timestamp),
             count = totalMessages,
             id = request,
         )
@@ -208,7 +207,7 @@ class Message:
         return cls(
             type = MessageType.DATA,
             path = path,
-            data = ImmutableSampleTree(samples=samples),
+            data = SampleTree(samples=samples),
             count = totalMessages,
             id = request,
         )

@@ -1,7 +1,7 @@
 from typing import override
 
 from ..components import Storage
-from ..data import MutableSampleTree, Path, SampleTree, Timestamp
+from ..data import Path, SampleTree, Timestamp
 from ..requests import Request
 from ..utils.actor import Actor, queued, synchronized
 
@@ -19,7 +19,7 @@ class InMemoryStorage(Actor, Storage):
     Note: The storage should be shut down using `shutdown()` after use.
     """
 
-    root: MutableSampleTree
+    root: SampleTree
     """ The root node of the data tree, where all other data is stored """
 
     def __init__(self) -> None:
@@ -27,7 +27,7 @@ class InMemoryStorage(Actor, Storage):
         """
         Create an in-memory storage.
         """
-        self.root: MutableSampleTree = MutableSampleTree()
+        self.root: SampleTree = SampleTree()
 
     @synchronized
     async def _accept(self, tree: SampleTree, path: Path):

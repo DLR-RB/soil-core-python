@@ -1,7 +1,7 @@
 from asyncio import Task
 from collections.abc import Callable
 
-from ..data import MutableSampleTree, Path, SampleTree
+from ..data import Path, SampleTree
 from ..messaging import Message
 
 
@@ -26,7 +26,7 @@ class IncompleteReceivedTree:
         Note:
             The tree is constructed for the root path.
         """
-        self._tree = MutableSampleTree()
+        self._tree = SampleTree()
 
         #: The receiver to forward the tree to on completion
         self.onComplete = onComplete

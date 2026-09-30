@@ -1,54 +1,47 @@
 import unittest
 
-from soil.data import (
-    ImmutableSampleTree,
-    MutableSampleTree,
-    Path,
-    Sample,
-    Timestamp,
-    Value,
-)
+from soil.data import Path, Sample, SampleTree, Timestamp, Value
 
 sample_list = [Sample(Value(1)), Sample(Value(2))]
-children_list = {"chil1": MutableSampleTree(sample_list),
-                 "child2": MutableSampleTree([Sample(Value(3))])}
+children_list = {"chil1": SampleTree(sample_list),
+                 "child2": SampleTree([Sample(Value(3))])}
 
-class TestMutableTree(unittest.TestCase):
+class TestSampleTree(unittest.TestCase):
 
     def testConstructor(self):
-        tree = MutableSampleTree()
+        tree = SampleTree()
 
         self.assertEqual(tree.samples, list())
         self.assertEqual(tree.children, dict())
 
     def testSamples(self):
-        tree = MutableSampleTree([Sample(Value(1), Timestamp(1,1,1,1,1))])
+        tree = SampleTree([Sample(Value(1), Timestamp(1,1,1,1,1))])
 
         self.assertEqual(tree.samples, [Sample(Value(1), Timestamp(1,1,1,1,1))])
 
 
     def testChildren(self):
-        tree = MutableSampleTree(children={"child1": MutableSampleTree()})
+        tree = SampleTree(children={"child1": SampleTree()})
 
-        self.assertEqual(tree.children, {"child1": MutableSampleTree()})
+        self.assertEqual(tree.children, {"child1": SampleTree()})
 
 
     def testCreate(self):
-        tree = MutableSampleTree.create(samples=sample_list, children=children_list) # type: ignore
+        tree = SampleTree.create(samples=sample_list, children=children_list) # type: ignore
 
         self.assertEqual(tree.samples, sample_list)
         self.assertEqual(tree.children, children_list)
 
     def testIsEmpty(self):
-        tree_full = MutableSampleTree.create([Sample(Value(1))])
-        tree_empty = MutableSampleTree()
+        tree_full = SampleTree.create([Sample(Value(1))])
+        tree_empty = SampleTree()
 
         self.assertFalse(tree_full.isEmpty)
         self.assertTrue(tree_empty.isEmpty)
 
 
     def testInsert(self):
-        tree = MutableSampleTree(children={"child1": MutableSampleTree()})
+        tree = SampleTree(children={"child1": SampleTree()})
         tree.insert(sample_list, Path())
         tree.insert(sample_list, Path.of("child1"))
         child1 = tree.children["child1"]
@@ -58,9 +51,9 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testMerge(self):
-        root = MutableSampleTree()
-        branch = MutableSampleTree()
-        leaf = MutableSampleTree()
+        root = SampleTree()
+        branch = SampleTree()
+        leaf = SampleTree()
         root.merge(branch)
         branch.merge(leaf)
 
@@ -70,9 +63,9 @@ class TestMutableTree(unittest.TestCase):
         self.assertIs(subtree, root)
 
     def testMergeAtPath(self): # BUG?!
-        root = MutableSampleTree()
-        branch = MutableSampleTree()
-        leaf = MutableSampleTree(sample_list)
+        root = SampleTree()
+        branch = SampleTree()
+        leaf = SampleTree(sample_list)
 
         root.mergeAtPath(branch, Path())
         root.mergeAtPath(leaf, Path.of("branch"))
@@ -84,17 +77,17 @@ class TestMutableTree(unittest.TestCase):
         self.assertEqual(subtree.samples, sample_list)
 
     def testContainedTree(self):
-        top = MutableSampleTree.ofValue(Value(123))
-        middle = MutableSampleTree(None, {"top": top})
-        root = MutableSampleTree(None, {"middle": middle})
+        top = SampleTree.ofValue(Value(123))
+        middle = SampleTree(None, {"top": top})
+        root = SampleTree(None, {"middle": middle})
 
         path, t = root.containedTree()
         self.assertEqual(path, Path.of("middle", "top"))
         self.assertEqual(len(t.samples), 1)
 
     def testChild(self):
-        root = MutableSampleTree()
-        root.add(MutableSampleTree(), "new_child_from_add")
+        root = SampleTree()
+        root.add(SampleTree(), "new_child_from_add")
         root.child("new_child_from_func")
 
         self.assertTrue(root.existingChild("new_child_from_add"))
@@ -102,7 +95,7 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testSaveSamples(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         sample_list_time = [Sample(Value(1), Timestamp(1,3,1)), Sample(Value(2), Timestamp(1,1,1)), 
                             Sample(Value(1), Timestamp(3,1,1)), Sample(Value(2), Timestamp(2,1,1))]
 
@@ -115,13 +108,13 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testInsertSampleIntoHistory(self):
-        root = MutableSampleTree()
+        root = SampleTree()
 
         root.insertSampleIntoHistory(sample_list[0])
         self.assertEqual(root.samples, [sample_list[0]])
 
     def testInsertSampleIntoHistory_timetest_append(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         old_sample = Sample(Value(1), Timestamp(1,1,1))
         new_sample = Sample(Value(0.5), Timestamp(2,2,2))
 
@@ -131,7 +124,7 @@ class TestMutableTree(unittest.TestCase):
         self.assertEqual(root.samples, [old_sample, new_sample])
 
     def testInsertSampleIntoHistory_timetest(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         old_sample = Sample(Value(1), Timestamp(1,1,1))
         new_sample = Sample(Value(0.5), Timestamp(2,2,2))
         middle_sample = Sample(Value(0.5), Timestamp(2,1,2))
@@ -147,7 +140,7 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testTreeInclusionExclusion(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         sample_list_time = [Sample(Value(1), Timestamp(1,3,1)), Sample(Value(2), Timestamp(1,1,2)), 
                             Sample(Value(1), Timestamp(1,1,1)), Sample(Value(2), Timestamp(1,4,1))]
         root.saveSamples(sample_list_time)
@@ -160,7 +153,7 @@ class TestMutableTree(unittest.TestCase):
         self.assertEqual(compare.samples, sample_list_time_compare)
         
     def testTreeDepthZero(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([Sample(Value(1), Timestamp(1, 1, 1))])
         child = root.child("sat")
         child.saveSamples([Sample(Value(9), Timestamp(1, 1, 1))])
@@ -172,7 +165,7 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testTreeDepthOneTwo(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([Sample(Value(0), Timestamp(1, 1, 1))])
         child = root.child("sat")
         child.saveSamples([Sample(Value(1), Timestamp(1, 1, 1))])
@@ -190,7 +183,7 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testTreeLimitNode(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([
             Sample(Value(1), Timestamp(1, 1, 1)),
             Sample(Value(2), Timestamp(1, 2, 1)),
@@ -210,14 +203,14 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testTreeEmpty(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         result = root.tree()
 
         self.assertEqual(root, result)
 
 
     def testTree_limitZero(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([Sample(Value(1), Timestamp(1, 1, 1))])
         result = root.tree(limitPerNode=0)
 
@@ -225,7 +218,7 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testGetSamples(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([
             Sample(Value(1), Timestamp(1, 1, 2)),
             Sample(Value(2), Timestamp(1, 2, 1)),
@@ -239,14 +232,14 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testGetSamplesLimit(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([Sample(Value(1), Timestamp(1, 1, 2)), Sample(Value(2), Timestamp(1, 2, 1))])
 
         self.assertEqual(root.getSamples(start=Timestamp(1, 1, 1), end=Timestamp(1, 3, 1), limit=1), [Sample(Value(1), Timestamp(1, 1, 2))])
 
 
     def testGetSamplesLimitDescending(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([Sample(Value(1), Timestamp(1, 1, 2)), Sample(Value(2), Timestamp(1, 2, 1))])
 
         result = root.getSamples(start=Timestamp(1, 3, 1), end=Timestamp(1, 1, 1), limit=1)
@@ -254,21 +247,21 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testDelete(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([Sample(Value(1), Timestamp(1, 1, 2)), Sample(Value(2), Timestamp(1, 2, 1)), Sample(Value(3), Timestamp(2, 2, 1))])
         root.delete(None, None, None)
 
         self.assertEqual(root.samples, [])
 
     def testDeleteRangeStartEnd(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([Sample(Value(1), Timestamp(1, 1, 2)), Sample(Value(2), Timestamp(1, 2, 1)), Sample(Value(3), Timestamp(2, 2, 1))])
         root.delete(Timestamp(1,1,1), Timestamp(1,2,1), None)
         
         self.assertEqual(root.samples, [Sample(Value(3), Timestamp(2, 2, 1))])
 
     def testDeleteRangeStart(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([Sample(Value(1), Timestamp(1, 1, 2)), Sample(Value(2), Timestamp(1, 2, 1)), Sample(Value(3), Timestamp(2, 2, 1))])
         root.delete(Timestamp(1,2,1), None, None)
         
@@ -276,7 +269,7 @@ class TestMutableTree(unittest.TestCase):
 
         
     def testDeleteRangeEnd(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([Sample(Value(1), Timestamp(1, 1, 2)), Sample(Value(2), Timestamp(1, 2, 1)), Sample(Value(3), Timestamp(2, 2, 1))])
         root.delete(None, Timestamp(1,2,1), None)
         
@@ -284,7 +277,7 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testDeleteDepth(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([Sample(Value(1), Timestamp(1, 1, 2)), Sample(Value(2), Timestamp(1, 2, 1)), Sample(Value(3), Timestamp(2, 2, 1))])
         child = root.child("sat")
         child.saveSamples([Sample(Value(7), Timestamp(1, 1, 5))])
@@ -296,7 +289,7 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testFindOrCreateNode(self):
-        root = MutableSampleTree()
+        root = SampleTree()
 
         c = root.findOrCreateNode(Path.of("a", "b", "c"))
 
@@ -305,15 +298,15 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testCreateChild(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         root.createChild("child")
 
         self.assertEqual(list(root.children), ["child"])
 
 
     def testAdd(self):
-        root = MutableSampleTree()
-        child = MutableSampleTree()
+        root = SampleTree()
+        child = SampleTree()
         child.saveSamples(sample_list)
 
         root.add(child, "child")
@@ -323,23 +316,23 @@ class TestMutableTree(unittest.TestCase):
 
 
     def testExistingChild(self):
-        root = MutableSampleTree()
-        child = MutableSampleTree()
+        root = SampleTree()
+        child = SampleTree()
         root.add(child, "child")
 
-        child_imm = ImmutableSampleTree()
+        child_imm = SampleTree()
         root._children["child_imm"] = child_imm
 
         self.assertEqual(root.existingChild("none"), None)
         self.assertEqual(root.existingChild("child"), child)
         self.assertEqual(root.existingChild("child_imm"), child_imm)
-        self.assertIsInstance(root.existingChild("child_imm"), MutableSampleTree)
+        self.assertIsInstance(root.existingChild("child_imm"), SampleTree)
 
 
 
 
     def testExistingNode(self):
-        root = MutableSampleTree()
+        root = SampleTree()
         a = root.findOrCreateNode(Path.of("a"))
         ab = root.findOrCreateNode(Path.of("a", "b"))
 
@@ -351,7 +344,7 @@ class TestMutableTree(unittest.TestCase):
 
     def testDeleteDepthOne(self):
         """ depth=1: Root und eine Ebene werden gelöscht, Enkel bleiben """
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([Sample(Value(1), Timestamp(1, 1, 2))])
         child = root.child("sat")
         child.saveSamples([Sample(Value(7), Timestamp(1, 1, 5))])
@@ -366,7 +359,7 @@ class TestMutableTree(unittest.TestCase):
 
     def testDeleteUnlimitedDepth(self):
         """ depth=None: der komplette Baum wird gelöscht, egal wie tief """
-        root = MutableSampleTree()
+        root = SampleTree()
         root.saveSamples([Sample(Value(1), Timestamp(1, 1, 2))])
         child = root.child("sat")
         child.saveSamples([Sample(Value(7), Timestamp(1, 1, 5))])

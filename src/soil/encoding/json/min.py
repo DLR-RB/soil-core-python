@@ -3,13 +3,12 @@ from enum import StrEnum
 from json import dumps, loads
 from typing import Any, override
 
-from soil.data.immutable_tree import ImmutableSampleTree
 from soil.data.path import Path
+from soil.data.sampletree import SampleTree
 from soil.data.timestamp import Timestamp
 from soil.data.type import ValueType
 
 from ...data.sample import Sample
-from ...data.sampletree import SampleTree
 from ...data.value import Value
 from ...messaging.encoding import MessageEncoding
 from ...messaging.message import Message
@@ -181,7 +180,7 @@ def _decodeTree(container: dict[str, Any]) -> SampleTree:
     samples.sort()
 
     children = _decodeChildren(container)
-    return ImmutableSampleTree(samples, children)
+    return SampleTree(samples, children)
 
 def _decodeChildren(container: dict[str, Any]) -> dict[str, SampleTree]:
     raw = container.get(JsonKey.CHILDREN)
