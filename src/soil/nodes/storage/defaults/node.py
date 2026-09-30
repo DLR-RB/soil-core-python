@@ -1,8 +1,9 @@
 
+from typing import TYPE_CHECKING, override
+
 from ...tree import DefaultTreeNode
 from ..node import StorageNode
 
-from typing import TYPE_CHECKING, override
 if TYPE_CHECKING:
     from ....components import Storage
     from ....data import Path

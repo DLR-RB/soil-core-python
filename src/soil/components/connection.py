@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable
+from collections.abc import Callable
 
 from ..requests import Request
 
@@ -18,7 +18,6 @@ class Connection(ABC):
         Returns:
             True if the connection is open, otherwise False.
         """
-        pass
 
     @abstractmethod
     def close(self) -> Request:
@@ -29,7 +28,6 @@ class Connection(ABC):
             A request that can optionally be awaited to wait for the
             connection to fully close.
         """
-        pass
 
     @abstractmethod
     def onClose(self, perform: Callable[[], None] | None) -> Request:
@@ -41,4 +39,3 @@ class Connection(ABC):
         Returns:
             A request to wait for completion
         """
-        pass

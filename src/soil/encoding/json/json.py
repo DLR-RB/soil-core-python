@@ -1,18 +1,18 @@
-from typing import Any, Dict, List, override
-from json import dumps, loads
 from base64 import b64decode, b64encode
+from json import dumps, loads
+from typing import Any, override
 
 from soil.data.immutable_tree import ImmutableSampleTree
 from soil.data.path import Path
 from soil.data.timestamp import Timestamp
 from soil.data.type import ValueType
 
-from ...messaging.encoding import MessageEncoding
-from ...messaging.message import Message
-from ...messaging.message_type import MessageType
 from ...data.sample import Sample
 from ...data.sampletree import SampleTree
 from ...data.value import Value
+from ...messaging.encoding import MessageEncoding
+from ...messaging.message import Message
+from ...messaging.message_type import MessageType
 
 
 class JsonEncoding(MessageEncoding):
@@ -29,8 +29,8 @@ class JsonEncoding(MessageEncoding):
 
 # MARK: Encoding
 
-def _convertMessageToDict(message: Message) -> Dict[str, Any]:
-    result:  Dict[str, Any] = dict()
+def _convertMessageToDict(message: Message) -> dict[str, Any]:
+    result:  dict[str, Any] = dict()
     # Only encode message type if not a data message
     if message.type != MessageType.DATA:
         result["type"] = str(message.type)
@@ -56,7 +56,7 @@ def _convertMessageToDict(message: Message) -> Dict[str, Any]:
 
     return result
 
-def _encodeTree(tree: SampleTree, container: Dict[str, Any], canUseRoot: bool) -> None:
+def _encodeTree(tree: SampleTree, container: dict[str, Any], canUseRoot: bool) -> None:
     samples = tree.samples
     if len(samples) == 1 and canUseRoot:
         # Encode a single sample at the top-level of the container,
@@ -68,14 +68,14 @@ def _encodeTree(tree: SampleTree, container: Dict[str, Any], canUseRoot: bool) -
     children = tree.children
     if len(children) == 0:
         return
-    childList: Dict[str, Any] = dict()
+    childList: dict[str, Any] = dict()
     for name, child in children.items():
-        childContainer: Dict[str, Any] = dict()
+        childContainer: dict[str, Any] = dict()
         _encodeTree(child, childContainer, canUseRoot=True)
         childList[name] = childContainer
     container['children'] = childList
 
-def _encodeValueInContainer(value: Value, container: Dict[str, Any]) -> None:
+def _encodeValueInContainer(value: Value, container: dict[str, Any]) -> None:
     type = value.type
     if type == ValueType.DATA:
         container['valueType'] = str(type)
@@ -86,12 +86,12 @@ def _encodeValueInContainer(value: Value, container: Dict[str, Any]) -> None:
         container['valueType'] = str(type)
     container['value'] = value.value
 
-def _encodeSample(sample: Sample) -> Dict[str, Any]:
-    container: Dict[str, Any] = dict()
+def _encodeSample(sample: Sample) -> dict[str, Any]:
+    container: dict[str, Any] = dict()
     _encodeSampleToContainer(sample, container)
     return container
 
-def _encodeSampleToContainer(sample: Sample, container: Dict[str, Any]) -> None:
+def _encodeSampleToContainer(sample: Sample, container: dict[str, Any]) -> None:
     _encodeValueInContainer(sample.value, container)
     if sample.timestamp is not None:
         container['time'] = sample.timestamp.timeIntervalSince1970
@@ -101,8 +101,7 @@ def _encodeSampleToContainer(sample: Sample, container: Dict[str, Any]) -> None:
 def _convertJsonToMessage(raw: Any) -> Message:
     if not isinstance(raw, dict):
         raise ValueError("Top-level JSON is not a dict")
-    #
-    container: Dict[str, Any] = raw # pyright: ignore[reportUnknownVariableType]
+    container: dict[str, Any] = raw # pyright: ignore[reportUnknownVariableType]
     type = _decodeMessageType(container)
     path = _decodePath(container)
     count = _decodeInt(container, 'count')
@@ -114,7 +113,7 @@ def _convertJsonToMessage(raw: Any) -> Message:
 
     return Message(type, path, data, count, depth, time, end, id)
 
-def _decodeMessageType(container: Dict[str, Any]) -> MessageType:
+def _decodeMessageType(container: dict[str, Any]) -> MessageType:
     rawType = container.get('type')
     if rawType is None:
         return MessageType.DATA
@@ -122,7 +121,7 @@ def _decodeMessageType(container: Dict[str, Any]) -> MessageType:
         raise ValueError("Message type is not a string")
     return MessageType(rawType)
 
-def _decodePath(container: Dict[str, Any]) -> Path:
+def _decodePath(container: dict[str, Any]) -> Path:
     rawPath = container.get('path')
     if rawPath is None:
         return Path()
@@ -130,7 +129,7 @@ def _decodePath(container: Dict[str, Any]) -> Path:
         raise ValueError("Message path must be a list of strings")
     return _createPathFromList(rawPath) # pyright: ignore[reportUnknownArgumentType]
 
-def _decodeInt(container: Dict[str, Any], key: str) -> int | None:
+def _decodeInt(container: dict[str, Any], key: str) -> int | None:
     raw = container.get(key)
     if raw is None:
         return None
@@ -140,13 +139,13 @@ def _decodeInt(container: Dict[str, Any], key: str) -> int | None:
         raise ValueError(f"Field '{key}' ({raw}) must be an integer, not {type(raw)}")
     return raw
 
-def _decodeTime(container: Dict[str, Any]) -> Timestamp | None:
+def _decodeTime(container: dict[str, Any]) -> Timestamp | None:
     if container.get('value') is not None:
         # If a value is present, then the timestamp is decoded as part of the sample
         return None
     return _decodeTimestamp(container, 'time')
 
-def _decodeTimestamp(container: Dict[str, Any], key: str) -> Timestamp | None:
+def _decodeTimestamp(container: dict[str, Any], key: str) -> Timestamp | None:
     raw = container.get(key)
     if raw is None:
         return None
@@ -157,7 +156,7 @@ def _decodeTimestamp(container: Dict[str, Any], key: str) -> Timestamp | None:
         return Timestamp.fromTimeIntervalSince1970(float(raw))
     raise ValueError(f"Field 'time' ({raw}) must be a number, not {type(raw)}")
 
-def _decodeTree(container: Dict[str, Any]) -> SampleTree:
+def _decodeTree(container: dict[str, Any]) -> SampleTree:
     samples = _decodeSamples(container)
     if container.get('value') is not None:
         # Sample present at the top level
@@ -169,14 +168,14 @@ def _decodeTree(container: Dict[str, Any]) -> SampleTree:
     children = _decodeChildren(container)
     return ImmutableSampleTree(samples, children)
 
-def _decodeChildren(container: Dict[str, Any]) -> Dict[str, SampleTree]:
+def _decodeChildren(container: dict[str, Any]) -> dict[str, SampleTree]:
     raw = container.get("children")
     if raw is None:
         return dict()
     if not isinstance(raw, dict):
         raise ValueError(f"Field 'children' must be a dictionary, not {type(raw)}")
 
-    children: Dict[str, SampleTree] = dict()
+    children: dict[str, SampleTree] = dict()
     for name, child in raw.items(): # pyright: ignore[reportUnknownVariableType]
         if not isinstance(name, str):
             raise ValueError(f"Field 'children' must have string keys, not {type(name)}") # pyright: ignore[reportUnknownArgumentType]
@@ -185,7 +184,7 @@ def _decodeChildren(container: Dict[str, Any]) -> Dict[str, SampleTree]:
         children[name] = _decodeTree(child) # pyright: ignore[reportUnknownArgumentType]
     return children
 
-def _decodeSamples(container: Dict[str, Any]) -> List[Sample]:
+def _decodeSamples(container: dict[str, Any]) -> list[Sample]:
     raw = container.get('samples')
     if raw is None:
         return list()
@@ -198,12 +197,12 @@ def _decodeSampleFromListElement(element: Any) -> Sample:
         raise ValueError(f'Sample must be represented as a dictionary, not {type(element)}')
     return _decodeSample(element) # pyright: ignore[reportUnknownArgumentType]
 
-def _decodeSample(container: Dict[str, Any]) -> Sample:
+def _decodeSample(container: dict[str, Any]) -> Sample:
     value = _decodeValue(container)
     timestamp = _decodeTimestamp(container, 'time')
     return Sample(value, timestamp)
 
-def _decodeValue(container: Dict[str, Any]) -> Value:
+def _decodeValue(container: dict[str, Any]) -> Value:
     rawType = container.get('valueType')
     rawValue = container.get('value')
     if rawType is not None:
@@ -260,7 +259,7 @@ def _decodeValueWithType(rawValue: Any, rawType: Any) -> Value:
                 raise ValueError(f"Value type declares null, but value is {type(rawValue)}")
             return Value(None)
 
-def _createPathFromList(rawValue: List[Any]) -> Path:
+def _createPathFromList(rawValue: list[Any]) -> Path:
     for component in rawValue:
         if not isinstance(component, str):
             raise ValueError("Paths must be a list of strings")

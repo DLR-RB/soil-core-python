@@ -1,7 +1,7 @@
-from unittest import TestCase, main
-from unittest.mock import patch, MagicMock
+from unittest import TestCase
+from unittest.mock import MagicMock, patch
 
-from soil.data import Sample, Path, Value, Timestamp
+from soil.data import Sample, Timestamp, Value
 
 # Helper
 

@@ -1,8 +1,9 @@
 from asyncio import DatagramTransport
-from typing import Callable, override
+from collections.abc import Callable
+from typing import override
 
 from ...framing import FrameConnection, FrameReceiver
-from ...utils import Actor, synchronized, queuedAsync
+from ...utils import Actor, queuedAsync, synchronized
 
 
 class UdpConnection(Actor, FrameConnection):

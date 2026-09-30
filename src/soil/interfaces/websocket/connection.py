@@ -1,15 +1,15 @@
+from asyncio import CancelledError, Task, create_task
 from collections.abc import Callable
 from typing import override
-from asyncio import CancelledError, Task, create_task
 
-from websockets import State, ConnectionClosed
+from websockets import ConnectionClosed, State
 from websockets.asyncio.connection import Connection as WsConnection
 
 from soil.framing.receiver import FrameReceiver
 
 from ...framing import FrameConnection
 from ...logging import Logger, OptionalLogger
-from ...utils import Actor, synchronized, queuedAsync
+from ...utils import Actor, queuedAsync, synchronized
 
 
 class WebSocketConnection(Actor, FrameConnection):
@@ -38,14 +38,13 @@ class WebSocketConnection(Actor, FrameConnection):
             return
         try:
             await self._clientConnection.send(message)
-        except ConnectionClosed as e:
+        except ConnectionClosed:
             self.log.info("Failed to send data, connection closed")
             await self._didClose()
         except CancelledError:
             raise
         except Exception as e:
             self.log.error(f"Failed to send data: {e}")
-        #
 
     async def _readUntilClosed(self) -> None:
         """
@@ -69,7 +68,6 @@ class WebSocketConnection(Actor, FrameConnection):
             self.log.info(f"Unexpected exception '{type(e)}' during read: {e}")
         finally:
             await self.close()
-        #
 
     async def _processFrame(self, message: bytes | str) -> None:
         if isinstance(message, str):

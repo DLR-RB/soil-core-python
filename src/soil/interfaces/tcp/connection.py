@@ -1,12 +1,19 @@
-from asyncio import create_task, Task, StreamReader, StreamWriter, CancelledError, current_task
 import random
+from asyncio import (
+    CancelledError,
+    StreamReader,
+    StreamWriter,
+    Task,
+    create_task,
+    current_task,
+)
 from collections.abc import Callable
 from contextlib import suppress
 from typing import override
 
 from ...logging import Logger, NoLogger
 from ...stream import StreamConnection, StreamReceiver
-from ...utils import Actor, synchronized, queuedAsync, ActorClosedError
+from ...utils import Actor, ActorClosedError, queuedAsync, synchronized
 
 
 class TcpSocketConnection(Actor, StreamConnection):
@@ -77,7 +84,6 @@ class TcpSocketConnection(Actor, StreamConnection):
             self._transmittedByteCount += len(bytes)
         except Exception as exc:
             self.log.error(f"Failed to send data over socket: {exc}")
-        #
 
     @override
     @synchronized
@@ -120,8 +126,6 @@ class TcpSocketConnection(Actor, StreamConnection):
             if self._receiver is not None:
                 self._receivedByteCount += len(data)
                 await self._receiver.acceptBytes(data)
-            #
-        #
 
     def getReceivedBytes(self) -> int:
         """

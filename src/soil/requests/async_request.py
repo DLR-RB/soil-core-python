@@ -1,8 +1,9 @@
-from typing import Any, Generator, override
-from collections.abc import Awaitable
 import asyncio
+from collections.abc import Awaitable, Generator
+from typing import Any, override
 
 from .request import Request
+
 
 async def _run(awaitable: Awaitable[None]) -> None:
     await awaitable

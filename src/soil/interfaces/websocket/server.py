@@ -1,9 +1,9 @@
 from collections.abc import Awaitable, Callable
+
 import websockets
 from websockets import ServerConnection
 
 from ...logging import Logger, NoLogger
-
 from .connection import WebSocketConnection
 
 

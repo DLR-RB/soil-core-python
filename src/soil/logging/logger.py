@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 
-from .level import LogLevel
-
 from ..requests import Request
+from .level import LogLevel
 
 
 class Logger(ABC):
@@ -23,14 +22,12 @@ class Logger(ABC):
         level : LogLevel
             The log level to use
         """
-        pass
 
     @abstractmethod
     async def getLevel(self) -> LogLevel:
         """
         Get the current log level of this logger
         """
-        pass
 
     @abstractmethod
     def childLogger(self, component: str) -> 'Logger':
@@ -48,7 +45,6 @@ class Logger(ABC):
         Logger
             A new ``Logger`` instance representing the child
         """
-        pass
 
     def childWithLevel(self, component: str, level: LogLevel) -> 'Logger':
         """
@@ -91,7 +87,6 @@ class Logger(ABC):
         Request
             A request to wait until the operation is completed
         """
-        pass
 
     def trace(self, message: str, *args: object) -> Request:
         """

@@ -10,7 +10,7 @@ __all__ = [
     'DefaultDataReceiverNode',
     'DefaultDoubleReceiverNode',
     'DefaultIntReceiverNode',
-    'DefaultReceiverNode',
     'DefaultPathReceiverNode',
+    'DefaultReceiverNode',
     'DefaultStringReceiverNode',
 ]

@@ -1,5 +1,5 @@
 
-from typing import Dict, List, override
+from typing import override
 
 from .sample import Sample
 from .sampletree import SampleTree
@@ -10,7 +10,7 @@ class ImmutableSampleTree(SampleTree):
     A path tree containing samples
     """
 
-    def __init__(self, samples: List[Sample] | None = None, children: Dict[str, SampleTree] | None = None):
+    def __init__(self, samples: list[Sample] | None = None, children: dict[str, SampleTree] | None = None):
         """
         Create a tree with samples and children.
 
@@ -23,27 +23,27 @@ class ImmutableSampleTree(SampleTree):
         Note: Defaults are None, because otherwise the same list or dict would be assigned to all objects
         """
         if samples is None:
-            self._samples: List[Sample] = list()
+            self._samples: list[Sample] = list()
         else:
             self._samples = samples
         if children is None:
-            self._children: Dict[str, SampleTree] = dict()
+            self._children: dict[str, SampleTree] = dict()
         else:
             self._children = children
 
     @property
     @override
-    def samples(self) -> List[Sample]:
+    def samples(self) -> list[Sample]:
         return self._samples
 
     @property
     @override
-    def children(self) -> Dict[str, SampleTree]:
+    def children(self) -> dict[str, SampleTree]:
         return self._children
 
     @override
     @classmethod
-    def create(cls, samples: List[Sample] | None = None, children: Dict[str, SampleTree] | None = None) -> SampleTree:
+    def create(cls, samples: list[Sample] | None = None, children: dict[str, SampleTree] | None = None) -> SampleTree:
         """
         Create a tree with samples and children.
 

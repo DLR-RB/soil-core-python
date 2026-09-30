@@ -1,5 +1,6 @@
-from typing import Any, Generator, override
-from asyncio import Future, CancelledError
+from asyncio import CancelledError, Future
+from collections.abc import Generator
+from typing import Any, override
 
 from .request import Request
 

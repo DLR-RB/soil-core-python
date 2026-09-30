@@ -1,10 +1,8 @@
 import asyncio
 from collections.abc import Awaitable, Callable
 from contextlib import suppress
-from typing import List
 
 from ...logging import Logger, OptionalLogger
-
 from .connection import TcpSocketConnection
 
 
@@ -35,7 +33,7 @@ class TcpSocketServer:
         self._serverTask: asyncio.Task[None] | None = None
         self._started = asyncio.Event()
 
-        self._connections: List[TcpSocketConnection] = list()
+        self._connections: list[TcpSocketConnection] = list()
 
     @property
     def numberOfConnections(self) -> int:
@@ -246,7 +244,7 @@ class TcpSocketServer:
         return True
 
     async def _clearClosedConnections(self):
-        remaining: List[TcpSocketConnection] = list()
+        remaining: list[TcpSocketConnection] = list()
         for connection in self._connections:
             if await connection.isOpen():
                 remaining.append(connection)

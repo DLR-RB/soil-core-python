@@ -1,6 +1,7 @@
 
 
-from typing import Iterable, List, Tuple, override
+from collections.abc import Iterable
+from typing import override
 
 
 class Path(list[str]):
@@ -25,7 +26,7 @@ class Path(list[str]):
     def size(self) -> int:
         return len(self)
 
-    def appending(self, suffix: 'str | List[str] | Path') -> 'Path':
+    def appending(self, suffix: 'str | list[str] | Path') -> 'Path':
         if isinstance(suffix, str):
             return Path(self + [suffix])
         elif isinstance(suffix, Path):
@@ -65,14 +66,14 @@ class Path(list[str]):
         - Returns: The prefix matching both paths
         """
         maxIndex = min(other.size, self.size)
-        common: List[str] = []
+        common: list[str] = []
         for index in range(maxIndex):
             if self[index] != other[index]:
                 break
             common.append(self[index])
         return Path(common)
 
-    def extractCommonPrefix(self, other: 'Path') -> Tuple['Path', 'Path', 'Path']:
+    def extractCommonPrefix(self, other: 'Path') -> tuple['Path', 'Path', 'Path']:
         """
         Compute the prefix of the path in common with a given path,
         and return the remaining relative paths.
@@ -84,7 +85,7 @@ class Path(list[str]):
         otherRemainder = Path(other[prefix.size:])
         return (prefix, remainder, otherRemainder)
 
-    def __lt__(self, value: List[str]) -> bool:
+    def __lt__(self, value: list[str]) -> bool:
         """
         Sort paths by comparing their components.
 

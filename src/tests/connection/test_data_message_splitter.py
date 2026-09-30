@@ -3,10 +3,10 @@ from unittest import main
 
 from soil.components import Receiver
 from soil.connection import DataMessageSplitter, RemoteTransmitter
-from soil.encoding.json import JsonEncoding
-from soil.messaging import MessageReceiver, Message
 from soil.data import ImmutableSampleTree, Path, Sample, SampleTree, Timestamp, Value
-from soil.utils import Actor, synchronized, queuedAsync
+from soil.encoding.json import JsonEncoding
+from soil.messaging import Message, MessageReceiver
+from soil.utils import Actor, queuedAsync, synchronized
 
 from ..util import SoilAsyncTest, TestConnection
 

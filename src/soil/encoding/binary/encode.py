@@ -3,6 +3,7 @@ from struct import pack
 from ...data import Path, Sample, SampleTree, Timestamp, Value, ValueType
 from ...messaging import Message, MessageType
 
+
 def encodeMessage(message: Message) -> bytes:
     """
     Convert a message to binary data for transmission.
@@ -64,7 +65,6 @@ class MessageEncoder:
         if message.count is not None:
             self.buffer[0] |= (1 << 3) # Set the COUNT indicator bit
             self.encodeUnsignedInt(message.count)
-        #
 
     def encodeUnsignedInt(self, value: int) -> None:
         """
@@ -157,7 +157,6 @@ class MessageEncoder:
         for name, child in children.items():
             self.encodeString(name)
             self.encodeTree(child)
-        #
 
     def encodeSample(self, sample: Sample) -> None:
         value = sample.value

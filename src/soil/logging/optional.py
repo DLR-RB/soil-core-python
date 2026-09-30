@@ -1,9 +1,8 @@
-from typing import Optional, override
+from typing import override
 
-from ..requests import Request, AsyncRequest, CompletedRequest
-
-from .logger import Logger
+from ..requests import AsyncRequest, CompletedRequest, Request
 from .level import LogLevel
+from .logger import Logger
 
 
 class OptionalLogger(Logger):
@@ -11,7 +10,7 @@ class OptionalLogger(Logger):
     A convenience wrapper to better work with nullable loggers
     """
 
-    def __init__(self, logger: Optional[Logger] = None) -> None:
+    def __init__(self, logger: Logger | None = None) -> None:
         """
         Wrap a logger.
 
@@ -19,7 +18,7 @@ class OptionalLogger(Logger):
         """
         self._logger = logger
 
-    def setLogger(self, logger: Optional[Logger]) -> None:
+    def setLogger(self, logger: Logger | None) -> None:
         """
         Set the wrapped logger.
 
@@ -27,7 +26,7 @@ class OptionalLogger(Logger):
         """
         self._logger = logger
 
-    def getLogger(self) -> Optional[Logger]:
+    def getLogger(self) -> Logger | None:
         """
         Get the currently wrapped logger.
 

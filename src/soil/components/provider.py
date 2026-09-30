@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 from ..data import Path, Sample, SampleTree, Timestamp, Value
 
@@ -50,7 +49,6 @@ class Provider(ABC):
         - Note: This function is `async`, because providing the data may take some time.
         It could be retrieved over a network, from an otherwise slow database, or from other components.
         """
-        pass
 
     async def treeAtTime(self, path: Path, time: Timestamp, depth: int | None = None) -> SampleTree:
         """
@@ -78,7 +76,7 @@ class Provider(ABC):
         start: Timestamp | None = None,
         end: Timestamp | None = None,
         limit: int | None = None
-    ) -> List[Sample]:
+    ) -> list[Sample]:
         """
         Provides the values in a given date range for a path, regardless of the value type.
 

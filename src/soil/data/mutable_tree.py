@@ -1,27 +1,29 @@
 
-from typing import Callable, Dict, List, Protocol, Self, Sequence, Tuple, TypeVar, override
+from collections.abc import Callable, Sequence
+from typing import Protocol, Self, TypeVar, override
 
+from .convertible import ValueConvertible
 from .immutable_tree import ImmutableSampleTree
 from .path import Path
 from .sample import Sample
 from .sampletree import SampleTree
 from .timestamp import Timestamp
-from .convertible import ValueConvertible
+
 
 class MutableSampleTree(SampleTree):
 
-    def __init__(self, samples: List[Sample] | None = None, children: Dict[str, SampleTree] | None = None) -> None:
-        self._samples: List[Sample] = samples if samples is not None else list()
-        self._children: Dict[str, SampleTree] = children if children is not None else dict()
+    def __init__(self, samples: list[Sample] | None = None, children: dict[str, SampleTree] | None = None) -> None:
+        self._samples: list[Sample] = samples if samples is not None else list()
+        self._children: dict[str, SampleTree] = children if children is not None else dict()
 
     @property
     @override
-    def samples(self) -> List[Sample]:
+    def samples(self) -> list[Sample]:
         return self._samples
 
     @property
     @override
-    def children(self) -> Dict[str, SampleTree]:
+    def children(self) -> dict[str, SampleTree]:
         return self._children # pyright: ignore[reportReturnType]
 
     @property
@@ -31,10 +33,10 @@ class MutableSampleTree(SampleTree):
 
     @override
     @classmethod
-    def create(cls, samples: List[Sample] | None = None, children: Dict[str, SampleTree] | None = None) -> Self:
+    def create(cls, samples: list[Sample] | None = None, children: dict[str, SampleTree] | None = None) -> Self:
         return cls(samples, children)
 
-    def insert(self, samples: List[Sample], path: Path) -> None:
+    def insert(self, samples: list[Sample], path: Path) -> None:
         """
         Insert samples into the tree.
         - Parameter samples: The samples to add
@@ -114,7 +116,7 @@ class MutableSampleTree(SampleTree):
             self.child(name).save(subTree)
 
 
-    def saveSamples(self, samples: List[Sample]) -> None:
+    def saveSamples(self, samples: list[Sample]) -> None:
         """
         Save samples at this node.
         - Parameter samples: The samples to save for this node.
@@ -158,7 +160,7 @@ class MutableSampleTree(SampleTree):
             return ImmutableSampleTree(samples)
 
         newDepth = depth - 1 if depth is not None else None
-        children: Dict[str, SampleTree] = dict()
+        children: dict[str, SampleTree] = dict()
 
         for name in self._children:
             child = self.child(name)
@@ -167,7 +169,7 @@ class MutableSampleTree(SampleTree):
 
         return ImmutableSampleTree(samples, children)
 
-    def getSamples(self, start: Timestamp | None, end: Timestamp | None, limit: int | None) -> List[Sample]:
+    def getSamples(self, start: Timestamp | None, end: Timestamp | None, limit: int | None) -> list[Sample]:
         """
         Provides the values in a given date range for a path, regardless of the value type.
 
@@ -212,7 +214,7 @@ class MutableSampleTree(SampleTree):
         endIndex = self._firstIndexAfter(end)
         return self.selectAscending(startIndex, endIndex, limit)
 
-    def selectAscending(self, start: int, end: int, limit: int | None) -> List[Sample]:
+    def selectAscending(self, start: int, end: int, limit: int | None) -> list[Sample]:
         """
         Select all samples between two indices in storage (ascending) order, limited to a maximum count.
         - Parameter range: The range to select from `history`
@@ -225,7 +227,7 @@ class MutableSampleTree(SampleTree):
             limitedEndIndex = min(end, start + limit)
         return list(self._samples[start:limitedEndIndex])
 
-    def selectDescendingInterval(self, start: Timestamp, end: Timestamp, limit: int | None) -> List[Sample]:
+    def selectDescendingInterval(self, start: Timestamp, end: Timestamp, limit: int | None) -> list[Sample]:
         """
         Select samples in the history in a date range in descending order, optionally limited to a maximum count.
         - Parameter start: The lower bound of the interval (inclusive)
@@ -241,7 +243,7 @@ class MutableSampleTree(SampleTree):
         # Now we select the subrange in descending order, with the limit applied from the higher index
         return self.selectDescending(lowerIndex, higherIndex, limit)
 
-    def selectDescending(self, start: int, end: int, limit: int | None) -> List[Sample]:
+    def selectDescending(self, start: int, end: int, limit: int | None) -> list[Sample]:
         """
         Select all samples between two indices in reverse (descending) order, limited to a maximum count.
 
@@ -378,14 +380,14 @@ class MutableSampleTree(SampleTree):
         self._children[name] = newChild
         return newChild
 
-    def existingNodes(self, path: Path) -> List['MutableSampleTree']:
+    def existingNodes(self, path: Path) -> list['MutableSampleTree']:
         """
         Get all existing nodes in the tree on the way to a node corresponding to a path.
         - Note: Includes this node as the first element of the result
         - Parameter path: The path to the node.
         - Returns: All existing nodes along the path.
         """
-        result: List[MutableSampleTree] = [self]
+        result: list[MutableSampleTree] = [self]
         last = self
         for component in path:
             child = last.existingChild(component)

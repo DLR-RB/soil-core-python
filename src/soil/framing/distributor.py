@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 from ..requests import Request
-
 from .receiver import FrameReceiver
 
 
@@ -37,7 +36,6 @@ class FrameDistributor(ABC):
         Request
             The request to optionally wait for until the receiver is set
         """
-        pass
 
     @abstractmethod
     async def getReceiver(self) -> FrameReceiver | None:
@@ -49,4 +47,3 @@ class FrameDistributor(ABC):
         Receiver | None
             The current receiver, if set
         """
-        pass

@@ -1,8 +1,8 @@
-from unittest import TestCase, main
-from unittest.mock import patch, MagicMock
+from unittest import TestCase
+
+from soil.data import Path, Value
 from soil.data.type import ValueType
 from soil.data.value import formatFloat
-from soil.data import Sample, Path, Value, Timestamp
 
 # Helper
 
@@ -49,10 +49,10 @@ class testValue(TestCase):
 
         self.assertEqual(str(value_int), "1")
         self.assertEqual(str(value_float), "1.0")
-        self.assertEqual(str(value_str), f"'1'")
+        self.assertEqual(str(value_str), "'1'")
         self.assertEqual(str(value_path), "a > b > c")
         self.assertEqual(str(value_none), "null")
-        self.assertEqual(str(value_bytes), f"00ff (DATA)")
+        self.assertEqual(str(value_bytes), "00ff (DATA)")
 
 
     def test_eq(self):

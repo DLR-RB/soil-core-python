@@ -1,5 +1,5 @@
-from typing import Callable
 from asyncio import Task
+from collections.abc import Callable
 
 from ..data import MutableSampleTree, Path, SampleTree
 from ..messaging import Message
@@ -100,8 +100,7 @@ class IncompleteReceivedTree:
         # additional messages to send.
         #
         # TODO: Propagate warning about count mismatch
-        if count > self.expectedMessages:
-            self.expectedMessages = count
+        self.expectedMessages = max(self.expectedMessages, count)
 
     @property
     def hasReceivedAllExpectedMessages(self) -> bool:

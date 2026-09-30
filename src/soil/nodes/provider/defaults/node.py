@@ -1,8 +1,9 @@
 
+from typing import TYPE_CHECKING, override
+
 from ...provider.node import ProviderNode
 from ...tree import DefaultTreeNode
 
-from typing import TYPE_CHECKING, override
 if TYPE_CHECKING:
     from ....components import Provider
     from ....data import Path

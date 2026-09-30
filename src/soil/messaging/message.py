@@ -7,7 +7,6 @@ from ..data.path import Path
 from ..data.sampletree import SampleTree
 from ..data.timestamp import Timestamp
 from ..data.value import Value
-
 from .message_type import MessageType
 
 

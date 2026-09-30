@@ -4,7 +4,7 @@ from ..components import ObservableStorage, Receiver, Storage
 from ..data import Path, SampleTree, Timestamp
 from ..requests import Request
 from ..subscriptions import SubscriptionTree
-from ..utils import Actor, synchronized, queuedAsync
+from ..utils import Actor, queuedAsync, synchronized
 
 
 class ObservingStorage(Actor, ObservableStorage):

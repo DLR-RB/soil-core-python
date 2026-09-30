@@ -1,9 +1,7 @@
 from abc import abstractmethod
-from typing import Tuple
 
 from ..data import Path, SampleTree
 from ..requests import Request
-
 from .distributor import Distributor
 
 
@@ -37,7 +35,6 @@ class Observable(Distributor):
         Request
             A request to wait for completion of the inclusion
         """
-        pass
 
     @abstractmethod
     def exclude(self, path: Path, depth: int | None) -> Request:
@@ -56,7 +53,6 @@ class Observable(Distributor):
         Request
             A request to wait for completion of the exclusion
         """
-        pass
 
     @abstractmethod
     def deleteRules(self, path: Path, depth: int | None = None) -> Request:
@@ -75,7 +71,6 @@ class Observable(Distributor):
         Request
             A request to wait for completion of the deletion
         """
-        pass
 
     @abstractmethod
     async def isSubscribed(self, path: Path) -> bool:
@@ -92,7 +87,6 @@ class Observable(Distributor):
         bool
             `true`, if the path matches
         """
-        pass
 
     @abstractmethod
     async def reduce(self, tree: SampleTree, path: Path) -> SampleTree | None:
@@ -111,9 +105,8 @@ class Observable(Distributor):
         SampleTree | None
             The reduced tree, if any inclusion rules match, otherwise `None`
         """
-        pass
 
-    async def dataForReceiver(self, tree: SampleTree, path: Path) -> Tuple[SampleTree, Path] | None:
+    async def dataForReceiver(self, tree: SampleTree, path: Path) -> tuple[SampleTree, Path] | None:
         """
         Reduce a tree at a path to contain only the subscribed data.
 

@@ -36,3 +36,7 @@ start-discovery = true
 verbose = 2
 pattern = "test_*.py"
 top-level-directory = "."
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["I001"]
+"src/tests/**/__init__.py" = ["F401"]

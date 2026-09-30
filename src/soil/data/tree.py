@@ -1,4 +1,3 @@
-from typing import Dict, List, Tuple
 
 from .path import Path
 
@@ -8,18 +7,18 @@ class Tree[T]:
     A generic tree structure that can hold a value for each tree node.
     """
 
-    def __init__(self, value: T | None = None, children: Dict[str, 'Tree[T]'] | None = None) -> None:
+    def __init__(self, value: T | None = None, children: dict[str, 'Tree[T]'] | None = None) -> None:
         self.value: T | None = value
         if children is None:
-            self.children: Dict[str, Tree[T]] = dict()
+            self.children: dict[str, Tree[T]] = dict()
         else:
-            self.children: Dict[str, Tree[T]] = children
+            self.children: dict[str, Tree[T]] = children
 
     def __str__(self) -> str:
         """
         Return a human-readable description of the tree.
         """
-        lines: List[str] = list()
+        lines: list[str] = list()
         if self.value is not None:
             lines.append("Value:")
             lines.append(f"  {self.value}")
@@ -52,7 +51,7 @@ class Tree[T]:
                 return False
         return True
 
-    def containedTree(self) -> Tuple[Path, 'Tree[T]']:
+    def containedTree(self) -> tuple[Path, 'Tree[T]']:
         """
         Find the first meaningful subtree.
 
@@ -74,7 +73,7 @@ class Tree[T]:
 
         return path, current
 
-    def containedTreeAtPath(self, path: Path) -> Tuple[Path, 'Tree[T]']:
+    def containedTreeAtPath(self, path: Path) -> tuple[Path, 'Tree[T]']:
         """
         Find the first meaningful subtree, and combine it with a given path.
 
@@ -108,14 +107,14 @@ class Tree[T]:
     def existingChild(self, name: str) -> 'Tree[T] | None':
         return self.children.get(name)
 
-    def existingNodes(self, path: Path) -> List['Tree[T]']:
+    def existingNodes(self, path: Path) -> list['Tree[T]']:
         """
         Get all existing nodes in the tree on the way to a node corresponding to a path.
         - Note: Includes this node as the first element of the result
         - Parameter path: The path to the node.
         - Returns: All existing nodes along the path.
         """
-        result: List[Tree[T]] = [self]
+        result: list[Tree[T]] = [self]
         last = self
         for component in path:
             child = last.existingChild(component)

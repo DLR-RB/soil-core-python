@@ -1,16 +1,17 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Self, Tuple
+from typing import Self
 
+from .convertible import ValueConvertible
 from .path import Path
 from .sample import Sample
 from .timestamp import Timestamp
-from .convertible import ValueConvertible
+
 
 class SampleTree(ABC):
 
     @property
     @abstractmethod
-    def samples(self) -> List[Sample]:
+    def samples(self) -> list[Sample]:
         """
         The samples at this tree node.
         """
@@ -18,7 +19,7 @@ class SampleTree(ABC):
 
     @property
     @abstractmethod
-    def children(self) -> Dict[str, 'SampleTree']:
+    def children(self) -> dict[str, 'SampleTree']:
         """
         The child nodes of the tree, indexed by path component.
         """
@@ -26,12 +27,11 @@ class SampleTree(ABC):
 
     @classmethod
     @abstractmethod
-    def create(cls, samples: List[Sample] | None = None, children: Dict[str, 'SampleTree'] | None = None) -> Self:
+    def create(cls, samples: list[Sample] | None = None, children: dict[str, 'SampleTree'] | None = None) -> Self:
         """
 
         Note: This function acts as a required constructor for all subclasses
         """
-        pass
 
     @property
     @abstractmethod
@@ -47,7 +47,6 @@ class SampleTree(ABC):
             True if neither this node nor any descendant node
             contains samples.
         """
-        pass
 
     def isEqualTo(self, other: 'SampleTree') -> bool:
         """
@@ -95,7 +94,7 @@ class SampleTree(ABC):
         return cls.create()
 
     @classmethod
-    def ofSample(cls, sample: Sample, children: Dict[str, 'SampleTree'] | None = None) -> Self:
+    def ofSample(cls, sample: Sample, children: dict[str, 'SampleTree'] | None = None) -> Self:
         """
         Create a tree with a sample at the root.
 
@@ -114,7 +113,7 @@ class SampleTree(ABC):
         return cls.create([sample], children)
 
     @classmethod
-    def ofValue(cls, value: ValueConvertible, timestamp: Timestamp | None = None, children: Dict[str, 'SampleTree'] | None = None) -> Self:
+    def ofValue(cls, value: ValueConvertible, timestamp: Timestamp | None = None, children: dict[str, 'SampleTree'] | None = None) -> Self:
         """
         Create a tree with a value at the root.
 
@@ -235,7 +234,7 @@ class SampleTree(ABC):
 
         return total
 
-    def containedTree(self) -> Tuple[Path, 'SampleTree']:
+    def containedTree(self) -> tuple[Path, 'SampleTree']:
         """
         Find the first meaningful subtree.
 
@@ -260,7 +259,7 @@ class SampleTree(ABC):
 
         return path, current
 
-    def containedTreeAtPath(self, path: Path) -> Tuple[Path, 'SampleTree']:
+    def containedTreeAtPath(self, path: Path) -> tuple[Path, 'SampleTree']:
         """
         Find the first meaningful subtree, and combine it with a given path.
 

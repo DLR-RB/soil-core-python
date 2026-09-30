@@ -1,10 +1,10 @@
 from abc import abstractmethod
+from typing import TYPE_CHECKING
 
 from ...components import Provider
 from ...data import Sample, SampleTree, Timestamp, Value
 from ..tree import TreeNode
 
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .defaults import *
     from .typed import *

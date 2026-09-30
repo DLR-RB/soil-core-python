@@ -1,11 +1,10 @@
+from asyncio import CancelledError, Task, create_task, sleep
 from typing import override
-from asyncio import Task, sleep, CancelledError, create_task
 
-from ..components import Receiver, Distributor
+from ..components import Distributor, Receiver
 from ..data import Path, SampleTree
-from ..messaging import Message, MessageType, MessageReceiver
-from ..requests import Request, CompletedRequest
-
+from ..messaging import Message, MessageReceiver, MessageType
+from ..requests import CompletedRequest, Request
 from .received_tree import IncompleteReceivedTree
 
 
