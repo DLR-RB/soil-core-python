@@ -25,3 +25,11 @@ test:
   script:
     - python -m uv sync
     - python -m uv run python -m unittest discover -s tests -v
+    - python -m uv tool run coverage report
+    - python -m uv tool run coverage xml -o coverage.xml  
+  coverage: '/^TOTAL.+?(\d+\%)$/'  
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml

@@ -49,3 +49,6 @@ ignore = [
     "B008",     # Path()-Defaults
     "UP047",    # maybe later for refactoring
 ]
+
+[tool.coverage.run]
+source = ["soil"]
