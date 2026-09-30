@@ -5,7 +5,7 @@ from soil.components import Receiver
 from soil.connection import DataMessageSplitter, RemoteTransmitter
 from soil.encoding.json import JsonEncoding
 from soil.messaging import MessageReceiver, Message
-from soil.data import ImmutableSampleTree, Path, Sample, SampleTree, Timestamp, Value
+from soil.data import Path, Sample, SampleTree, Timestamp, Value
 from soil.utils import Actor, synchronized, queuedAsync
 
 from ..util import SoilAsyncTest, TestConnection
@@ -60,21 +60,21 @@ class DataMessageSplitterTest(SoilAsyncTest):
     async def testSplitTree(self):
         """Split a tree into individual messages."""
 
-        tree = ImmutableSampleTree(
+        tree = SampleTree(
             samples=[ Sample(value=Value("a"), timestamp=Timestamp.fromTimeIntervalSince1970(1.0)) ],
             children = {
-                "b": ImmutableSampleTree(
+                "b": SampleTree(
                     samples = [
                         Sample(value=Value("b"), timestamp=Timestamp.fromTimeIntervalSince1970(2))
                     ],
                     children = {
-                        "c": ImmutableSampleTree.ofValue(
+                        "c": SampleTree.ofValue(
                             value=Value("c"),
                             timestamp=Timestamp.fromTimeIntervalSince1970(3),
                         )
                     },
                 ),
-                "d": ImmutableSampleTree.ofValue(
+                "d": SampleTree.ofValue(
                     value=Value("d"),
                     timestamp=Timestamp.fromTimeIntervalSince1970(4)
                 )
@@ -100,23 +100,23 @@ class DataMessageSplitterTest(SoilAsyncTest):
     async def testSplitBatchCorrectly(self):
         """ Send separate messages of a batch to the splitter, and recombine them """
 
-        tree = ImmutableSampleTree(
+        tree = SampleTree(
             samples=[
                 Sample(value = Value("a"), timestamp = Timestamp.fromTimeIntervalSince1970(1.0))
             ],
             children={
-                "b": ImmutableSampleTree(
+                "b": SampleTree(
                     samples = [
                         Sample(value = Value("b"), timestamp = Timestamp.fromTimeIntervalSince1970(2))
                     ],
                     children={
-                        "c": ImmutableSampleTree.ofValue(
+                        "c": SampleTree.ofValue(
                             value = Value("c"),
                             timestamp = Timestamp.fromTimeIntervalSince1970(3),
                         )
                     },
                 ),
-                "d": ImmutableSampleTree.ofValue(
+                "d": SampleTree.ofValue(
                     value = Value("d"),
                     timestamp = Timestamp.fromTimeIntervalSince1970(4),
                 ),
@@ -142,7 +142,7 @@ class DataMessageSplitterTest(SoilAsyncTest):
         path = Path.of("xyz")
 
         # Send the samples of A
-        treeA = ImmutableSampleTree(samples = tree.samples)
+        treeA = SampleTree(samples = tree.samples)
         await splitter.send(Message.tree(treeA, path = path, request = 123, totalMessages = 3)).wait()
 
         # Send the tree at B, including C
@@ -172,23 +172,23 @@ class DataMessageSplitterTest(SoilAsyncTest):
     async def testRecombineMessages(self):
         """Recombine split messages into a single tree."""
 
-        tree = ImmutableSampleTree(
+        tree = SampleTree(
             samples=[
                 Sample(value = Value("a"), timestamp = Timestamp.fromTimeIntervalSince1970(1.0))
             ],
             children={
-                "b": ImmutableSampleTree(
+                "b": SampleTree(
                     samples = [
                         Sample(value = Value("b"), timestamp = Timestamp.fromTimeIntervalSince1970(2))
                     ],
                     children={
-                        "c": ImmutableSampleTree.ofValue(
+                        "c": SampleTree.ofValue(
                             value = Value("c"),
                             timestamp = Timestamp.fromTimeIntervalSince1970(3),
                         )
                     },
                 ),
-                "d": ImmutableSampleTree.ofValue(
+                "d": SampleTree.ofValue(
                     value = Value("d"),
                     timestamp = Timestamp.fromTimeIntervalSince1970(4),
                 ),

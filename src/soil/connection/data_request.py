@@ -1,7 +1,7 @@
 from typing import List
 from asyncio import Future, Task
 
-from ..data import ImmutableSampleTree, MutableSampleTree, Path, Sample, SampleTree, Timestamp
+from ..data import Path, Sample, SampleTree, Timestamp
 from ..messaging import Message
 
 
@@ -45,7 +45,7 @@ class DataRequest:
         Note:
             The tree is constructed for the root path.
         """
-        self._tree = MutableSampleTree()
+        self._tree = SampleTree()
 
         #: The continuation to execute when the request is completed or timed out
         self.continuation = continuation
@@ -72,7 +72,7 @@ class DataRequest:
         # Here we need get the tree for the correct path,
         # not the tree at the root
         node = self._tree.existingNode(self.path)
-        tree = node.tree() if node is not None else ImmutableSampleTree()
+        tree = node.tree() if node is not None else SampleTree()
 
         self.continuation.set_result(tree)
 

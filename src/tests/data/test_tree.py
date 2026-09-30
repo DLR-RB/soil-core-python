@@ -1,14 +1,14 @@
 from unittest import TestCase, main
 
-from soil.data import ImmutableSampleTree, Path, Value, Tree
+from soil.data import SampleTree, Path, Value, Tree
 
 
 class TreeTests(TestCase):
 
     def testContainedTree(self):
-        top = ImmutableSampleTree.ofValue(Value(123))
-        middle = ImmutableSampleTree(None, {"top": top})
-        root = ImmutableSampleTree(None, {"middle": middle})
+        top = SampleTree.ofValue(Value(123))
+        middle = SampleTree(None, {"top": top})
+        root = SampleTree(None, {"middle": middle})
 
         path, t = root.containedTree()
         self.assertEqual(path, Path.of("middle", "top"))
@@ -36,9 +36,9 @@ class TreeTests(TestCase):
 
 
     def testContainedTreeAtPath(self):
-        top = ImmutableSampleTree.ofValue(Value(123))
-        middle = ImmutableSampleTree(None, {"top": top})
-        root = ImmutableSampleTree(None, {"middle": middle})
+        top = SampleTree.ofValue(Value(123))
+        middle = SampleTree(None, {"top": top})
+        root = SampleTree(None, {"middle": middle})
 
         path, tree = root.containedTree()
 

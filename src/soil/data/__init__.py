@@ -3,8 +3,7 @@ The main types to represent data in SOIL.
 """
 
 from .convertible import ValueConvertible
-from .immutable_tree import ImmutableSampleTree
-from .mutable_tree import MutableSampleTree
+from .sampletree import SampleTree
 from .path import Path
 from .sample import Sample
 from .sampletree import SampleTree
@@ -15,8 +14,6 @@ from .value import Value
 
 __all__ = [
     'ValueConvertible',
-    'ImmutableSampleTree',
-    'MutableSampleTree',
     'Path',
     'Sample',
     'SampleTree',
