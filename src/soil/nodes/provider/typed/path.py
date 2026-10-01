@@ -1,6 +1,5 @@
 
 from ....data import Path
-
 from ..node import ProviderNode
 
 

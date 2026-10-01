@@ -2,12 +2,10 @@ from dataclasses import dataclass, field
 
 from soil.data.sample import Sample
 
-from ..data.sampletree import SampleTree
 from ..data.path import Path
 from ..data.sampletree import SampleTree
 from ..data.timestamp import Timestamp
 from ..data.value import Value
-
 from .message_type import MessageType
 
 

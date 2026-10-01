@@ -1,11 +1,11 @@
-from typing import Optional, override
+from typing import override
 
 from ..components import Storage
 from ..data import Path, Timestamp, Value
 from ..nodes import DefaultStringStorageNode
-from ..requests import Request, AsyncRequest
-from .logger import Logger
+from ..requests import AsyncRequest, Request
 from .level import LogLevel
+from .logger import Logger
 
 
 class HierarchicalLogger(DefaultStringStorageNode, Logger):
@@ -23,7 +23,7 @@ class HierarchicalLogger(DefaultStringStorageNode, Logger):
     defaultLevel: LogLevel = LogLevel.WARNING
     """ The default level for logging when no explicit level is set. """
 
-    def __init__(self, storage: Storage, parent: 'Optional[HierarchicalLogger]' = None, path: Path | None = None) -> None:
+    def __init__(self, storage: Storage, parent: 'HierarchicalLogger | None' = None, path: Path | None = None) -> None:
         if path is None:
             path = Path()
         super().__init__(storage, path)

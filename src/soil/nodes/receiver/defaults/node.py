@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from soil.components import Receiver
 from soil.data import Path
-from soil.nodes.receiver import ReceiverNode
+from soil.nodes.receiver.node import ReceiverNode
 from soil.nodes.tree import DefaultTreeNode
 
 

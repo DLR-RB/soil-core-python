@@ -1,7 +1,6 @@
 from typing import override
 
-from ...messaging import MessageEncoding, Message
-
+from ...messaging import Message, MessageEncoding
 from .decode import decodeMessage
 from .encode import encodeMessage
 

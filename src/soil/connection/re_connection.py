@@ -1,10 +1,10 @@
-from asyncio import Queue, Task, create_task, get_running_loop, sleep, CancelledError
-from collections.abc import Callable
-from typing import Awaitable, override
+from asyncio import CancelledError, Queue, Task, create_task, get_running_loop, sleep
+from collections.abc import Awaitable, Callable
+from typing import override
 
-from soil.messaging import Message, MessageConnection, MessageReceiver
 from soil.logging import Logger, NoLogger
-from soil.requests import Request, CompletedRequest
+from soil.messaging import Message, MessageConnection, MessageReceiver
+from soil.requests import CompletedRequest, Request
 
 
 class ReconnectingConnection(MessageConnection):

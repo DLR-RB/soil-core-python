@@ -3,10 +3,9 @@ from typing import override
 from ..components import Receiver
 from ..data import Path, Value
 from ..nodes.receiver.defaults import DefaultStringReceiverNode
-from ..requests import Request, CompletedRequest, AsyncRequest
-
-from .logger import Logger
+from ..requests import AsyncRequest, CompletedRequest, Request
 from .level import LogLevel
+from .logger import Logger
 
 
 class DefaultLogger(DefaultStringReceiverNode, Logger):

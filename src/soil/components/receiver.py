@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from ..data import Path, Sample, SampleTree, Timestamp, Value
 
 if TYPE_CHECKING:
     from ..logging import Logger, LogLevel
 from ..requests import Request
-
 
 
 class Receiver(ABC):
@@ -48,7 +47,6 @@ class Receiver(ABC):
         The data does not actually need to be stored when the function returns, and should return as fast as possible.
         To wait until the receive is completed, await the returned request.
         """
-        pass
 
     def acceptRootTree(self, tree: SampleTree) -> Request:
         """
@@ -99,7 +97,7 @@ class Receiver(ABC):
         """
         return self.acceptSamples([sample], path)
 
-    def acceptSamples(self, samples: List[Sample], path: Path = Path()) -> Request:
+    def acceptSamples(self, samples: list[Sample], path: Path = Path()) -> Request:
         """
         Receive samples for a path.
 

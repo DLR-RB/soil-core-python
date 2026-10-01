@@ -1,20 +1,34 @@
-from asyncio import Queue, Future, create_task, get_running_loop, CancelledError, QueueEmpty, InvalidStateError
-from contextlib import suppress
-from typing import TYPE_CHECKING
-from typing import Any, Awaitable, Callable, overload
+from asyncio import (
+    CancelledError,
+    Future,
+    InvalidStateError,
+    Queue,
+    QueueEmpty,
+    create_task,
+    get_running_loop,
+)
 from collections.abc import Awaitable, Callable
+from contextlib import suppress
 from functools import wraps
-from typing import Concatenate, ParamSpec, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Concatenate,
+    ParamSpec,
+    TypeVar,
+    overload,
+)
 
 if TYPE_CHECKING:
     from types import CoroutineType
 
-from ..requests import Request, FutureRequest
+from ..requests import FutureRequest, Request
 
 P = ParamSpec("P")
 R = TypeVar("R")
 
 from enum import Enum
+
 
 class _Missing(Enum):
     TOKEN = 0
@@ -66,7 +80,7 @@ class Actor:
                 # TODO: Fix type annotations properly
                 try:
                     result = await result
-                except:
+                except Exception: # noqa: S110 -- future already completed, nothing to report
                     pass
             except CancelledError:
                 future.cancel()
@@ -82,8 +96,6 @@ class Actor:
             # catch error if the future is already completed
             with suppress(InvalidStateError):
                 future.set_result(result)
-            #
-        #
 
     def _failAllPendingWork(self) -> None:
         while True:
@@ -176,7 +188,6 @@ def queued(
     """
     Run an async function on the actor, and return a future
     """
-    ...
 
 @overload
 def queued(
@@ -189,7 +200,6 @@ def queued(
     """
     Run an async function on the actor, and return a future
     """
-    ...
 
 
 def queued(

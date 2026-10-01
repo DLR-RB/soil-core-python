@@ -1,10 +1,9 @@
 from random import shuffle
-from typing import Tuple
 from unittest import main
 
 from soil.components import Storage
+from soil.data import Path, Sample, SampleTree, Timestamp, Value
 from soil.storage import InMemoryStorage
-from soil.data import SampleTree, Path, Sample, Timestamp, Value
 
 from ..util import SoilAsyncTest
 
@@ -439,7 +438,7 @@ class InMemoryTests(SoilAsyncTest):
         self.assertSize(samples, len(values))
         self.assertEqual(samples, values)
 
-    async def _databaseWithShuffledValues(self, count: int = 100, path: Path = Path.of("a")) -> Tuple[Storage, Timestamp, Path]:
+    async def _databaseWithShuffledValues(self, count: int = 100, path: Path = Path.of("a")) -> tuple[Storage, Timestamp, Path]:
         storage = InMemoryStorage()
 
         start = Timestamp.current().adding(-count)

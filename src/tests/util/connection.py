@@ -1,8 +1,9 @@
-from typing import Callable, Tuple, override
+from collections.abc import Callable
+from typing import override
 
 from soil.framing import FrameConnection, FrameReceiver
-from soil.requests import Request, CompletedRequest
-from soil.utils import Actor, synchronized, queuedAsync
+from soil.requests import CompletedRequest, Request
+from soil.utils import Actor, queuedAsync, synchronized
 
 
 class TestConnection(Actor, FrameConnection, FrameReceiver):
@@ -12,7 +13,7 @@ class TestConnection(Actor, FrameConnection, FrameReceiver):
     """
 
     @classmethod
-    async def create(cls) -> Tuple["TestConnection", "TestConnection"]:
+    async def create(cls) -> tuple["TestConnection", "TestConnection"]:
         """
         Create a pair of interconnected test connections.
         """
@@ -112,4 +113,3 @@ class TestConnection(Actor, FrameConnection, FrameReceiver):
 
         This test implementation never closes.
         """
-        pass

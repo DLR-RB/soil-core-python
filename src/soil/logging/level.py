@@ -1,5 +1,6 @@
 from enum import IntEnum
 
+
 class LogLevel(IntEnum):
 
     TRACE = 0

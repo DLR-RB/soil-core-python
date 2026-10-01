@@ -1,5 +1,6 @@
-from typing import Any, Generator, override
-from asyncio import Future, CancelledError
+from asyncio import CancelledError, Future
+from collections.abc import Generator
+from typing import Any, override
 
 from .request import Request
 
@@ -14,7 +15,7 @@ class FutureRequest(Request):
     async def wait(self) -> None:
         try:
             await self._future
-        except (CancelledError, Exception):
+        except (CancelledError, Exception): # noqa: S110 -- intentional: cancel is fire-and-forget
             pass
 
     @override

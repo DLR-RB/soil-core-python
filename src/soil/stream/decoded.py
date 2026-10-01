@@ -1,8 +1,9 @@
-from typing import Callable, override, TYPE_CHECKING
+from collections.abc import Callable
+from typing import TYPE_CHECKING, override
 
-from ..framing import FrameDistributor, FrameConnection, FrameReceiver, StreamFraming
+from ..framing import FrameConnection, FrameDistributor, FrameReceiver, StreamFraming
 from ..logging import Logger
-from ..utils import Actor, synchronized, queuedAsync
+from ..utils import Actor, queuedAsync, synchronized
 
 if TYPE_CHECKING:
     from .connection import StreamConnection

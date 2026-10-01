@@ -1,10 +1,9 @@
 from typing import override
 
-from ..components import Receiver, Distributor
+from ..components import Distributor, Receiver
 from ..data import Path, SampleTree
 from ..messaging import MessageConnection
 from ..requests import Request
-
 from .remote_data_collector import RemoteDataCollector
 
 

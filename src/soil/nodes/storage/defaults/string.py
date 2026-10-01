@@ -7,4 +7,3 @@ class DefaultStringStorageNode(DefaultStorageNode, StringStorageNode):
     """
     A node in a tree that is expected to contain strings as the value.
     """
-    pass

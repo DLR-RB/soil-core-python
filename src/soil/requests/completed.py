@@ -1,5 +1,8 @@
-from typing import Any, Generator, override
+from collections.abc import Generator
+from typing import Any, override
+
 from .request import Request
+
 
 class CompletedRequest(Request):
     """ A request that is already completed """

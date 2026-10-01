@@ -1,7 +1,6 @@
-from typing import List, override
+from typing import override
 
-from ..utils import ByteRingBuffer, Actor
-
+from ..utils import Actor, ByteRingBuffer
 from .error import FramingError
 from .framing import StreamFraming
 
@@ -98,7 +97,7 @@ class SyncByteLengthFraming(Actor, StreamFraming):
         )
 
     @override
-    async def processStreamBytes(self, data: bytes) -> List[bytes]:
+    async def processStreamBytes(self, data: bytes) -> list[bytes]:
         """
         Extract framed messages from binary stream data.
 

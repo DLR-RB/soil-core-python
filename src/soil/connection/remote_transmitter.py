@@ -6,7 +6,6 @@ from soil.data.sampletree import SampleTree
 from ..components import Distributor, Receiver
 from ..messaging import MessageConnection
 from ..requests import Request
-
 from .remote_data_collector import RemoteDataCollector
 
 

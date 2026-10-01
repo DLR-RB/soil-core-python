@@ -1,8 +1,7 @@
 
 from ....data import Timestamp, Value
 from ....requests import Request
-
-from ...receiver import ReceiverNode
+from ...receiver.node import ReceiverNode
 
 
 class DoubleReceiverNode(ReceiverNode):

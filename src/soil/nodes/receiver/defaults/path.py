@@ -1,7 +1,8 @@
 from soil.components import Receiver
 from soil.data import Path
-from .node import DefaultReceiverNode
+
 from ..typed import PathReceiverNode
+from .node import DefaultReceiverNode
 
 
 class DefaultPathReceiverNode(DefaultReceiverNode, PathReceiverNode):

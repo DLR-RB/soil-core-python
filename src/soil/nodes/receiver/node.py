@@ -1,12 +1,13 @@
-from typing import TYPE_CHECKING, override
+from __future__ import annotations
+
 from abc import abstractmethod
+from typing import TYPE_CHECKING, override
 
 from soil.data.path import Path
 
-from ...requests import Request
-
 from ...components import Receiver
 from ...data import Sample, SampleTree, Timestamp, Value
+from ...requests import Request
 from ..tree import TreeNode
 
 if TYPE_CHECKING:

@@ -2,9 +2,8 @@ from typing import override
 
 from ..components import ObservableStorage, Storage
 from ..data import Path, SampleTree, Timestamp
-from ..messaging import MessageConnection, MessageReceiver, Message, MessageType
+from ..messaging import Message, MessageConnection, MessageReceiver, MessageType
 from ..requests import Request
-
 from .hosted_observable import HostedObservable
 from .hosted_storage import HostedStorage
 

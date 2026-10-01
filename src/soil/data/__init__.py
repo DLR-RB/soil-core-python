@@ -6,7 +6,6 @@ from .convertible import ValueConvertible, SampleTreeConvertible
 from .sampletree import SampleTree
 from .path import Path
 from .sample import Sample
-from .sampletree import SampleTree
 from .timestamp import Timestamp
 from .tree import Tree
 from .type import ValueType
@@ -20,6 +19,7 @@ __all__ = [
     'SampleTree',
     'Timestamp',
     'Tree',
-    'ValueType',
     'Value',
+    'ValueConvertible',
+    'ValueType',
 ]
