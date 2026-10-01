@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from typing import Protocol, Self, TypeVar
 
-from .convertible import ValueConvertible, SampleTreeConvertible
+from .convertible import SampleTreeConvertible, ValueConvertible
 from .path import Path
 from .sample import Sample
 from .timestamp import Timestamp

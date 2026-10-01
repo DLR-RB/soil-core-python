@@ -12,11 +12,10 @@ from .type import ValueType
 from .value import Value
 
 __all__ = [
-    'SampleTreeConvertible'
-    'ValueConvertible',
     'Path',
     'Sample',
     'SampleTree',
+    'SampleTreeConvertible',
     'Timestamp',
     'Tree',
     'Value',

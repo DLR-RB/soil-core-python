@@ -1,5 +1,6 @@
 import unittest
-from soil.data import Path, Sample, Value, SampleTree, Timestamp, SampleTreeConvertible
+
+from soil.data import Path, Sample, SampleTree, SampleTreeConvertible, Value
 from soil.data.sampletree import asTree
 
 
