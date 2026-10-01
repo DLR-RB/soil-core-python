@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from typing import Protocol, Self, TypeVar
 
-from .convertible import ValueConvertible
+from .convertible import ValueConvertible, SampleTreeConvertible
 from .path import Path
 from .sample import Sample
 from .timestamp import Timestamp
@@ -366,7 +366,7 @@ class SampleTree:
         """
         self.findOrCreateNode(path).samples.extend(samples)
 
-    def mergeAtPath(self, tree: SampleTree, path: Path) -> None:
+    def mergeAtPath(self, tree: SampleTree | SampleTreeConvertible, path: Path) -> None:
         """
         Insert a tree into this tree.
         - Parameter tree: The tree to add
@@ -375,13 +375,14 @@ class SampleTree:
         """
         self.findOrCreateNode(path).merge(tree)
 
-    def merge(self, tree: SampleTree) -> None:
+    def merge(self, tree: SampleTree | SampleTreeConvertible) -> None:
         """
         Insert a tree into this tree.
         - Parameter tree: The tree to add
         - Note: The samples are appended to existing samples without sorting.
         """
-        
+
+        tree = asTree(tree)
         self.samples.extend(tree.samples)
         for name, child in tree.children.items():
             node = self.child(name)
@@ -417,13 +418,15 @@ class SampleTree:
         child.insertSampleIntoHistory(Sample(value, Timestamp.current()))
         return child
 
-    def save(self, tree: SampleTree) -> None:
+    def save(self, tree: SampleTree | SampleTreeConvertible) -> None:
         """
         Save a tree at this node.
 
         Inserts all samples of the tree root, and recurses into the children to store the full tree.
         - Parameter tree: The tree to save for this node.
         """
+
+        tree = asTree(tree)
         self.saveSamples(tree.samples)
 
         # Recurse into the tree to store all samples
@@ -743,6 +746,17 @@ class SampleTree:
             last = child
         return result
 
+
+def asTree(tree: SampleTree | SampleTreeConvertible) -> SampleTree:
+    """
+    Convert a SampleTreeConvertible into a SampleTree.
+
+    SampleTrees are passed through unchanged.
+    Use this at the entry point of functions that accept both.
+    """
+    if isinstance(tree, SampleTree):
+        return tree
+    return tree.toTree()
 
 T = TypeVar("T")
 

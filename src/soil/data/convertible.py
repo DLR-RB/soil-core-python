@@ -5,8 +5,8 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Self
 
 if TYPE_CHECKING:
+    from .sampletree import SampleTree
     from .value import Value
-
 
 class ValueConvertible(ABC):
     """ A type that can be converted to and from a value """
@@ -30,5 +30,29 @@ class ValueConvertible(ABC):
     def toValue(self) -> Value:
         """
         Convert the instance to a value.
+        """
+        ...
+
+
+class SampleTreeConvertible(ABC):
+    """ A type that can be converted to and from a sample tree """
+
+    @classmethod
+    @abstractmethod
+    def fromTree(cls, tree: SampleTree) -> Self:
+        """
+        Create an instance of the type from a sample tree.
+
+        Raises
+        ------
+        ValueError
+            If ``tree`` does not have the structure this type expects.
+        """
+        ...
+
+    @abstractmethod
+    def toTree(self) -> SampleTree:
+        """
+        Convert the instance to a sample tree.
         """
         ...
