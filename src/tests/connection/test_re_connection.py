@@ -1,14 +1,11 @@
 import unittest
-
 from asyncio import sleep
 
-from soil.data import Path, SampleTree, Sample
+from soil.connection.re_connection import ReconnectingConnection
+from soil.data import Path, Sample, SampleTree
 from soil.data.value import Value
 from soil.messaging import Message, MessageConnection
 from soil.requests import CompletedRequest
-
-from soil.connection.re_connection import ReconnectingConnection
-
 
 
 class MockConnection(MessageConnection):

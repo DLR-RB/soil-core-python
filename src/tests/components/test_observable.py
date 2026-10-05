@@ -1,12 +1,10 @@
 import unittest
 
+from soil.components.observable import Observable
 from soil.components.receiver import Receiver
 from soil.data import Path, SampleTree
 from soil.data.sample import Sample
 from soil.data.value import Value
-from soil.components.observable import Observable
-from soil.requests import Request
-
 
 # Helper
 

@@ -1,7 +1,7 @@
 from typing import override
 
 from ..components import Receiver
-from ..data import Path, Value, Timestamp
+from ..data import Path, Timestamp, Value
 from ..nodes.receiver.defaults import DefaultStringReceiverNode
 from ..requests import AsyncRequest, CompletedRequest, Request
 from .level import LogLevel

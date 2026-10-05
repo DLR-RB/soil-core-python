@@ -156,11 +156,11 @@ class TestByteRingBuffer(unittest.TestCase):
         buffer.writeContentsOf([0x01, 0x02])
 
         self.assertIsNone(buffer.findSequence(bytes([0x01, 0x02, 0x03])))
-        self.assertIsNone(buffer.findSequence(bytes()))
+        self.assertIsNone(buffer.findSequence(b""))
 
     def test_FindSequenceAcceptsIterables(self):
         buffer = ByteRingBuffer(4)
         buffer.writeContentsOf([0x01, 0x02, 0x03])
 
         self.assertEqual(buffer.findSequence([0x02, 0x03]), 1)
-        self.assertEqual(buffer.findSequence((x for x in [0x03])), 2)
+        self.assertEqual(buffer.findSequence(x for x in [0x03]), 2)

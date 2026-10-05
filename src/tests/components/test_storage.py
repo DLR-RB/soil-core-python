@@ -1,13 +1,10 @@
-from sqlite3 import Time
-from typing import Any
 import unittest
 
+from soil.components.storage import Storage
 from soil.data import Path
 from soil.data.sampletree import SampleTree
 from soil.data.timestamp import Timestamp
 from soil.requests import CompletedRequest, Request
-
-from soil.components.storage import Storage
 
 
 class MockStorage(Storage):
@@ -55,7 +52,7 @@ class testStorage(unittest.TestCase):
 
         storage.deleteAtRoot(start, end, 3)
 
-        path, receivedStart, receivedEnd, depth = storage.deleteCalls[0]
+        _ , receivedStart, receivedEnd, depth = storage.deleteCalls[0]
         self.assertIs(start, receivedStart)
         self.assertIs(end, receivedEnd)
         self.assertIs(depth, 3)

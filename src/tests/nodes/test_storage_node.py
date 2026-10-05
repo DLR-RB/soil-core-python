@@ -1,14 +1,13 @@
 import unittest
 
-from soil.data import Path, Sample, SampleTree, Timestamp
-from soil.data.value import Value
-from soil.nodes.storage.node import StorageNode
-from soil.nodes.storage.defaults.node import DefaultStorageNode
-from soil.nodes.storage.defaults.int import DefaultIntStorageNode
-from soil.nodes.storage.defaults.double import DefaultDoubleStorageNode
-from soil.nodes.storage.defaults.string import DefaultStringStorageNode
+from soil.data import Path, SampleTree, Timestamp
 from soil.nodes.storage.defaults.data import DefaultDataStorageNode
+from soil.nodes.storage.defaults.double import DefaultDoubleStorageNode
+from soil.nodes.storage.defaults.int import DefaultIntStorageNode
+from soil.nodes.storage.defaults.node import DefaultStorageNode
 from soil.nodes.storage.defaults.path import DefaultPathStorageNode
+from soil.nodes.storage.defaults.string import DefaultStringStorageNode
+from soil.nodes.storage.node import StorageNode
 
 
 class StubStorage:
@@ -28,11 +27,9 @@ class StubStorage:
 
     async def currentSample(self, path):
         self.currentSampleCalls.append(path)
-        return None
 
     async def sample(self, path, beforeOrAt):
         self.sampleCalls.append((path, beforeOrAt))
-        return None
 
     async def tree(self, path, start, end, depth, level):
         self.treeCalls.append((path, start, end, depth, level))

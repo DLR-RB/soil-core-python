@@ -2,13 +2,13 @@ import unittest
 
 from soil.data import Path, Sample, SampleTree, Timestamp
 from soil.data.value import Value
-from soil.nodes.provider.node import ProviderNode
-from soil.nodes.provider.defaults.node import DefaultProviderNode
-from soil.nodes.provider.defaults.int import DefaultIntProviderNode
 from soil.nodes.provider.defaults.data import DefaultDataProviderNode
 from soil.nodes.provider.defaults.double import DefaultDoubleProviderNode
+from soil.nodes.provider.defaults.int import DefaultIntProviderNode
+from soil.nodes.provider.defaults.node import DefaultProviderNode
 from soil.nodes.provider.defaults.path import DefaultPathProviderNode
 from soil.nodes.provider.defaults.string import DefaultStringProviderNode
+from soil.nodes.provider.node import ProviderNode
 
 
 class StubProvider:

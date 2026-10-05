@@ -1,11 +1,6 @@
 from unittest import TestCase
 
-from requests import patch
-
-from soil.data import Path, Value
-from soil.data.type import ValueType
-from soil.data.value import formatFloat
-
+from soil.data import Path
 
 
 class testPath(TestCase):

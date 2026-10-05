@@ -2,7 +2,6 @@ import unittest
 
 from soil.data import Path
 from soil.data.value import Value
-from soil.nodes.provider.node import ProviderNode
 from soil.nodes.provider.typed.data import DataProviderNode
 from soil.nodes.provider.typed.double import DoubleProviderNode
 from soil.nodes.provider.typed.int import IntProviderNode
