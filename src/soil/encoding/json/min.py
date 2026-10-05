@@ -92,7 +92,7 @@ def _encodeTree(tree: SampleTree, container: dict[str, Any], canUseRoot: bool) -
 def _encodeValueInContainer(value: Value, container: dict[str, Any]) -> None:
     type = value.type
     if type == ValueType.DATA:
-        container[JsonKey.VALUE_TYPE] = str(type)
+        container[JsonKey.VALUE_TYPE] = _encodeValueType(type)
         rawBytes: bytes = value.value # pyright: ignore[reportAssignmentType]
         container[JsonKey.VALUE] = b64encode(rawBytes).decode('ascii')
         return

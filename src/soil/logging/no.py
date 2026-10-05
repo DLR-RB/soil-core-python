@@ -15,7 +15,7 @@ class NoLogger(Logger):
 
     @override
     def setLevel(self, level: LogLevel | None) -> Request:
-        self._level = level or LogLevel.WARNING
+        self._level = level if level is not None else LogLevel.WARNING
         return CompletedRequest()
 
     @override
