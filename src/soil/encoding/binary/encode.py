@@ -128,6 +128,21 @@ class MessageEncoder:
         for component in value:
             self.encodeString(component)
 
+    def encodeList(self, items: list[Value]) -> None:
+        self.encodeUnsignedInt(len(items))
+        for element in items:
+            self.encodeTypedValue(element)
+
+    def encodeMap(self, entries: dict[str, Value]) -> None:
+        self.encodeUnsignedInt(len(entries))
+        for key, element in entries.items():
+            self.encodeString(key)
+            self.encodeTypedValue(element)
+
+    def encodeTypedValue(self, value: Value) -> None:
+        self.buffer.append(encodeValueType(value.type))
+        self.encodeValue(value)
+
     def encodeTopLevelPath(self, path: Path) -> None:
         """ Encode the top level path like a tree with no samples and only one child each """
         for component in path:
@@ -178,7 +193,12 @@ class MessageEncoder:
             case str(x): self.encodeString(x)
             case bytes(x): self.encodeData(x)
             case Path(x): self.encodePath(x)
+            case list(x): self.encodeList(x)
+            case dict(x): self.encodeMap(x)
+            case _:
+                raise ValueError(f"Cannot encode value of type {type(val)}")
 
+            
     # MARK: Message type
 
 def encodeMessageType(type: MessageType) -> int:
@@ -191,6 +211,7 @@ def encodeMessageType(type: MessageType) -> int:
         case MessageType.SUBSCRIPTION_EXCLUSION: return 4
         case MessageType.SUBSCRIPTION_DELETION: return 5
 
+
 # MARK: Value type
 
 def encodeValueType(type: ValueType) -> int:
@@ -201,3 +222,6 @@ def encodeValueType(type: ValueType) -> int:
         case ValueType.STRING: return 3
         case ValueType.DATA: return 4
         case ValueType.PATH: return 5
+        case ValueType.LIST: return 6
+        case ValueType.MAP: return 7
+        case _: raise ValueError(f"Cannot encode unknown value type ({type})")
