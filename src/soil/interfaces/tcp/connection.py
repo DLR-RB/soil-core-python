@@ -121,7 +121,12 @@ class TcpSocketConnection(Actor, StreamConnection):
                     pass
                 return
             if not data:
-                break
+                # EOF: the remote side closed the connection
+                try:
+                    await self.close()
+                except ActorClosedError:
+                    pass
+                return
 
             if self._receiver is not None:
                 self._receivedByteCount += len(data)
