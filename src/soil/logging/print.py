@@ -33,6 +33,6 @@ class PrintLogger(Logger):
     @override
     def log(self, level: LogLevel, message: str, *args: object) -> Request:
         if level >= self._level:
-            msg = message.format(args)
+            msg = message.format(*args)
             print(f"[{str(level).upper()}][{self.path}] {msg}")
         return CompletedRequest()
