@@ -92,7 +92,7 @@ class DecodedStream(Actor, FrameConnection, FrameDistributor, StreamReceiver):
             return
 
         for message in messages:
-            await receiver.acceptFrame(message)
+            receiver.acceptFrame(message)
 
     # MARK: FrameConnection
 

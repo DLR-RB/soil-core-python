@@ -60,6 +60,7 @@ class RemoteObservableStorage(MessageReceiver, ObservableStorage, Connection):
     """
     @override
     def acceptMessage(self, message: Message) -> Request:
+        print(f"[DGB] ROS accept: type={message.type}", flush=True)
         if message.type == MessageType.DATA:
             async def operation():
                 await self._storage.acceptMessage(message)

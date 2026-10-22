@@ -19,6 +19,10 @@ from typing import (
     overload,
 )
 
+import weakref
+
+_ALL_ACTORS: "weakref.WeakSet[Actor]" = weakref.WeakSet()
+
 if TYPE_CHECKING:
     from types import CoroutineType
 
@@ -58,6 +62,7 @@ class Actor:
     def __init__(self):
         self._queue: Queue[tuple[Callable[[], Awaitable[Any]], Future[Any]] | _StopSentinel] = Queue()
         self._task = create_task(self._run())
+        _ALL_ACTORS.add(self)
         self._isClosed: bool = False
         """ Indicate if the actor queue is closed """
 
@@ -71,31 +76,38 @@ class Actor:
                 print(f"Actor: Failed to get next task ({type(e)}): {e}")
                 return
             if isinstance(item, _StopSentinel):
-                # Queue finished due to actor shutdown
+                print(f"[DGB] {type(self).__name__}#{id(self) % 10000} SHUTDOWN, "
+                      f"{self._queue.qsize()} pending", flush=True)
                 self._failAllPendingWork()
                 return
             work, future = item
             try:
+                print(f"[ACTOR-DGB] begin {type(self).__name__}#{id(self) % 10000}: "
+                    f"{getattr(work, '__qualname__', repr(work))}", flush=True)
                 result = await work()
+                print(f"[ACTOR-DGB] end   {type(self).__name__}#{id(self) % 10000}", flush=True)
                 # TODO: Fix type annotations properly
                 try:
                     result = await result
                 except Exception: # noqa: S110 -- future already completed, nothing to report
                     pass
             except CancelledError:
+                print(f"[DGB] {type(self).__name__}#{id(self) % 10000} CANCELLED in work", flush=True)
                 future.cancel()
                 self._failAllPendingWork()
                 return
             except Exception as e:
-                # Try to set the exception for the future,
-                # catch error if the future is already completed
+                print(f"[DGB] {type(self).__name__}#{id(self) % 10000} work FAILED: {e!r}", flush=True)
                 with suppress(InvalidStateError):
                     future.set_exception(e)
                 continue
-            # Try to set the result for the future,
-            # catch error if the future is already completed
             with suppress(InvalidStateError):
                 future.set_result(result)
+    def dgbState(self) -> str:
+        task = self._task
+        return (f"{type(self).__name__}#{id(self) % 10000} closed={self._isClosed} "
+                f"backlog={self._queue.qsize()} task.done={task.done()} "
+                f"task.cancelled={task.cancelled()}")
 
     def _failAllPendingWork(self) -> None:
         while True:
