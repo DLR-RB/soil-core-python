@@ -83,7 +83,6 @@ class TcpSocketConnection(Actor, StreamConnection):
             self.log.error(f"Connection not open, can't send {len(bytes)} bytes")
             return
 
-        print(f"[TCP-DGB] {self.uniqueId} -> {len(bytes)} bytes", flush=True)
         try:
             self._writer.write(bytes)
             await self._writer.drain()
@@ -170,17 +169,12 @@ class TcpSocketConnection(Actor, StreamConnection):
                 await self._gracefulCloseOrEscalate("EOF")
                 return
             self._receivedByteCount += len(data)
-            print(f"[TCP-DGB] {self.uniqueId} <- {len(data)} bytes", flush=True)
-            # Never process inline: the receive chain may itself await the
-            # send path (request completions). Blocking here can deadlock
-            # both peers under full-duplex load; the dispatch task keeps
-            # frames in order while we keep reading.
+
             await self._dispatchQueue.put(data)
 
     async def _startDispatching(self) -> None:
         while True:
             data = await self._dispatchQueue.get()
-            print(f"[TCP-DGB] {self.uniqueId} dispatch: {len(data)} bytes", flush=True)
             if data is None:
                 return
             if self._receiver is None:
@@ -230,6 +224,13 @@ class TcpSocketConnection(Actor, StreamConnection):
     @override
     @synchronized
     async def onClose(self, perform: Callable[[], None] | None) -> None:
+        if not self._running or self._writer.is_closing():
+            if perform is not None:
+                try:
+                    perform()
+                except Exception as exc:
+                    self.log.error(f"onClose callback failed (already closed): {exc}")
+            return
         self._onClose = perform
 
     @override

@@ -99,7 +99,6 @@ class RemoteObservable(Actor, MessageReceiver, Observable, Connection):
             This function is called automatically by the connection, and
             should not be called manually.
         """
-        print(f"[DGB] RemoteObservable#{id(self) % 10000} processing: type={message.type}", flush=True)
         match message.type:
             case MessageType.DATA:
                 await self._didReceiveData(message)

@@ -83,8 +83,6 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         Attempts to decode the message contained in the data and forwards it to the message connection.
         """
         if self._receiver is None:
-            print(f"[DGB] DecodedConnection#{id(self) % 10000} BUFFERED frame, "
-                  f"pending={len(self._pending_frames)}", flush=True)
             self._pending_frames.append(frame)
             return
 
@@ -94,7 +92,6 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         except Exception as e:
             self.log.error(f"Failed to decode frame: {e}")
             return
-        print(f"[DGB] DecodedConnection#{id(self) % 10000} frame decoded: type={message.type}", flush=True)
         # Forward the decoded message to the component connection
         await self._receiver.acceptMessage(message)
 
