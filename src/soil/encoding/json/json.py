@@ -15,6 +15,12 @@ from ...messaging.message_type import MessageType
 
 
 class JsonEncoding(MessageEncoding):
+    """
+    JSON wire format for soil messages.
+    """
+
+    MSG_TYPE_KEY = "message"
+    VALUE_TYPE_KEY = "type"
 
     @override
     def encode(self, message: Message) -> bytes:
@@ -32,7 +38,7 @@ def _convertMessageToDict(message: Message) -> dict[str, Any]:
     result:  dict[str, Any] = dict()
     # Only encode message type if not a data message
     if message.type != MessageType.DATA:
-        result["type"] = str(message.type)
+        result[JsonEncoding.MSG_TYPE_KEY] = str(message.type).lower()
     # If the path is absent, then it defaults to an empty path
     if not message.path.isEmpty:
         result["path"] = message.path
@@ -61,7 +67,7 @@ def _encodeTree(tree: SampleTree, container: dict[str, Any], canUseRoot: bool) -
         # Encode a single sample at the top-level of the container,
         # but only if the 'time' field is not already used
         _encodeSampleToContainer(samples[0], container)
-    elif len(samples) > 1:
+    elif len(samples) >= 1:
         container['samples'] = [_encodeSample(s) for s in samples]
 
     children = tree.children
@@ -75,15 +81,36 @@ def _encodeTree(tree: SampleTree, container: dict[str, Any], canUseRoot: bool) -
     container['children'] = childList
 
 def _encodeValueInContainer(value: Value, container: dict[str, Any]) -> None:
-    type = value.type
-    if type == ValueType.DATA:
-        container['valueType'] = str(type)
-        rawBytes: bytes = value.value # pyright: ignore[reportAssignmentType]
-        container['value'] = b64encode(rawBytes).decode('ascii')
-        return
-    if type == ValueType.INTEGER:
-        container['valueType'] = str(type)
-    container['value'] = value.value
+    type_val = value.type
+    inner = value.value
+
+    container[JsonEncoding.VALUE_TYPE_KEY] = str(type_val).lower()
+
+    if isinstance(inner, bytes):
+        container['value'] = b64encode(inner).decode('ascii')
+    elif isinstance(inner, Path):
+        container['value'] = inner
+    elif isinstance(inner, list):
+        # Flatten nested values to [type, value, type, value, ...]
+        items: list[Any] = []
+        for element in inner:
+            sub: dict[str, Any] = dict()
+            _encodeValueInContainer(element, sub)
+            items.append(sub[JsonEncoding.VALUE_TYPE_KEY])
+            items.append(sub['value'])
+        container['value'] = items
+    elif isinstance(inner, dict):
+        # Flatten nested values to [key, type, value, ...]
+        items = []
+        for key, element in inner.items():
+            sub: dict[str, Any] = dict()
+            _encodeValueInContainer(element, sub)
+            items.append(key)
+            items.append(sub[JsonEncoding.VALUE_TYPE_KEY])
+            items.append(sub['value'])
+        container['value'] = items
+    else:
+        container['value'] = inner
 
 def _encodeSample(sample: Sample) -> dict[str, Any]:
     container: dict[str, Any] = dict()
@@ -100,20 +127,30 @@ def _encodeSampleToContainer(sample: Sample, container: dict[str, Any]) -> None:
 def _convertJsonToMessage(raw: Any) -> Message:
     if not isinstance(raw, dict):
         raise ValueError("Top-level JSON is not a dict")
-    container: dict[str, Any] = raw # pyright: ignore[reportUnknownVariableType]
-    type = _decodeMessageType(container)
+
+    container = raw
+
+    type_msg = _decodeMessageType(container)
     path = _decodePath(container)
+
     count = _decodeInt(container, 'count')
     depth = _decodeInt(container, 'depth')
-    time = _decodeTime(container)
+    id_ = _decodeInt(container, 'id')
+
+    if 'value' in container:
+        time = None
+    else:
+        time = _decodeTime(container)
+
     end = _decodeTimestamp(container, 'end')
-    id = _decodeInt(container, 'id')
+
+    # Data decoding consumes the value/type from the root (if present)
     data = _decodeTree(container)
 
-    return Message(type, path, data, count, depth, time, end, id)
+    return Message(type_msg, path, data, count, depth, time, end, id_)
 
 def _decodeMessageType(container: dict[str, Any]) -> MessageType:
-    rawType = container.get('type')
+    rawType = container.get(JsonEncoding.MSG_TYPE_KEY)
     if rawType is None:
         return MessageType.DATA
     if not isinstance(rawType, str):
@@ -124,9 +161,12 @@ def _decodePath(container: dict[str, Any]) -> Path:
     rawPath = container.get('path')
     if rawPath is None:
         return Path()
+
+    if isinstance(rawPath, str):
+        return Path([rawPath])
     if not isinstance(rawPath, list):
         raise ValueError("Message path must be a list of strings")
-    return _createPathFromList(rawPath) # pyright: ignore[reportUnknownArgumentType]
+    return _createPathFromList(rawPath)
 
 def _decodeInt(container: dict[str, Any], key: str) -> int | None:
     raw = container.get(key)
@@ -139,9 +179,6 @@ def _decodeInt(container: dict[str, Any], key: str) -> int | None:
     return raw
 
 def _decodeTime(container: dict[str, Any]) -> Timestamp | None:
-    if container.get('value') is not None:
-        # If a value is present, then the timestamp is decoded as part of the sample
-        return None
     return _decodeTimestamp(container, 'time')
 
 def _decodeTimestamp(container: dict[str, Any], key: str) -> Timestamp | None:
@@ -157,13 +194,11 @@ def _decodeTimestamp(container: dict[str, Any], key: str) -> Timestamp | None:
 
 def _decodeTree(container: dict[str, Any]) -> SampleTree:
     samples = _decodeSamples(container)
-    if container.get('value') is not None:
-        # Sample present at the top level
-        sample = _decodeSample(container)
-        samples.append(sample)
+
+    if 'value' in container:
+        samples.append(_decodeSample(container))
 
     samples.sort()
-
     children = _decodeChildren(container)
     return SampleTree(samples, children)
 
@@ -202,7 +237,7 @@ def _decodeSample(container: dict[str, Any]) -> Sample:
     return Sample(value, timestamp)
 
 def _decodeValue(container: dict[str, Any]) -> Value:
-    rawType = container.get('valueType')
+    rawType = container.get(JsonEncoding.VALUE_TYPE_KEY)
     rawValue = container.get('value')
     if rawType is not None:
         return _decodeValueWithType(rawValue, rawType)
@@ -216,13 +251,13 @@ def _decodeValue(container: dict[str, Any]) -> Value:
     if isinstance(rawValue, int):
         return Value(float(rawValue))
     if isinstance(rawValue, list):
-        path = _createPathFromList(rawValue) # pyright: ignore[reportUnknownArgumentType]
+        path = _createPathFromList(rawValue) # pyright: ignore[reportUnknownVariableType]
         return Value(path)
     raise ValueError(f"Field 'value' has unknown type {type(rawValue)}")
 
 def _decodeValueWithType(rawValue: Any, rawType: Any) -> Value:
     if not isinstance(rawType, str):
-        raise ValueError(f"Field 'valueType' must be a string, not {type(rawType)}")
+        raise ValueError(f"Field 'valuetype' must be a string, not {type(rawType)}")
     valueType = ValueType(rawType)
     match valueType:
         case ValueType.INTEGER:
@@ -246,17 +281,46 @@ def _decodeValueWithType(rawValue: Any, rawType: Any) -> Value:
         case ValueType.DATA:
             if not isinstance(rawValue, str):
                 raise ValueError(f"Value type declares data, but value is {type(rawValue)}")
-            rawBytes = b64decode(rawValue)
+            try:
+                rawBytes = b64decode(rawValue, validate=True)
+            except ValueError as e:
+                raise ValueError(f"Value data is not valid base64: {e}") from e
             return Value(rawBytes)
         case ValueType.PATH:
+            if isinstance(rawValue, str):
+                return Value(Path([rawValue]))
             if not isinstance(rawValue, list):
                 raise ValueError(f"Value type declares path, but value is {type(rawValue)}")
-            path = _createPathFromList(rawValue) # pyright: ignore[reportUnknownArgumentType]
+            path = _createPathFromList(rawValue)
             return Value(path)
+        case ValueType.LIST:
+            if not isinstance(rawValue, list):
+                raise ValueError(f"Value type declares list, but value is {type(rawValue)}")
+            if len(rawValue) % 2 != 0:
+                raise ValueError("List value must contain type/value pairs")
+            items: list[Value] = []
+            for i in range(0, len(rawValue), 2):
+                t, v = rawValue[i], rawValue[i + 1]
+                items.append(_decodeValue({JsonEncoding.VALUE_TYPE_KEY: t, "value": v}))
+            return Value(items)
+        case ValueType.MAP:
+            if not isinstance(rawValue, list):
+                raise ValueError(f"Value type declares map / dict, but value is {type(rawValue)}")
+            if len(rawValue) % 3 != 0:
+                raise ValueError("Map value must contain key/type/value triples")
+            entries: dict[str, Value] = dict()
+            for i in range(0, len(rawValue), 3):
+                k, t, v = rawValue[i], rawValue[i + 1], rawValue[i + 2]
+                if not isinstance(k, str):
+                    raise ValueError(f"Map keys must be strings, not {type(k)}")
+                entries[k] = _decodeValue({JsonEncoding.VALUE_TYPE_KEY: t, "value": v})
+            return Value(entries)
         case ValueType.NONE:
-            if not rawValue is not None:
-                raise ValueError(f"Value type declares null, but value is {type(rawValue)}")
+            if rawValue is not None:
+                raise ValueError("Value type declares null, but value is not null")
             return Value(None)
+        case _:
+            raise ValueError(f"Unknown value type: {rawType}")
 
 def _createPathFromList(rawValue: list[Any]) -> Path:
     for component in rawValue:

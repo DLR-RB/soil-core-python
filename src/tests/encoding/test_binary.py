@@ -1,9 +1,9 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from soil.data import Path, Sample, Timestamp, Value
 from soil.data.sampletree import SampleTree
 from soil.encoding.binary import BinaryEncoding
-from soil.encoding.binary.decode import MessageDecoder
+from soil.encoding.binary.decode import MessageDecoder, decodeMessage
 from soil.encoding.binary.encode import MessageEncoder
 from soil.messaging import Message, MessageType
 
@@ -205,5 +205,59 @@ class BinaryTests(TestCase):
         message = Message.value(Value(None), Path.of("some", "path"))
         self._roundTrip(message)
 
-if __name__ == "__main__":
-    main()
+    def testPathValue(self):
+        self._roundTrip(Message.value(Value(Path.of("x", "y")), Path.of("a")))
+
+    def testNullValue(self):
+        self._roundTrip(Message.value(Value(None), Path.of("a")))
+
+    def testListValue(self):
+        value = Value([Value(1), Value("a"), Value(Path.of("x"))])
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testMapValue(self):
+        value = Value({"one": Value(1), "two": Value("zwei")})
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testNestedListValue(self):
+        value = Value([Value([Value(1), Value("a")]), Value(None)])
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testNestedMapValue(self):
+        value = Value({"outer": Value({"inner": Value(1)})})
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+
+    def testSingleSampleKeepsItsTimestamp(self):
+        ts = Timestamp.current()
+        decoded = self._roundTrip(Message.value(Value(123), Path.of("a"), ts))
+
+        self.assertIsNone(decoded.time)
+        self.assertEqual(decoded.data.samples[0].timestamp, ts)
+
+    def testEmptyListValue(self):
+        self._roundTrip(Message.value(Value([]), Path.of("a")))
+
+    def testEmptyMapValue(self):
+        self._roundTrip(Message.value(Value({}), Path.of("a")))
+
+    def testDeeplyNestedListValue(self):
+        value = Value([Value([Value([Value(1)])])])
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+
+    def testRejectsTruncatedData(self):
+        with self.assertRaises(ValueError):
+            decodeMessage(bytes([0b00000001, 0b00000011, 0x05, 0x68, 0x69]))
+
+    def testRejectsInsufficientBytes(self):
+        with self.assertRaises(ValueError):
+            decodeMessage(bytes([0b00000001]))
+
+    def testRejectsUnknownSampleValueType(self):
+        with self.assertRaises(ValueError):
+            decodeMessage(bytes([0b00000001, 0b00001000]))
+
+    def testRejectsUnknownMessageType(self):
+        with self.assertRaises(ValueError):
+            decodeMessage(bytes([0b11100000]))

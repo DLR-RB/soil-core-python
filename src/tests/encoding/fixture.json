@@ -1,0 +1,170 @@
+{
+  "format": "soil-encoding-vectors/1",
+  "description": "Known-good wire representations for SOIL messages, shared between all SOIL core implementations.",
+  "notes": [
+    "Value-type wire names are lowercase ('null', 'integer', 'double', 'string', 'data', 'path', 'list', 'map'); note NONE is 'null' on the wire."
+  ],
+  "cases": [
+    {
+      "name": "none_value",
+      "description": "DATA, single root sample, NONE value ('null' on the wire)",
+      "json": { "type": "null", "value": null },
+      "compact": { "h": 0, "v": null },
+      "binary": "000100"
+    },
+    {
+      "name": "integer_value",
+      "description": "DATA, single root sample, INTEGER 42 (zigzag 84)",
+      "json": { "type": "integer", "value": 42 },
+      "compact": { "h": 1, "v": 42 },
+      "binary": "00010154"
+    },
+    {
+      "name": "double_value",
+      "description": "DATA, single root sample, DOUBLE 2.5 (big-endian IEEE 754)",
+      "json": { "type": "double", "value": 2.5 },
+      "compact": { "h": 2, "v": 2.5 },
+      "binary": "0001024004000000000000"
+    },
+    {
+      "name": "string_value_unicode",
+      "description": "DATA, single root sample, STRING with non-ASCII characters (UTF-8 length-prefixed)",
+      "json": { "type": "string", "value": "héllo ✓" },
+      "compact": { "h": 3, "v": "héllo ✓" },
+      "binary": "0001030a68c3a96c6c6f20e29c93"
+    },
+    {
+      "name": "data_value",
+      "description": "DATA, single root sample, DATA bytes 00 01 02 fe (length-prefixed raw bytes)",
+      "json": { "type": "data", "value": "AAEC/g==" },
+      "compact": { "h": 4, "v": "AAEC/g==" },
+      "binary": "00010404000102fe"
+    },
+    {
+      "name": "path_value",
+      "description": "DATA, single root sample, PATH value with two segments (count + length-prefixed strings)",
+      "json": { "type": "path", "value": ["uplink", "bitrate"] },
+      "compact": { "h": 5, "v": ["uplink", "bitrate"] },
+      "binary": "000105020675706c696e6b0762697472617465"
+    },
+    {
+      "name": "list_value",
+      "description": "DATA, single root sample, LIST of typed values (count + [type byte, value] each)",
+      "json": { "type": "list", "value": ["integer", 1, "string", "two", "data", "AA=="] },
+      "compact": { "h": 6, "v": [1, 1, 3, "two", 4, "AA=="] },
+      "binary": "000106030102030374776f040100"
+    },
+    {
+      "name": "map_value",
+      "description": "DATA, single root sample, MAP (count + [key string, typed value] each)",
+      "json": { "type": "map", "value": ["alpha", "integer", 7, "beta", "double", 2.5] },
+      "compact": { "h": 7, "v": ["alpha", 1, 7, "beta", 2, 2.5] },
+      "binary": "0001070205616c706861010e0462657461024004000000000000"
+    },
+    {
+      "name": "nested_map_of_list",
+      "description": "DATA, single root sample, MAP whose value is a LIST of INTEGER",
+      "json": { "type": "map", "value": ["outer", "list", ["integer", 1]] },
+      "compact": { "h": 7, "v": ["outer", 6, [1, 1]] },
+      "binary": "00010701056f7574657206010102"
+    },
+    {
+      "name": "empty_list",
+      "description": "DATA, single root sample, empty LIST",
+      "json": { "type": "list", "value": [] },
+      "compact": { "h": 6, "v": [] },
+      "binary": "00010600"
+    },
+    {
+      "name": "empty_map",
+      "description": "DATA, single root sample, empty MAP",
+      "json": { "type": "map", "value": [] },
+      "compact": { "h": 7, "v": [] },
+      "binary": "00010700"
+    },
+    {
+      "name": "single_sample_with_timestamp",
+      "description": "DATA, single root sample, sample timestamp 123.5 (sample header bit 7 set, then big-endian double)",
+      "json": { "type": "integer", "value": 1, "time": 123.5 },
+      "compact": { "h": 1, "v": 1, "t": 123.5 },
+      "binary": "000181405ee0000000000002"
+    },
+    {
+      "name": "multiple_samples",
+      "description": "DATA, two samples with timestamps (tree header sample count 2)",
+      "json": { "samples": [ { "type": "integer", "value": 1, "time": 10.0 }, { "type": "integer", "value": 2, "time": 20.0 } ] },
+      "compact": { "s": [ { "h": 1, "v": 1, "t": 10.0 }, { "h": 1, "v": 2, "t": 20.0 } ] },
+      "binary": "00028140240000000000000281403400000000000004"
+    },
+    {
+      "name": "tree_with_children",
+      "description": "DATA, root sample plus one named child sample (tree header nibbles: 1 child, 1 sample)",
+      "json": { "type": "integer", "value": 1, "children": { "child": { "type": "string", "value": "x" } } },
+      "compact": { "h": 1, "v": 1, "n": { "child": { "h": 3, "v": "x" } } },
+      "binary": "00110102056368696c6401030178"
+    },
+    {
+      "name": "message_with_path",
+      "description": "DATA with a two-segment message path (top-level path as chain of 0x10 tree headers) and one root sample",
+      "json": { "path": ["telemetry", "temp"], "type": "double", "value": 21.5 },
+      "compact": { "p": ["telemetry", "temp"], "h": 2, "v": 21.5 },
+      "binary": "00100974656c656d65747279100474656d7001024035800000000000"
+    },
+    {
+      "name": "root_sample_with_message_time",
+      "description": "DATA with samples and message-level time. KNOWN LOSS: binary drops the message time (DATA carries no time field)",
+      "json": { "samples": [ { "type": "integer", "value": 3, "time": 9.0 } ], "time": 50.0 },
+      "compact": { "s": [ { "h": 1, "v": 3, "t": 9.0 } ], "t": 50.0 },
+      "binary": "000181402200000000000006"
+    },
+    {
+      "name": "message_time_end_id",
+      "description": "DATA without samples, message-level time, end and id. KNOWN LOSS: binary keeps only the id (7), drops time and end",
+      "json": { "time": 1000.5, "end": 2000.25, "id": 7 },
+      "compact": { "t": 1000.5, "e": 2000.25, "i": 7 },
+      "binary": "100700"
+    },
+    {
+      "name": "request_with_depth_zero",
+      "description": "REQUEST (binary type 1) with depth 0: indicator bit set plus explicit zero varint byte - falsy-but-legitimate value must survive",
+      "json": { "message": "read", "path": ["model"], "depth": 0 },
+      "compact": { "m": 1, "p": ["model"], "d": 0 },
+      "binary": "240001056d6f64656c"
+    },
+    {
+      "name": "deletion",
+      "description": "DELETION (binary type 2) for path 'old'",
+      "json": { "message": "delete", "path": ["old"] },
+      "compact": { "m": 2, "p": ["old"] },
+      "binary": "4001036f6c64"
+    },
+    {
+      "name": "subscription_inclusion",
+      "description": "SUBSCRIPTION_INCLUSION (binary type 3) for path 'tm'",
+      "json": { "message": "include", "path": ["tm"] },
+      "compact": { "m": 3, "p": ["tm"] },
+      "binary": "600102746d"
+    },
+    {
+      "name": "subscription_exclusion",
+      "description": "SUBSCRIPTION_EXCLUSION (binary type 4) for path 'tm/demo'",
+      "json": { "message": "exclude", "path": ["tm", "demo"] },
+      "compact": { "m": 4, "p": ["tm", "demo"] },
+      "binary": "800202746d0464656d6f"
+    },
+    {
+      "name": "subscription_deletion",
+      "description": "SUBSCRIPTION_DELETION (binary type 5) for path 'tm'",
+      "json": { "message": "clear", "path": ["tm"] },
+      "compact": { "m": 5, "p": ["tm"] },
+      "binary": "a00102746d"
+    },
+    {
+      "name": "count_only",
+      "description": "DATA with no path and no samples, count 5 (count indicator bit + varint)",
+      "json": { "count": 5 },
+      "compact": { "c": 5 },
+      "binary": "080500"
+    }
+  ]
+}
