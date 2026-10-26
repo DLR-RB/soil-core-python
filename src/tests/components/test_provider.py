@@ -1,5 +1,4 @@
 import unittest
-from unittest import mock
 
 from soil.components import Provider
 from soil.data import Path, Sample, SampleTree, Timestamp, Value

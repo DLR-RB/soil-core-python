@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 from soil.components.observable import Observable
 from soil.components.receiver import Receiver

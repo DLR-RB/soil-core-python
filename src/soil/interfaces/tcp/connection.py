@@ -1,13 +1,13 @@
 import random
 from asyncio import (
     CancelledError,
+    Queue,
     StreamReader,
     StreamWriter,
     Task,
     create_task,
     current_task,
     wait_for,
-    Queue
 )
 from collections.abc import Callable
 from contextlib import suppress
