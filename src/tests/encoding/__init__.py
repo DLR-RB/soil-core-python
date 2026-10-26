@@ -1,2 +1,1 @@
-from .test_binary import BinaryTests
-from .test_json import JsonTests
+from ..encoding import test_binary, test_compact_json, test_json

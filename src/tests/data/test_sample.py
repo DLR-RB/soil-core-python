@@ -73,17 +73,26 @@ class testSample(TestCase):
             self.assertTrue(sample_no_timestamp > sample_with_timestamp)
             self.assertFalse(sample_with_timestamp > sample_no_timestamp)
 
+    def test_lt_no_Instance(self, _):
+        no_sample = Value(1)
+        sample = Sample(Value(2))
+        
+        with self.assertRaises(TypeError):
+            _ = no_sample < sample
+
 
     def test_eq(self, mock_current):
         sample_with_timestamp = Sample(Value(1.0), mockTimestamp)
         sample_with_timestamp_2 = Sample(Value(1.0), mockTimestamp)
         sample_wrong_value = Sample(Value(1.5), mockTimestamp)
         sample_wrong_timestamp = Sample(Value(1.0), mockTimestamp_plus_1)
+        sample_no_sample = (Value(1.0), mockTimestamp)
 
 
         self.assertTrue(sample_with_timestamp == sample_with_timestamp_2)
         self.assertFalse(sample_with_timestamp == sample_wrong_value)
         self.assertFalse(sample_with_timestamp == sample_wrong_timestamp)
+        self.assertFalse(sample_no_sample == sample_with_timestamp)
 
 
     def test_str(self, mock_current):
@@ -92,3 +101,16 @@ class testSample(TestCase):
 
         self.assertEqual(str(sample_with_timestamp), f"{1.0} ({mockTimestamp.format()})")
         self.assertEqual(str(sample_no_timestamp), f"{3.0} (now)")
+
+
+    def test_repr(self, mock_current):
+        ts = Timestamp(1, 1, 1)
+        val = Value("test")
+        sample = Sample(val, ts)
+        sample_no_ts = Sample(val)
+
+        expected = f"Sample(value={val!r}, timestamp={ts!r})"
+        expected_no_ts = f"Sample(value={val!r}, timestamp=None)"
+        
+        self.assertEqual(repr(sample), expected)
+        self.assertEqual(repr(sample_no_ts), expected_no_ts)

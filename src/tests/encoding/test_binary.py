@@ -30,10 +30,50 @@ class BinaryTests(TestCase):
             actual = decoder.decodeUnsignedInt()
             self.assertEqual(expected, actual)
 
-        roundTrip(123)
         roundTrip(0)
+        roundTrip(123)
         roundTrip(234)
         roundTrip(666666)
+
+        roundTrip(127)
+        roundTrip(128)
+
+        roundTrip(16383)
+        roundTrip(16384)
+
+        roundTrip(0xFFFFFFFFFFFFFFFF)
+
+    def testSignedEncoding(self):
+
+        def roundTrip(expected: int):
+            encoder = MessageEncoder()
+            encoder.encodeSignedInt(expected)
+            encoded = encoder.bytes
+            decoder = MessageDecoder(encoded)
+            actual = decoder.decodeSignedInt()
+            self.assertEqual(expected, actual)
+
+        roundTrip(0)
+        roundTrip(123)
+        roundTrip(-123)
+        roundTrip(234)
+        roundTrip(-234)
+        roundTrip(666666)
+        roundTrip(-666666)
+
+        roundTrip(127)
+        roundTrip(-127)
+        roundTrip(128)
+        roundTrip(-128)
+
+        roundTrip(16383)
+        roundTrip(-16383)
+        roundTrip(16384)
+        roundTrip(-16384)
+
+        roundTrip(9223372036854775807)
+        roundTrip(-9223372036854775808) 
+
 
     def testStringEncoding(self):
         expected = "abc"
@@ -71,6 +111,34 @@ class BinaryTests(TestCase):
         )
         message = Message.tree(data, Path.of("some", "path"))
         self._roundTrip(message)
+
+
+        now = Timestamp.current()
+        data = SampleTree(samples=[Sample(Value(i), now) for i in range(15)])
+        message = Message.tree(data, Path.of("some", "path"))
+        self._roundTrip(message)
+
+        now = Timestamp.current()
+        data = SampleTree(children={
+            f"child{i}": SampleTree.ofValue(Value(i), now) for i in range(15)
+        })
+        message = Message.tree(data, Path.of("some", "path"))
+        self._roundTrip(message)
+
+        data = SampleTree()
+        message = Message.tree(data, Path.of("some", "path"))
+        self._roundTrip(message)
+
+        now = Timestamp.current()
+        data = SampleTree(
+            samples=[Sample(Value(i), now) for i in range(15)],
+            children={
+                f"child{i}": SampleTree.ofValue(Value(1000 + i), now) for i in range(15)
+            }
+        )
+        message = Message.tree(data, Path.of("some", "path"))
+        self._roundTrip(message)
+
 
     def testDataMessageWithProperties(self):
         message = Message.value(
@@ -129,6 +197,13 @@ class BinaryTests(TestCase):
         expected = Message(type=MessageType.DATA, path=Path())
         self.assertEqual(decoded, expected)
 
+    def testPathValueMessage(self):
+        message = Message.value(Value(Path.of("a", "b", "c")), Path.of("some", "path"))
+        self._roundTrip(message)
+
+    def testNullValueMessage(self):
+        message = Message.value(Value(None), Path.of("some", "path"))
+        self._roundTrip(message)
 
     def testPathValue(self):
         self._roundTrip(Message.value(Value(Path.of("x", "y")), Path.of("a")))

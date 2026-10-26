@@ -298,7 +298,7 @@ class SubscriptionTree:
         """
         def isInOrder(lhs: int | None, rhs: int | None) -> bool:
             if lhs is None:
-                return rhs is not None
+                return False
             if rhs is None:
                 return True
             return lhs <  rhs
@@ -501,6 +501,8 @@ class SubscriptionTree:
         # the subscription
         return False
 
+    _MISSING = object()
+
     def _isIncluded(
         self,
         depth: int,
@@ -526,10 +528,10 @@ class SubscriptionTree:
                 for d in self._inclusions
                 if d is None or d >= depth
             ),
-            None,
+            self._MISSING,
         )
 
-        if inclusionDepth is None:
+        if inclusionDepth is self._MISSING:
             # No inclusion, check if excluded.
             # It's excluded if any exclusion rule is applicable.
             if any(
@@ -547,11 +549,17 @@ class SubscriptionTree:
                 for d in self._exclusions
                 if d is None or d >= depth
             ),
-            None,
+            self._MISSING,
         )
 
-        if exclusionDepth is None:
+        if exclusionDepth is self._MISSING:
             # No exclusion, so it's included
+            return True
+
+        
+        if inclusionDepth is None:
+            return False   
+        if exclusionDepth is None:
             return True
 
         # Both inclusion and exclusion depth.

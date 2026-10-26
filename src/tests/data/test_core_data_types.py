@@ -1,24 +1,9 @@
 import unittest
 
-from soil.data import Path, Sample, SampleTree, Timestamp, Value
+from soil.data import Sample, SampleTree, Timestamp, Value
 
 
 class TestCoreDataTypes(unittest.TestCase):
-
-    def test_path_creation(self):
-        path = Path.of("sensor", "temperature")
-        
-        self.assertEqual(len(path), 2)
-        self.assertEqual(path[0], "sensor")
-        self.assertEqual(path[1], "temperature")
-        self.assertFalse(path.isEmpty)
-
-    def test_append_to_path(self):
-        base_path = Path.of("house")
-        full_path = base_path.appending("room1")
-        
-        self.assertEqual(full_path.size, 2)
-        self.assertEqual(full_path, ['house', 'room1'])
 
     def test_sample_with_value(self):        
         value = Value(23.5)

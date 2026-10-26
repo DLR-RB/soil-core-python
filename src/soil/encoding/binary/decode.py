@@ -81,7 +81,7 @@ class MessageDecoder:
 
     def decodeUnsignedInt(self) -> int:
         value = 0
-        for shift in range(0, 49, 7):
+        for shift in range(0, 56, 7):
             byte = self.nextByte()
             bits = byte & 0b01111111
             value |= (bits << shift)

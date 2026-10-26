@@ -371,3 +371,4 @@ class TestSampleTree(unittest.TestCase):
         self.assertEqual(root.samples, [])
         self.assertEqual(child.samples, [])
         self.assertEqual(grandchild.samples, [])
+
