@@ -1,147 +1,3 @@
-<<<<<<< src/tests/subscriptions/test_tree.py
-from unittest import TestCase
-
-from soil.data import Path, SampleTree, Value
-from soil.subscriptions import SubscriptionTree
-
-class SubscriptionTreeTest(TestCase):
-    # MARK: - Registration
-
-    def test_root_inclusion_with_unlimited_depth_covers_all_paths(self):
-        """Regression: an inclusion with unlimited depth (``None``) must be
-        honored, and must not be confused with the absence of a rule.
-
-        The old implementation used ``None`` both as the stored value for
-        unlimited depths and as the "no rule found" sentinel, which made
-        every unlimited inclusion invisible.
-        """
-        tree = SubscriptionTree()
-        tree.include(Path(), depth=None)
-
-        assert tree.isSubscribed(Path())
-        assert tree.isSubscribed(Path.of("a"))
-        assert tree.isSubscribed(Path.of("a", "b", "c"))
-
-
-    def test_nested_inclusion_only_covers_the_subtree(self):
-        tree = SubscriptionTree()
-        tree.include(Path.of("a", "b"), depth=None)
-
-        assert tree.isSubscribed(Path.of("a", "b"))
-        assert tree.isSubscribed(Path.of("a", "b", "c"))
-        assert not tree.isSubscribed(Path.of("a"))
-        assert not tree.isSubscribed(Path.of("b"))
-
-
-    def test_inclusion_with_integer_depth_limits_reach(self):
-        tree = SubscriptionTree()
-        tree.include(Path(), depth=2)
-
-        assert tree.isSubscribed(Path.of("a"))
-        assert tree.isSubscribed(Path.of("a", "b"))
-        assert not tree.isSubscribed(Path.of("a", "b", "c"))
-
-
-    # MARK: - Precedence
-
-    def test_exclusion_overrides_inclusion(self):
-        tree = SubscriptionTree()
-        tree.include(Path(), depth=None)
-        tree.exclude(Path.of("a"), depth=None)
-
-        assert tree.isSubscribed(Path.of("a", "b")) is False
-        assert tree.isSubscribed(Path.of("b"))
-
-
-    def test_mixed_unlimited_inclusion_and_integer_exclusion(self):
-        """Regression: the lower depth wins, where ``None`` (unlimited) counts
-        as larger than any integer. The old implementation compared
-        ``None`` against integers directly, raising a ``TypeError``."""
-        tree = SubscriptionTree()
-        tree.include(Path(), depth=None)
-        tree.exclude(Path(), depth=2)
-
-        # exclude(2) is the lower depth and wins within its reach
-        assert not tree.isSubscribed(Path.of("a", "b"))
-        # beyond the exclusion's reach the unlimited inclusion applies
-        assert tree.isSubscribed(Path.of("a", "b", "c"))
-
-
-    def test_mixed_integer_inclusion_and_unlimited_exclusion(self):
-        tree = SubscriptionTree()
-        tree.include(Path(), depth=1)
-        tree.exclude(Path(), depth=None)
-
-        # include(1) is the lower depth and wins within its reach
-        assert tree.isSubscribed(Path.of("a"))
-        # beyond the inclusion's reach the unlimited exclusion applies
-        assert not tree.isSubscribed(Path.of("a", "b"))
-
-
-    # MARK: - Deletion
-
-    def test_delete_rules_removes_inclusions(self):
-        tree = SubscriptionTree()
-        tree.include(Path(), depth=None)
-
-        tree.deleteRules(Path(), None)
-
-        assert not tree.isSubscribed(Path.of("a"))
-        assert tree.totalNumberOfRules == 0
-
-
-    # MARK: - Reduction
-
-    def test_reduce_returns_subscribed_samples(self):
-        """Regression: a push to a path covered by an unlimited inclusion
-        must not be silently dropped."""
-        tree = SubscriptionTree()
-        tree.include(Path(), depth=None)
-
-        reduced = tree.reduce(SampleTree.ofValue(Value(42)), Path.of("model", "x"))
-
-        assert reduced is not None
-        assert reduced.newestSample is not None
-        assert reduced.newestSample.value.value == 42
-
-
-    def test_reduce_returns_none_without_matching_rules(self):
-        tree = SubscriptionTree()
-
-        reduced = tree.reduce(SampleTree.ofValue(Value(1)), Path.of("a"))
-
-        assert reduced is None
-
-
-    def test_reduce_drops_unsubscribed_children(self):
-        tree = SubscriptionTree()
-        tree.include(Path.of("a"), depth=None)
-
-        data = SampleTree.create(children={
-            "a": SampleTree.ofValue(Value(1)),
-            "b": SampleTree.ofValue(Value(2)),
-        })
-
-        reduced = tree.reduce(data, Path())
-
-        assert reduced is not None
-        assert "a" in reduced.children
-        assert "b" not in reduced.children
-
-
-    def test_reduce_honors_deeply_nested_inclusion(self):
-        """The pattern used by the KSAT adapter: one inclusion per command path."""
-        tree = SubscriptionTree()
-        tree.include(Path.of("system", "fetchSystems"), depth=None)
-
-        reduced = tree.reduce(
-            SampleTree.ofValue(Value(7)),
-            Path.of("system", "fetchSystems"),
-        )
-
-        assert reduced is not None
-        assert reduced.newestSample.value.value == 7
-=======
 import unittest
 
 from soil.data import Path, SampleTree
@@ -160,7 +16,6 @@ class testSubscriptionTree(unittest.TestCase):
         st.include(Path(), 1)
         self.assertTrue(st.hasRules)
 
-
     def test_NumberOfRules(self):
         st = SubscriptionTree()
         self.assertEqual(st.numberOfRules, 0)
@@ -170,12 +25,10 @@ class testSubscriptionTree(unittest.TestCase):
         st.exclude(Path(), 2)
         self.assertEqual(st.numberOfRules, 2)
 
-
     def test_TotalNumberOfRules(self):
         st = SubscriptionTree()
         st.include(Path(), 1)
         self.assertEqual(st.totalNumberOfRules, 1)
-
 
     def test_HasSubscriptionRulesInTree(self):
         st = SubscriptionTree()
@@ -189,7 +42,6 @@ class testSubscriptionTree(unittest.TestCase):
         st = SubscriptionTree()
         self.assertFalse(st.hasSubscriptionRulesInTree)
 
-
     def test_IsEmpty(self):
         st = SubscriptionTree()
         self.assertTrue(st.isEmpty)
@@ -202,7 +54,6 @@ class testSubscriptionTree(unittest.TestCase):
         st.include(Path.of("a"), 1)
         self.assertFalse(st.isEmpty)
 
-
     def test_NumberOfNodes(self):
         st = SubscriptionTree()
         self.assertEqual(st.numberOfNodes, 1)
@@ -210,7 +61,6 @@ class testSubscriptionTree(unittest.TestCase):
         st = SubscriptionTree()
         st.include(Path.of("a", "b"), 1)
         self.assertEqual(st.numberOfNodes, 3)
-
 
 
 class TestIncludeExclude(unittest.TestCase):
@@ -225,7 +75,6 @@ class TestIncludeExclude(unittest.TestCase):
         node = st.children["a"].children["b"]
         self.assertIn(3, node._inclusions)
 
-
     def test_Exclude(self):
         st = SubscriptionTree()
         st.exclude(Path(), 2)
@@ -234,7 +83,6 @@ class TestIncludeExclude(unittest.TestCase):
         st = SubscriptionTree()
         st.exclude(Path.of("x"), 1)
         self.assertIn(1, st.children["x"]._exclusions)
-
 
     def test_IncludeDepth(self):
         st = SubscriptionTree()
@@ -256,13 +104,12 @@ class TestIncludeExclude(unittest.TestCase):
         st.includeDepth(3)
         st.includeDepth(1)
         st.includeDepth(2)
-        self.assertEqual(st._inclusions, [1, 2, 3])      
+        self.assertEqual(st._inclusions, [1, 2, 3])
 
         st = SubscriptionTree()
         st.includeDepth(None)
         st.includeDepth(1)
         self.assertEqual(st._inclusions, [1, None])
-
 
     def test_ExcludeDepth(self):
         st = SubscriptionTree()
@@ -279,6 +126,7 @@ class TestIncludeExclude(unittest.TestCase):
         st.excludeDepth(5)
         self.assertEqual(st._exclusions, [5])
         self.assertEqual(st._inclusions, [])
+
 
 class TestDeleteRules(unittest.TestCase):
 
@@ -299,7 +147,6 @@ class TestDeleteRules(unittest.TestCase):
         st.deleteRules(Path.of("x", "y"), 1)
         self.assertIn(1, st.children["a"]._inclusions)
 
-
     def test_DeleteAllRules(self):
         st = SubscriptionTree()
         st.include(Path(), 1)
@@ -307,7 +154,6 @@ class TestDeleteRules(unittest.TestCase):
         st.deleteAllRules()
         self.assertEqual(st._inclusions, [])
         self.assertEqual(st.children, {})
-
 
     def test_DeleteRulesDepth(self):
         st = SubscriptionTree()
@@ -336,7 +182,6 @@ class TestDeleteRules(unittest.TestCase):
         self.assertEqual(child._inclusions, [])
 
 
-
 class TestSubscriptionQueries(unittest.TestCase):
 
     def _tree(self) -> SampleTree:
@@ -344,7 +189,6 @@ class TestSubscriptionQueries(unittest.TestCase):
             "a": SampleTree([Sample(Value(2))]),
             "b": SampleTree([Sample(Value(3))]),
         })
-
 
     def test_IsSubscribed_NoRules(self):
         st = SubscriptionTree()
@@ -372,12 +216,100 @@ class TestSubscriptionQueries(unittest.TestCase):
         self.assertFalse(st.isSubscribed(Path.of("a")))
         self.assertFalse(st.isSubscribed(Path.of("a", "b")))
 
-    def test_IsSubscribed_FullTreeInclusion(self): # BUG?!
+    def test_IsSubscribed_FullTreeInclusion(self):
+        """Regression: an inclusion with unlimited depth (``None``) must be
+        honored, and must not be confused with the absence of a rule.
+        """
         st = SubscriptionTree()
         st.include(Path(), None)
         self.assertTrue(st.isSubscribed(Path.of("a", "b")))
 
+    def test_NestedInclusionOnlyCoversTheSubtree(self):
+        st = SubscriptionTree()
+        st.include(Path.of("a", "b"), depth=None)
+        self.assertTrue(st.isSubscribed(Path.of("a", "b")))
+        self.assertTrue(st.isSubscribed(Path.of("a", "b", "c")))
+        self.assertFalse(st.isSubscribed(Path.of("a")))
+        self.assertFalse(st.isSubscribed(Path.of("b")))
 
+    def test_MixedUnlimitedInclusionAndIntegerExclusion(self):
+        """Regression: the lower depth wins, where ``None`` (unlimited) counts
+        as larger than any integer — a direct ``None``-to-int comparison
+        used to raise a ``TypeError``."""
+        st = SubscriptionTree()
+        st.include(Path(), depth=None)
+        st.exclude(Path(), depth=2)
+        self.assertFalse(st.isSubscribed(Path.of("a", "b")))
+        self.assertTrue(st.isSubscribed(Path.of("a", "b", "c")))
+
+    def test_MixedIntegerInclusionAndUnlimitedExclusion(self):
+        st = SubscriptionTree()
+        st.include(Path(), depth=1)
+        st.exclude(Path(), depth=None)
+        self.assertTrue(st.isSubscribed(Path.of("a")))
+        self.assertFalse(st.isSubscribed(Path.of("a", "b")))
+
+
+class TestReduce(unittest.TestCase):
+
+    def test_ReduceReturnsSubscribedSamples(self):
+        """Regression: a push to a path covered by an unlimited inclusion
+        must not be silently dropped."""
+        tree = SubscriptionTree()
+        tree.include(Path(), depth=None)
+
+        reduced = tree.reduce(SampleTree.ofValue(Value(42)), Path.of("model", "x"))
+
+        self.assertIsNotNone(reduced)
+        self.assertIsNotNone(reduced.newestSample)
+        self.assertEqual(reduced.newestSample.value.value, 42)
+
+    def test_ReduceReturnsNoneWithoutMatchingRules(self):
+        tree = SubscriptionTree()
+
+        reduced = tree.reduce(SampleTree.ofValue(Value(1)), Path.of("a"))
+
+        self.assertIsNone(reduced)
+
+    def test_ReduceDropsUnsubscribedChildren(self):
+        tree = SubscriptionTree()
+        tree.include(Path.of("a"), depth=None)
+
+        data = SampleTree.create(children={
+            "a": SampleTree.ofValue(Value(1)),
+            "b": SampleTree.ofValue(Value(2)),
+        })
+
+        reduced = tree.reduce(data, Path())
+
+        self.assertIsNotNone(reduced)
+        self.assertIn("a", reduced.children)
+        self.assertNotIn("b", reduced.children)
+
+    def test_ReduceHonorsDeeplyNestedInclusion(self):
+        """The pattern used by the KSAT adapter: one inclusion per command path."""
+        tree = SubscriptionTree()
+        tree.include(Path.of("system", "fetchSystems"), depth=None)
+
+        reduced = tree.reduce(
+            SampleTree.ofValue(Value(7)),
+            Path.of("system", "fetchSystems"),
+        )
+
+        self.assertIsNotNone(reduced)
+        self.assertEqual(reduced.newestSample.value.value, 7)
+
+
+class TestDeleteRulesRegression(unittest.TestCase):
+
+    def test_DeleteRulesRemovesInclusions(self):
+        tree = SubscriptionTree()
+        tree.include(Path(), depth=None)
+
+        tree.deleteRules(Path(), None)
+
+        self.assertFalse(tree.isSubscribed(Path.of("a")))
+        self.assertEqual(tree.totalNumberOfRules, 0)
 
 
 class TestHelper(unittest.TestCase):
@@ -390,8 +322,6 @@ class TestHelper(unittest.TestCase):
         self.assertEqual(lines[0], "rules")
         self.assertIn("- include(2)", lines)
         self.assertIn("- exclude(3)", lines)
-
-
 
     def test_Described(self):
         st = SubscriptionTree()
@@ -412,13 +342,5 @@ class TestHelper(unittest.TestCase):
         self.assertIn("  a", lines)
 
 
-    def test_print_logger_formats_multiple_arguments():
-
-        logger = PrintLogger()
-    from soil.data import Path
-        # Must not raise: two placeholders, two positional arguments
-    from soil.logging.level import LogLevel
-        logger.log(LogLevel.ERROR, "Type mismatch: '{}' does not fit type {}", "bogus", "STRING")
-
-
->>>>>>> src/tests/subscriptions/test_tree.py
+if __name__ == "__main__":
+    unittest.main()

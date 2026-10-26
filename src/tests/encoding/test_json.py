@@ -141,5 +141,5 @@ class JsonTests(TestCase):
 
         import json as _json
         raw = _json.loads(data)
-        self.assertEqual(raw["valuetype"], "list")
+        self.assertEqual(raw["type"], "list")
         self.assertEqual(raw["value"], ["integer", 1, "string", "a"])
