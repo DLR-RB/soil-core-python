@@ -20,7 +20,7 @@ class JsonEncoding(MessageEncoding):
     """
 
     MSG_TYPE_KEY = "message"
-    VALUE_TYPE_KEY = "valuetype"
+    VALUE_TYPE_KEY = "type"
 
     @override
     def encode(self, message: Message) -> bytes:
