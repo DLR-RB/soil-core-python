@@ -1,7 +1,7 @@
 from typing import override
 
 from ..components import Receiver
-from ..data import Path, Value
+from ..data import Path, Timestamp, Value
 from ..nodes.receiver.defaults import DefaultStringReceiverNode
 from ..requests import AsyncRequest, CompletedRequest, Request
 from .level import LogLevel
@@ -97,10 +97,12 @@ class DefaultLogger(DefaultStringReceiverNode, Logger):
         """
         Send a message to the backend receiver.
         """
-        value = Value(message)
 
-        # Using acceptCurrent() ensures that a timestamp is added
-        await self.receiver().acceptValue(value, self.path().appending(msgLevel.stringValue),)
+        await self.receiver().acceptValue(
+            value = Value(message),
+            path = self.path().appending(msgLevel.stringValue),
+            timestamp = Timestamp.current(),
+        )
 
     # MARK: Child loggers
 
