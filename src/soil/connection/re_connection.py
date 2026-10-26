@@ -129,6 +129,7 @@ class ReconnectingConnection(MessageConnection):
                 continue
             if self._connection is not None:
                 await self._connection.setReceiver(self._receiver)
+            await sleep(self._connectionRetryInterval)
 
     # MARK: Transmission
 

@@ -79,6 +79,7 @@ class ReceiverNode(TreeNode, Receiver):
         :param name: The name of the child.
         :return: The node representing the child.
         """
+        from .defaults.node import DefaultReceiverNode
         return DefaultReceiverNode(self.receiver(), self.path().appending(name))
 
     # MARK: Children

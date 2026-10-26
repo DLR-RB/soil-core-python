@@ -124,33 +124,20 @@ class SimpleLogger(Logger):
     :param component: The subcomponent name
     :returns: A new `Logger` instance representing the child
     """
-    @override
-    def child(self, component: str, level: LogLevel | None = None) -> Logger:
+    def childLogger(self, component: str) -> 'Logger':
+        """
+        Create a child logger under this logger.
+
+        The child inherits the parent's log level threshold.
+
+        :param component: The subcomponent name
+        :returns: A new `Logger` instance representing the child
+        """
         return SimpleLogger(
             path = self._path + [component],
             receiver = self._receiver,
             level = self.__level,
         )
-
-    """
-    Creates a child logger under this logger.
-    The child inherits the parent's log level threshold.
-
-    :param component: The subcomponent name
-    :param level: The log level to set for the child
-    :returns: A new `Logger` instance representing the child
-    """
-    def childWithLevel(
-        self,
-        component: str,
-        level: LogLevel,
-    ) -> Logger:
-        return SimpleLogger(
-            path=self._path + [component],
-            receiver=self._receiver,
-            level=level,
-        )
-
     # MARK: Helper
 
     def _write(self, level: LogLevel, message: str) -> Request:

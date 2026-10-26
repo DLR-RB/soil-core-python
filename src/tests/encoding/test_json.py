@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from soil.data import Path, Sample, Timestamp, Value
 from soil.data.sampletree import SampleTree
@@ -107,6 +107,39 @@ class JsonTests(TestCase):
         expected = Message(type=MessageType.DATA, path=Path())
         self.assertEqual(decoded, expected)
 
+    def testPathValue(self):
+        message = Message.value(Value(Path.of("x", "y")), Path.of("a"))
+        self._roundTrip(message)
 
-if __name__ == "__main__":
-    main()
+    def testNullValue(self):
+        message = Message.value(Value(None), Path.of("a"))
+        self._roundTrip(message)
+
+    def testListValue(self):
+        value = Value([Value(1), Value("a"), Value(Path.of("x"))])
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testMapValue(self):
+        value = Value({
+            "one": Value(1),
+            "two": Value("zwei"),
+        })
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testNestedListValue(self):
+        value = Value([Value([Value(1), Value("a")]), Value(None)])
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testNestedMapValue(self):
+        value = Value({"outer": Value({"inner": Value(1)})})
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testListValueWireFormat(self):
+        message = Message.value(Value([Value(1), Value("a")]), Path.of("a"))
+
+        data = JsonEncoding().encode(message)
+
+        import json as _json
+        raw = _json.loads(data)
+        self.assertEqual(raw["valuetype"], "list")
+        self.assertEqual(raw["value"], ["integer", 1, "string", "a"])

@@ -298,7 +298,7 @@ class SubscriptionTree:
         """
         def isInOrder(lhs: int | None, rhs: int | None) -> bool:
             if lhs is None:
-                return rhs is not None
+                return False
             if rhs is None:
                 return True
             return lhs <  rhs
@@ -500,6 +500,8 @@ class SubscriptionTree:
         # If we reach past the root node then the path is not contained in
         # the subscription
         return False
+
+    _MISSING = object()
 
     def _isIncluded(
         self,

@@ -1,9 +1,9 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from soil.data import Path, Sample, Timestamp, Value
 from soil.data.sampletree import SampleTree
 from soil.encoding.binary import BinaryEncoding
-from soil.encoding.binary.decode import MessageDecoder
+from soil.encoding.binary.decode import MessageDecoder, decodeMessage
 from soil.encoding.binary.encode import MessageEncoder
 from soil.messaging import Message, MessageType
 
@@ -30,10 +30,50 @@ class BinaryTests(TestCase):
             actual = decoder.decodeUnsignedInt()
             self.assertEqual(expected, actual)
 
-        roundTrip(123)
         roundTrip(0)
+        roundTrip(123)
         roundTrip(234)
         roundTrip(666666)
+
+        roundTrip(127)
+        roundTrip(128)
+
+        roundTrip(16383)
+        roundTrip(16384)
+
+        roundTrip(0xFFFFFFFFFFFFFFFF)
+
+    def testSignedEncoding(self):
+
+        def roundTrip(expected: int):
+            encoder = MessageEncoder()
+            encoder.encodeSignedInt(expected)
+            encoded = encoder.bytes
+            decoder = MessageDecoder(encoded)
+            actual = decoder.decodeSignedInt()
+            self.assertEqual(expected, actual)
+
+        roundTrip(0)
+        roundTrip(123)
+        roundTrip(-123)
+        roundTrip(234)
+        roundTrip(-234)
+        roundTrip(666666)
+        roundTrip(-666666)
+
+        roundTrip(127)
+        roundTrip(-127)
+        roundTrip(128)
+        roundTrip(-128)
+
+        roundTrip(16383)
+        roundTrip(-16383)
+        roundTrip(16384)
+        roundTrip(-16384)
+
+        roundTrip(9223372036854775807)
+        roundTrip(-9223372036854775808) 
+
 
     def testStringEncoding(self):
         expected = "abc"
@@ -71,6 +111,34 @@ class BinaryTests(TestCase):
         )
         message = Message.tree(data, Path.of("some", "path"))
         self._roundTrip(message)
+
+
+        now = Timestamp.current()
+        data = SampleTree(samples=[Sample(Value(i), now) for i in range(15)])
+        message = Message.tree(data, Path.of("some", "path"))
+        self._roundTrip(message)
+
+        now = Timestamp.current()
+        data = SampleTree(children={
+            f"child{i}": SampleTree.ofValue(Value(i), now) for i in range(15)
+        })
+        message = Message.tree(data, Path.of("some", "path"))
+        self._roundTrip(message)
+
+        data = SampleTree()
+        message = Message.tree(data, Path.of("some", "path"))
+        self._roundTrip(message)
+
+        now = Timestamp.current()
+        data = SampleTree(
+            samples=[Sample(Value(i), now) for i in range(15)],
+            children={
+                f"child{i}": SampleTree.ofValue(Value(1000 + i), now) for i in range(15)
+            }
+        )
+        message = Message.tree(data, Path.of("some", "path"))
+        self._roundTrip(message)
+
 
     def testDataMessageWithProperties(self):
         message = Message.value(
@@ -129,6 +197,67 @@ class BinaryTests(TestCase):
         expected = Message(type=MessageType.DATA, path=Path())
         self.assertEqual(decoded, expected)
 
+    def testPathValueMessage(self):
+        message = Message.value(Value(Path.of("a", "b", "c")), Path.of("some", "path"))
+        self._roundTrip(message)
 
-if __name__ == "__main__":
-    main()
+    def testNullValueMessage(self):
+        message = Message.value(Value(None), Path.of("some", "path"))
+        self._roundTrip(message)
+
+    def testPathValue(self):
+        self._roundTrip(Message.value(Value(Path.of("x", "y")), Path.of("a")))
+
+    def testNullValue(self):
+        self._roundTrip(Message.value(Value(None), Path.of("a")))
+
+    def testListValue(self):
+        value = Value([Value(1), Value("a"), Value(Path.of("x"))])
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testMapValue(self):
+        value = Value({"one": Value(1), "two": Value("zwei")})
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testNestedListValue(self):
+        value = Value([Value([Value(1), Value("a")]), Value(None)])
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testNestedMapValue(self):
+        value = Value({"outer": Value({"inner": Value(1)})})
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+
+    def testSingleSampleKeepsItsTimestamp(self):
+        ts = Timestamp.current()
+        decoded = self._roundTrip(Message.value(Value(123), Path.of("a"), ts))
+
+        self.assertIsNone(decoded.time)
+        self.assertEqual(decoded.data.samples[0].timestamp, ts)
+
+    def testEmptyListValue(self):
+        self._roundTrip(Message.value(Value([]), Path.of("a")))
+
+    def testEmptyMapValue(self):
+        self._roundTrip(Message.value(Value({}), Path.of("a")))
+
+    def testDeeplyNestedListValue(self):
+        value = Value([Value([Value([Value(1)])])])
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+
+    def testRejectsTruncatedData(self):
+        with self.assertRaises(ValueError):
+            decodeMessage(bytes([0b00000001, 0b00000011, 0x05, 0x68, 0x69]))
+
+    def testRejectsInsufficientBytes(self):
+        with self.assertRaises(ValueError):
+            decodeMessage(bytes([0b00000001]))
+
+    def testRejectsUnknownSampleValueType(self):
+        with self.assertRaises(ValueError):
+            decodeMessage(bytes([0b00000001, 0b00001000]))
+
+    def testRejectsUnknownMessageType(self):
+        with self.assertRaises(ValueError):
+            decodeMessage(bytes([0b11100000]))

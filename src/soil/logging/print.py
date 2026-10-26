@@ -12,12 +12,12 @@ class PrintLogger(Logger):
     """
 
     def __init__(self, path: Path = Path(), level: LogLevel | None = None) -> None:
-        self._level: LogLevel = level or LogLevel.WARNING
+        self._level: LogLevel = level if level is not None else LogLevel.WARNING
         self.path: Path = path
 
     @override
     def setLevel(self, level: LogLevel | None) -> Request:
-        self._level = level or LogLevel.WARNING
+        self._level = level if level is not None else LogLevel.WARNING
         return CompletedRequest()
 
     @override
