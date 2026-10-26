@@ -522,50 +522,30 @@ class SubscriptionTree:
         # Find the smallest depth that includes the given depth.
         # Smaller depths take precedence, so we can ignore the rest,
         # as well as all rules that don't apply.
-        inclusionDepth = next(
-            (
-                d
-                for d in self._inclusions
-                if d is None or d >= depth
-            ),
-            self._MISSING,
-        )
+        # Note: ``None`` indicates an unlimited depth and is applicable
+        # to every depth. It must not be confused with the absence of a rule.
+        def isApplicable(rule: int | None) -> bool:
+            return rule is None or rule >= depth
 
-        if inclusionDepth is self._MISSING:
-            # No inclusion, check if excluded.
-            # It's excluded if any exclusion rule is applicable.
-            if any(
-                d is None or d >= depth
-                for d in self._exclusions
-            ):
-                return False
+        inclusions = [d for d in self._inclusions if isApplicable(d)]
+        exclusions = [d for d in self._exclusions if isApplicable(d)]
 
-            # Neither included nor excluded
-            return None
+        if not inclusions:
+            # No inclusion, so it's excluded if any exclusion rule applies
+            return False if exclusions else None
 
-        exclusionDepth = next(
-            (
-                d
-                for d in self._exclusions
-                if d is None or d >= depth
-            ),
-            self._MISSING,
-        )
-
-        if exclusionDepth is self._MISSING:
+        if not exclusions:
             # No exclusion, so it's included
             return True
 
-        
-        if inclusionDepth is None:
-            return False   
-        if exclusionDepth is None:
-            return True
-
-        # Both inclusion and exclusion depth.
-        # The lower value wins.
+        # Both inclusion and exclusion rules apply.
+        # The lower depth wins, where ``None`` (unlimited) is treated as
+        # larger than any integer.
         # Equality is prevented during insertion of rules.
-        return inclusionDepth < exclusionDepth
+        def asRank(rule: int | None) -> float:
+            return float("inf") if rule is None else rule
+
+        return asRank(inclusions[0]) < asRank(exclusions[0])
 
     # MARK: - String Conversion
 

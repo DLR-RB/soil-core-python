@@ -6,6 +6,8 @@ from asyncio import (
     Task,
     create_task,
     current_task,
+    wait_for,
+    Queue
 )
 from collections.abc import Callable
 from contextlib import suppress
@@ -27,10 +29,11 @@ class TcpSocketConnection(Actor, StreamConnection):
         writer: StreamWriter,
         logger: Logger | None = None,
     ) -> None:
-        Actor.__init__(self)
 
         #: A unique identifier to identify the connection
         self.uniqueId: int = random.getrandbits(64)
+
+        Actor.__init__(self)
 
         #: The wrapped TCP socket connection
         self._reader = reader
@@ -54,7 +57,9 @@ class TcpSocketConnection(Actor, StreamConnection):
         #: The logger to use for internal errors
         self.log: Logger = logger if logger is not None else NoLogger()
 
-        self._readTask: Task[None] = create_task(self._startReading())
+        self._dispatchQueue: Queue[bytes] = Queue()
+        self._readTask: Task[None] = create_task(self._startReading(), name=f"tcp-read-{self.uniqueId}")
+        self._dispatchTask: Task[None] = create_task(self._startDispatching(), name=f"tcp-dispatch-{self.uniqueId}")
 
     def setLogger(self, logger: Logger) -> None:
         """
@@ -105,6 +110,48 @@ class TcpSocketConnection(Actor, StreamConnection):
         """
         return self._receiver
 
+    async def _closeImmediately(self, reason: str) -> None:
+        """
+        Close the connection without going through the actor queue.
+
+        The queue may be blocked by a send stuck in drain() (e.g. when the
+        remote died without a clean close). The EOF path must not wait
+        behind such a send: close the socket directly and run the onClose
+        callback.
+        """
+        self._running = False
+        try:
+            self._writer.transport.abort()
+        except Exception as exc:
+            self.log.warning(f"Failed to abort socket after {reason}: {exc}")
+        with suppress(Exception):
+            self._dispatchTask.cancel()
+        perform = self._onClose
+        self._onClose = None
+        if perform is not None:
+            try:
+                perform()
+            except Exception as exc:
+                self.log.error(f"onClose callback failed after {reason}: {exc}")
+        with suppress(Exception):
+            await self.shutdown()
+
+
+    async def _gracefulCloseOrEscalate(self, reason: str) -> None:
+        """
+        Try the regular graceful close(), but do not wait forever behind
+        a blocked actor queue (e.g. a send stuck in drain() because the
+        remote died). On timeout, abort the socket directly and run the
+        onClose callback so the lost connection is detected.
+        """
+        try:
+            await wait_for(self.close().wait(), timeout=2.0)
+        except TimeoutError:
+            self.log.warning(f"Graceful close timed out ({reason}), aborting")
+            await self._closeImmediately(reason)
+        except ActorClosedError:
+            pass
+
     async def _startReading(self) -> None:
         while self._running:
             try:
@@ -115,17 +162,29 @@ class TcpSocketConnection(Actor, StreamConnection):
                 break
             except Exception as e:
                 self.log.error(f"Failed to read from socket: {e}")
-                try:
-                    await self.close()
-                except ActorClosedError:
-                    pass
+                await self._gracefulCloseOrEscalate("read error")
                 return
             if not data:
-                break
+                # EOF: the remote side closed the connection
+                await self._gracefulCloseOrEscalate("EOF")
+                return
+            self._receivedByteCount += len(data)
 
-            if self._receiver is not None:
-                self._receivedByteCount += len(data)
+            await self._dispatchQueue.put(data)
+
+    async def _startDispatching(self) -> None:
+        while True:
+            data = await self._dispatchQueue.get()
+            if data is None:
+                return
+            if self._receiver is None:
+                continue
+            try:
                 await self._receiver.acceptBytes(data)
+            except Exception as e:
+                self.log.error(f"Failed to process received data: {e}")
+                await self._gracefulCloseOrEscalate("receive dispatch error")
+                return
 
     def getReceivedBytes(self) -> int:
         """
@@ -165,6 +224,13 @@ class TcpSocketConnection(Actor, StreamConnection):
     @override
     @synchronized
     async def onClose(self, perform: Callable[[], None] | None) -> None:
+        if not self._running or self._writer.is_closing():
+            if perform is not None:
+                try:
+                    perform()
+                except Exception as exc:
+                    self.log.error(f"onClose callback failed (already closed): {exc}")
+            return
         self._onClose = perform
 
     @override
@@ -199,6 +265,11 @@ class TcpSocketConnection(Actor, StreamConnection):
             with suppress(CancelledError):
                 await self._readTask
         await self.shutdown()
+
+        if not self._dispatchTask.done():
+            self._dispatchTask.cancel()
+            with suppress(CancelledError):
+                await self._dispatchTask
 
     def __eq__(self, other: object) -> bool:
         if self is other:

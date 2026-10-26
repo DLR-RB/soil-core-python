@@ -3,6 +3,7 @@ from collections.abc import Awaitable, Callable
 from contextlib import suppress
 
 from ...logging import Logger, OptionalLogger
+from ...utils import ActorClosedError
 from .connection import TcpSocketConnection
 
 
@@ -246,7 +247,11 @@ class TcpSocketServer:
     async def _clearClosedConnections(self):
         remaining: list[TcpSocketConnection] = list()
         for connection in self._connections:
-            if await connection.isOpen():
+            try:
+                is_open = await connection.isOpen()
+            except ActorClosedError:
+                is_open = False
+            if is_open:
                 remaining.append(connection)
             else:
                 await connection.shutdown()
@@ -254,6 +259,9 @@ class TcpSocketServer:
 
     async def _cancelConnections(self):
         for connection in self._connections:
-            await connection.close()
-            await connection.shutdown() # Stop actor loop
+            try:
+                await connection.close()
+            except ActorClosedError:
+                pass
+            await connection.shutdown()
         self._connections = []
