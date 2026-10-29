@@ -372,3 +372,218 @@ class TestSampleTree(unittest.TestCase):
         self.assertEqual(child.samples, [])
         self.assertEqual(grandchild.samples, [])
 
+
+class ConvenienceConstructionTests(unittest.TestCase):
+    """addChildValue, addChildSamples, addSample, mergeChild."""
+
+    def test_addChildValue_withRawInt(self):
+        tree = SampleTree()
+        child = tree.addChildValue("temperature", 123)
+        self.assertIs(tree.children["temperature"], child)
+        self.assertEqual(child.currentValue, Value(123))
+
+    def test_addChildValue_withFalsyValues(self):
+        tree = SampleTree()
+        tree.addChildValue("zero", 0)
+        tree.addChildValue("empty", "")
+        self.assertEqual(tree.getChildValue("zero"), Value(0))
+        self.assertEqual(tree.getChildValue("empty"), Value(""))
+
+    def test_addChildValue_withValueObject(self):
+        tree = SampleTree()
+        tree.addChildValue("name", Value("abc"))
+        value = tree.getChildValue("name")
+        self.assertIsNotNone(value)
+        if value is not None:
+            self.assertEqual(value.stringValue, "abc")
+
+    def test_addChildValue_overwritesExistingChild(self):
+        tree = SampleTree()
+        tree.addChildValue("state", 1)
+        tree.addChildValue("state", 2)
+        self.assertEqual(len(tree.children), 1)
+        self.assertEqual(tree.getChildValue("state"), Value(2))
+
+    def test_addChildValue_withTimestamp(self):
+        time = Timestamp.fromTimeIntervalSince1970(1000.0)
+        tree = SampleTree()
+        tree.addChildValue("sampled", 5, time)
+        child = tree.existingChild("sampled")
+        self.assertIsNotNone(child)
+        sample = child.currentSample if child is not None else None
+        self.assertIsNotNone(sample)
+        if sample is not None and sample.timestamp is not None:
+            self.assertTrue(sample.timestamp.isVeryCloseTo(time))
+
+    def test_addChildValue_chaining(self):
+        tree = SampleTree()
+        tree.addChildValue("gps", 1).addChildValue("lat", 48.2)
+        self.assertEqual(tree.getChildValue("gps"), Value(1))
+        gps = tree.existingChild("gps")
+        self.assertIsNotNone(gps)
+        if gps is not None:
+            self.assertEqual(gps.getChildValue("lat"), Value(48.2))
+
+    def test_addChildSamples(self):
+        tree = SampleTree()
+        samples = [
+            Sample(Value(1), Timestamp.fromTimeIntervalSince1970(1.0)),
+            Sample(Value(2), Timestamp.fromTimeIntervalSince1970(2.0)),
+            Sample(Value(3), Timestamp.fromTimeIntervalSince1970(3.0)),
+        ]
+        child = tree.addChildSamples("history", samples)
+        self.assertIs(tree.children["history"], child)
+        self.assertEqual(len(child.samples), 3)
+        tree.addChildSamples("history", samples[:1])
+        replaced = tree.existingChild("history")
+        self.assertIsNotNone(replaced)
+        if replaced is not None:
+            self.assertEqual(len(replaced.samples), 1)  # ersetzt, nicht anhängt
+
+    def test_addSample_withoutTimestamp_keepsHistorySorted(self):
+        tree = SampleTree()
+        tree.addSample(3, Timestamp.fromTimeIntervalSince1970(30.0))
+        tree.addSample(1, Timestamp.fromTimeIntervalSince1970(10.0))
+        tree.addSample(2, Timestamp.fromTimeIntervalSince1970(20.0))
+        self.assertEqual([s.value for s in tree.samples], [Value(1), Value(2), Value(3)])
+
+    def test_addSample_withRawValue(self):
+        tree = SampleTree()
+        tree.addSample(42)
+        self.assertEqual(tree.currentValue, Value(42))
+
+    def test_mergeChild_createsChild(self):
+        tree = SampleTree()
+        other = SampleTree.ofValue(Value(1))
+        child = tree.mergeChild("merged", other)
+        self.assertEqual(tree.getChildValue("merged"), Value(1))
+        self.assertIs(tree.existingChild("merged"), child)
+
+    def test_mergeChild_mergesInsteadOfReplacing(self):
+        tree = SampleTree()
+        tree.addChildValue("data", 1)
+        tree.mergeChild("data", SampleTree.ofValue(Value(2)))
+        child = tree.existingChild("data")
+        self.assertIsNotNone(child)
+        if child is not None:
+            self.assertEqual(len(child.samples), 2)  # nichts ersetzt
+
+
+class ConvenienceRetrievalTests(unittest.TestCase):
+    """getChildValue, getChildSamples, getChildSample, valueAtPath, sampleAtPath, samplesAtPath, firstSample, currentValue."""
+
+    def test_getChildValue_missingChildReturnsNone(self):
+        self.assertIsNone(SampleTree().getChildValue("nope"))
+
+    def test_getChildValue_childWithoutSamplesReturnsNone(self):
+        tree = SampleTree()
+        tree.createChild("empty")
+        self.assertIsNone(tree.getChildValue("empty"))
+
+    def test_getChildSamples_returnsCopy(self):
+        tree = SampleTree()
+        tree.addChildValue("x", 1)
+        result = tree.getChildSamples("x")
+        self.assertIsNotNone(result)
+        if result is not None:
+            result.append(Sample(Value(2)))
+            x = tree.existingChild("x")
+            self.assertIsNotNone(x)
+            if x is not None:
+                self.assertEqual(len(x.samples), 1)
+
+    def test_getChildSamples_missingChildReturnsNone(self):
+        self.assertIsNone(SampleTree().getChildSamples("nope"))
+
+    def test_getChildSample(self):
+        tree = SampleTree()
+        tree.addChildValue("x", 42)
+        sample = tree.getChildSample("x")
+        self.assertIsNotNone(sample)
+        if sample is not None:
+            self.assertEqual(sample.value, Value(42))
+        self.assertIsNone(tree.getChildSample("missing"))
+
+    def test_valueAtPath_and_sampleAtPath(self):
+        tree = SampleTree()
+        tree.addChildValue("gps", 1).addChildValue("lat", 48.2)
+        self.assertEqual(tree.valueAtPath(Path.of("gps", "lat")), Value(48.2))
+        self.assertIsNotNone(tree.sampleAtPath(Path.of("gps", "lat")))
+        self.assertIsNone(tree.valueAtPath(Path.of("gps", "missing")))
+        self.assertIsNone(tree.sampleAtPath(Path.of("nope")))
+
+    def test_samplesAtPath_returnsCopy(self):
+        tree = SampleTree()
+        tree.addSample(1, Timestamp.fromTimeIntervalSince1970(1.0))
+        result = tree.samplesAtPath(Path())
+        self.assertIsNotNone(result)
+        if result is not None:
+            result.clear()
+            self.assertEqual(len(tree.samples), 1)
+
+    def test_samplesAtPath_missingPathReturnsNone(self):
+        self.assertIsNone(SampleTree().samplesAtPath(Path.of("a")))
+
+    def test_firstSample(self):
+        tree = SampleTree()
+        tree.addSample(2, Timestamp.fromTimeIntervalSince1970(20.0))
+        tree.addSample(1, Timestamp.fromTimeIntervalSince1970(10.0))
+        first = tree.firstSample
+        self.assertIsNotNone(first)
+        if first is not None:
+            self.assertEqual(first.value, Value(1))
+        self.assertIsNone(SampleTree().firstSample)
+
+    def test_currentValue_returnsValueInstance(self):
+        tree = SampleTree.ofValue(Value(123))
+        self.assertIsInstance(tree.currentValue, Value)
+        self.assertIsNone(SampleTree().currentValue)
+
+
+class SearchTests(unittest.TestCase):
+    """findNodes, nodesBelow."""
+
+    def _buildTree(self) -> SampleTree:
+        tree = SampleTree()
+        tree.addChildValue("temp", 1).addChildValue("temp", 2)
+        tree.addChildValue("gps", 1).addChildValue("temp", 3)
+        tree.addChildValue("other", 0)
+        return tree
+
+    def test_findNodes_multipleHits(self):
+        tree = self._buildTree()
+        hits = tree.findNodes("temp")
+        paths = [str(path) for path, _ in hits]
+        self.assertEqual(len(hits), 3)
+        self.assertIn("temp > temp", paths)
+        self.assertIn("gps > temp", paths)
+        self.assertIn("temp", paths)
+
+    def test_findNodes_noHit(self):
+        self.assertEqual(SampleTree().findNodes("x"), [])
+
+    def test_nodesBelow_includesPrefixNode_andFullPaths(self):
+        tree = self._buildTree()
+        entries = tree.nodesBelow(Path.of("gps"))
+        paths = [str(path) for path, _ in entries]
+        self.assertEqual(paths[0], "gps")
+        self.assertEqual(paths[1], "gps > temp")
+
+    def test_nodesBelow_missingPrefixReturnsEmpty(self):
+        tree = self._buildTree()
+        self.assertEqual(tree.nodesBelow(Path.of("nope")), [])
+
+    def test_nodesBelow_rootPathReturnsWholeTree(self):
+        tree = self._buildTree()
+        entries = tree.nodesBelow(Path())
+        self.assertEqual(len(entries), 6)
+
+    def test_search_doesNotMutateTree(self):
+        tree = self._buildTree()
+        tree.findNodes("temp")
+        tree.nodesBelow(Path.of("gps"))
+        self.assertEqual(tree.totalNumberOfSamples, 5)
+
+
+if __name__ == "__main__":
+    unittest.main()
