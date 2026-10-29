@@ -41,7 +41,11 @@ def _convertMessageToDict(message: Message) -> dict[str, Any]:
         result[JsonEncoding.MSG_TYPE_KEY] = str(message.type).lower()
     # If the path is absent, then it defaults to an empty path
     if not message.path.isEmpty:
-        result["path"] = message.path
+        # Single-component paths are encoded as a plain string
+        if len(message.path) == 1:
+            result['path'] = message.path[0]
+        else:
+            result["path"] = message.path
 
     # There is a possibly invalid message where the `time` is set in addition to data being present
     # We ensure that the timestamp is not written into the message if any samples are provided
@@ -84,7 +88,11 @@ def _encodeValueInContainer(value: Value, container: dict[str, Any]) -> None:
     type_val = value.type
     inner = value.value
 
-    container[JsonEncoding.VALUE_TYPE_KEY] = str(type_val).lower()
+    match type_val:
+        case ValueType.INTEGER | ValueType.DATA | ValueType.LIST | ValueType.MAP:
+            container[JsonEncoding.VALUE_TYPE_KEY] = str(type_val).lower()
+        case ValueType.STRING | ValueType.DOUBLE | ValueType.NONE | ValueType.PATH:
+            pass
 
     if isinstance(inner, bytes):
         container['value'] = b64encode(inner).decode('ascii')
@@ -128,7 +136,7 @@ def _convertJsonToMessage(raw: Any) -> Message:
     if not isinstance(raw, dict):
         raise ValueError("Top-level JSON is not a dict")
 
-    container = raw
+    container: dict[str, Any] = raw # pyright: ignore[reportUnknownVariableType]
 
     type_msg = _decodeMessageType(container)
     path = _decodePath(container)
@@ -161,7 +169,7 @@ def _decodePath(container: dict[str, Any]) -> Path:
     rawPath = container.get('path')
     if rawPath is None:
         return Path()
-
+    # Note: Single-component paths can be encoded as plain strings
     if isinstance(rawPath, str):
         return Path([rawPath])
     if not isinstance(rawPath, list):
@@ -251,13 +259,13 @@ def _decodeValue(container: dict[str, Any]) -> Value:
     if isinstance(rawValue, int):
         return Value(float(rawValue))
     if isinstance(rawValue, list):
-        path = _createPathFromList(rawValue) # pyright: ignore[reportUnknownVariableType]
+        path = _createPathFromList(rawValue) # pyright: ignore[reportUnknownArgumentType]
         return Value(path)
     raise ValueError(f"Field 'value' has unknown type {type(rawValue)}")
 
 def _decodeValueWithType(rawValue: Any, rawType: Any) -> Value:
     if not isinstance(rawType, str):
-        raise ValueError(f"Field 'valuetype' must be a string, not {type(rawType)}")
+        raise ValueError(f"Field 'type' must be a string, not {type(rawType)}")
     valueType = ValueType(rawType)
     match valueType:
         case ValueType.INTEGER:

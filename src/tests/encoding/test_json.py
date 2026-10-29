@@ -143,3 +143,9 @@ class JsonTests(TestCase):
         raw = _json.loads(data)
         self.assertEqual(raw["type"], "list")
         self.assertEqual(raw["value"], ["integer", 1, "string", "a"])
+
+    def testEncodeValueTypeOnlyIfNeeded(self):
+        message = Message.value(Value(3.14), path = Path.of("a", "b"))
+        encoding = JsonEncoding()
+        data = encoding.encode(message).decode()
+        self.assertEqual(data, '{"path": ["a", "b"], "value": 3.14}')
