@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from typing import Protocol, Self, TypeVar
+from typing import Protocol, Self
 
 from .convertible import SampleTreeConvertible, ValueConvertible
 from .path import Path
 from .sample import Sample
 from .timestamp import Timestamp
-from .value import Value
+from .value import Value, AnyValue
 
 
 class SampleTree:
@@ -47,7 +47,7 @@ class SampleTree:
         """
         return self._children
 
-# MARK: Construction
+    # MARK: Construction
 
     @classmethod
     def create(cls, samples: list[Sample] | None = None, children: dict[str, SampleTree] | None = None) -> Self:
@@ -72,7 +72,6 @@ class SampleTree:
         if self._samples:
             return False
         return all(child.isEmpty for child in self._children.values())
-
 
     @classmethod
     def empty(cls) -> Self:
@@ -121,8 +120,8 @@ class SampleTree:
         """
         return cls.ofSample(Sample(value, timestamp), children)
 
-# MARK: Properties    
-    
+    # MARK: Properties
+
     @property
     def newestSample(self) -> Sample | None:
         """
@@ -178,7 +177,6 @@ class SampleTree:
 
         return result
 
-    
     @property
     def numberOfNodesWithSamples(self) -> int:
         """
@@ -194,7 +192,6 @@ class SampleTree:
         for child in self.children.values():
             count += child.numberOfNodesWithSamples
         return count
-
 
     @property
     def totalNumberOfSamples(self) -> int:
@@ -212,7 +209,6 @@ class SampleTree:
             total += child.totalNumberOfSamples
         return total
 
-    
     @property
     def currentValue(self) -> Value | None:
         """
@@ -226,7 +222,7 @@ class SampleTree:
         sample = self.currentSample
         return None if sample is None else sample.value
 
-# MARK: Access
+    # MARK: Access
 
     def containedTree(self) -> tuple[Path, SampleTree]:
         """
@@ -362,7 +358,7 @@ class SampleTree:
 
         return self.isEqualTo(other)
 
-# MARK: Write/History
+    # MARK: Write/History
 
     def insert(self, samples: list[Sample], path: Path) -> None:
         """
@@ -462,6 +458,7 @@ class SampleTree:
             # Do a binary search in the sorted array and insert in the right place
             insertIntoSorted(self.samples, sample)
 
+    # MARK: Retrieval
 
     def tree(self,
         start: Timestamp | None = None,
@@ -652,6 +649,7 @@ class SampleTree:
         # The start index is exclusive, and the end index is inclusive
         del self._samples[startIndex:endIndex]
 
+    # MARK: Children
 
     def findOrCreateNode(self, path: Path) -> SampleTree:
         """
@@ -753,13 +751,12 @@ class SampleTree:
             last = child
         return result
 
+    # MARK: Convenience functions
 
-# MARK: newConvenienceFunc
-
-    def addChildValue(self, name: str, value: ValueConvertible | Value, timestamp: Timestamp | None = None) -> SampleTree:
+    def addChildValue(self, name: str, value: ValueConvertible | Value | AnyValue, timestamp: Timestamp | None = None) -> SampleTree:
         """
         Attach a new child node containing a single value, replacing any existing child with that name.
-        """       
+        """
         child = SampleTree.ofValue(asValue(value), timestamp)
         self._children[name] = child
         return child
@@ -780,7 +777,7 @@ class SampleTree:
         child = self.existingChild(name)
         return None if child is None else list(child.samples)
 
-    def addSample(self, value: ValueConvertible | Value, timestamp: Timestamp | None = None) -> None:
+    def addSample(self, value: ValueConvertible | Value | AnyValue, timestamp: Timestamp | None = None) -> None:
         """Add a value to the history at this node as a new sample, keeping the history sorted."""
         self.insertSampleIntoHistory(Sample(asValue(value), timestamp))
 
@@ -788,7 +785,7 @@ class SampleTree:
         """Get the current value at a path, or None if the path does not exist."""
         node = self.existingNode(path)
         return None if node is None else node.currentValue
-    
+
     def sampleAtPath(self, path: Path) -> Sample | None:
         """Get the current sample at a path, or None if the path does not exist."""
         node = self.existingNode(path)
@@ -802,7 +799,7 @@ class SampleTree:
 
     @property
     def firstSample(self) -> Sample | None:
-        """The oldest sample at this node, or None if no samples exist."""
+        """The oldest sample at this node (if the samples are sorted), or None if no samples exist."""
         return self.samples[0] if self.samples else None
 
     def getChildSample(self, name: str) -> Sample | None:
@@ -859,19 +856,17 @@ def asTree(tree: SampleTree | SampleTreeConvertible) -> SampleTree:
         return tree
     return tree.toTree()
 
-def asValue(value: ValueConvertible | Value) -> Value:
+def asValue(value: ValueConvertible | Value | AnyValue) -> Value:
     """
     Convert the argument into a Value.
     """
     if isinstance(value, Value):
         return value
-    if hasattr(value, "toValue"):
+    if isinstance(value, ValueConvertible):
         return value.toValue()
     return Value(value)
 
-T = TypeVar("T")
-
-def partitioningIndex(
+def partitioningIndex[T](
     seq: Sequence[T],
     belongsInSecondPartition: Callable[[T], bool],
 ) -> int:
@@ -896,9 +891,7 @@ class Comparable(Protocol):
     def __lt__(self, other: Comparable, /) -> bool: ...
 
 
-TT = TypeVar("TT", bound=Comparable)
-
-def insertIntoSorted(lst: list[TT], value: TT) -> int:
+def insertIntoSorted[T: Comparable](lst: list[T], value: T) -> int:
     """
     Inserts value into the sorted list lst.
 
@@ -907,4 +900,3 @@ def insertIntoSorted(lst: list[TT], value: TT) -> int:
     i = partitioningIndex(lst, lambda x: not (x < value))
     lst.insert(i, value)
     return i
-

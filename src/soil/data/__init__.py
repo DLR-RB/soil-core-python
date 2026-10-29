@@ -9,7 +9,7 @@ from .sample import Sample
 from .timestamp import Timestamp
 from .tree import Tree
 from .type import ValueType
-from .value import Value
+from .value import Value, AnyValue
 
 __all__ = [
     'Path',
@@ -19,6 +19,7 @@ __all__ = [
     'Timestamp',
     'Tree',
     'Value',
+    'AnyValue',
     'ValueConvertible',
     'ValueType',
 ]
