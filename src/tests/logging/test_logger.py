@@ -1,7 +1,9 @@
+from typing import Any, Tuple, override
 import unittest
 
 from soil.logging.level import LogLevel
 from soil.logging.logger import Logger
+from soil.requests import Request, CompletedRequest
 
 
 class StubLogger(Logger):
@@ -9,23 +11,27 @@ class StubLogger(Logger):
 
     def __init__(self, level: LogLevel = LogLevel.WARNING):
         self.level = level
-        self.logCalls = []
-        self.childComponents = []
+        self.logCalls: list[Tuple[LogLevel, str, Any]] = []
+        self.childComponents: list[str] = []
 
-    def setLevel(self, level: LogLevel) -> object:
+    @override
+    def setLevel(self, level: LogLevel) -> Request:
         self.level = level
-        return None
+        return CompletedRequest()
 
+    @override
     async def getLevel(self) -> LogLevel:
         return self.level
 
+    @override
     def childLogger(self, component: str) -> 'StubLogger':
         self.childComponents.append(component)
         return StubLogger(level=self.level)
 
-    def log(self, level: LogLevel, message: str, *args: object) -> object:
+    @override
+    def log(self, level: LogLevel, message: str, *args: object) -> Request:
         self.logCalls.append((level, message, args))
-        return None
+        return CompletedRequest()
 
 
 class TestLogger(unittest.IsolatedAsyncioTestCase):

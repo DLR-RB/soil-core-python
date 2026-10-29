@@ -1,13 +1,13 @@
 import io
 import unittest
 from contextlib import redirect_stdout
+from io import StringIO
 
 from soil.data import Path
-from soil.logging.level import LogLevel
-from soil.logging.print import PrintLogger
+from soil.logging import LogLevel, PrintLogger, Logger
 
 
-def captureLog(logger, level, message, *args) -> str:
+def captureLog(logger: Logger, level: LogLevel, message: str, *args: object) -> str:
     """ Logger-Aufruf ausfuehren und die Konsolenausgabe zurueckgeben. """
     buffer = io.StringIO()
     with redirect_stdout(buffer):
@@ -34,7 +34,7 @@ class TestPrintLogger(unittest.IsolatedAsyncioTestCase):
 
         request = logger.setLevel(LogLevel.INFO)
 
-        self.assertIsInstance(request, object) 
+        self.assertIsInstance(request, object)
         self.assertEqual(await logger.getLevel(), LogLevel.INFO)
 
     async def test_SetLevelNoneRestoresDefault(self):
@@ -79,9 +79,11 @@ class TestPrintLogger(unittest.IsolatedAsyncioTestCase):
     async def test_LogReturnsCompletedRequest(self):
         logger = PrintLogger()
 
-        request = logger.log(LogLevel.WARNING, "msg")
+        log = StringIO()
+        with redirect_stdout(log):
+            request = logger.log(LogLevel.WARNING, "msg")
 
-        await request 
+        await request
 
     # MARK: Children
 
