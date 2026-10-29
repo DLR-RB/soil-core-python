@@ -8,8 +8,8 @@
     {
       "name": "none_value",
       "description": "DATA, single root sample, NONE value ('null' on the wire)",
-      "json": { "type": "null", "value": null },
-      "compact": { "h": 0, "v": null },
+      "json": { "value": null },
+      "compact": { "v": null },
       "binary": "000100"
     },
     {
@@ -22,15 +22,15 @@
     {
       "name": "double_value",
       "description": "DATA, single root sample, DOUBLE 2.5 (big-endian IEEE 754)",
-      "json": { "type": "double", "value": 2.5 },
-      "compact": { "h": 2, "v": 2.5 },
+      "json": { "value": 2.5 },
+      "compact": { "v": 2.5 },
       "binary": "0001024004000000000000"
     },
     {
       "name": "string_value_unicode",
       "description": "DATA, single root sample, STRING with non-ASCII characters (UTF-8 length-prefixed)",
-      "json": { "type": "string", "value": "héllo ✓" },
-      "compact": { "h": 3, "v": "héllo ✓" },
+      "json": { "value": "héllo ✓" },
+      "compact": { "v": "héllo ✓" },
       "binary": "0001030a68c3a96c6c6f20e29c93"
     },
     {
@@ -43,8 +43,8 @@
     {
       "name": "path_value",
       "description": "DATA, single root sample, PATH value with two segments (count + length-prefixed strings)",
-      "json": { "type": "path", "value": ["uplink", "bitrate"] },
-      "compact": { "h": 5, "v": ["uplink", "bitrate"] },
+      "json": { "value": ["uplink", "bitrate"] },
+      "compact": { "v": ["uplink", "bitrate"] },
       "binary": "000105020675706c696e6b0762697472617465"
     },
     {
@@ -99,15 +99,15 @@
     {
       "name": "tree_with_children",
       "description": "DATA, root sample plus one named child sample (tree header nibbles: 1 child, 1 sample)",
-      "json": { "type": "integer", "value": 1, "children": { "child": { "type": "string", "value": "x" } } },
-      "compact": { "h": 1, "v": 1, "n": { "child": { "h": 3, "v": "x" } } },
+      "json": { "type": "integer", "value": 1, "children": { "child": { "value": "x" } } },
+      "compact": { "h": 1, "v": 1, "n": { "child": { "v": "x" } } },
       "binary": "00110102056368696c6401030178"
     },
     {
       "name": "message_with_path",
       "description": "DATA with a two-segment message path (top-level path as chain of 0x10 tree headers) and one root sample",
-      "json": { "path": ["telemetry", "temp"], "type": "double", "value": 21.5 },
-      "compact": { "p": ["telemetry", "temp"], "h": 2, "v": 21.5 },
+      "json": { "path": ["telemetry", "temp"], "value": 21.5 },
+      "compact": { "p": ["telemetry", "temp"], "v": 21.5 },
       "binary": "00100974656c656d65747279100474656d7001024035800000000000"
     },
     {
@@ -127,22 +127,22 @@
     {
       "name": "request_with_depth_zero",
       "description": "REQUEST (binary type 1) with depth 0: indicator bit set plus explicit zero varint byte - falsy-but-legitimate value must survive",
-      "json": { "message": "read", "path": ["model"], "depth": 0 },
-      "compact": { "m": 1, "p": ["model"], "d": 0 },
+      "json": { "message": "read", "path": "model", "depth": 0 },
+      "compact": { "m": 1, "p": "model", "d": 0 },
       "binary": "240001056d6f64656c"
     },
     {
       "name": "deletion",
       "description": "DELETION (binary type 2) for path 'old'",
-      "json": { "message": "delete", "path": ["old"] },
-      "compact": { "m": 2, "p": ["old"] },
+      "json": { "message": "delete", "path": "old" },
+      "compact": { "m": 2, "p": "old" },
       "binary": "4001036f6c64"
     },
     {
       "name": "subscription_inclusion",
       "description": "SUBSCRIPTION_INCLUSION (binary type 3) for path 'tm'",
-      "json": { "message": "include", "path": ["tm"] },
-      "compact": { "m": 3, "p": ["tm"] },
+      "json": { "message": "include", "path": "tm" },
+      "compact": { "m": 3, "p": "tm" },
       "binary": "600102746d"
     },
     {
@@ -155,8 +155,8 @@
     {
       "name": "subscription_deletion",
       "description": "SUBSCRIPTION_DELETION (binary type 5) for path 'tm'",
-      "json": { "message": "clear", "path": ["tm"] },
-      "compact": { "m": 5, "p": ["tm"] },
+      "json": { "message": "clear", "path": "tm" },
+      "compact": { "m": 5, "p": "tm" },
       "binary": "a00102746d"
     },
     {
