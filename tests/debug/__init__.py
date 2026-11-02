@@ -1,1 +1,4 @@
-from ..debug.test_print import TestPrintReceiver
+from .test_print import TestPrintReceiver
+
+
+
