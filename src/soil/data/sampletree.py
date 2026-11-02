@@ -7,7 +7,7 @@ from .convertible import SampleTreeConvertible, ValueConvertible
 from .path import Path
 from .sample import Sample
 from .timestamp import Timestamp
-from .value import Value, AnyValue
+from .value import AnyValue, Value
 
 
 class SampleTree:

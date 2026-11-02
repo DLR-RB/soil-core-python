@@ -3,7 +3,6 @@ from typing import Any, override
 from ...data.type import ValueType
 from ...encoding.json.generic import JsonKey
 from ...messaging.message_type import MessageType
-
 from .generic import GenericJsonEncoding
 
 

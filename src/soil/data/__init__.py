@@ -12,6 +12,7 @@ from .type import ValueType
 from .value import Value, AnyValue
 
 __all__ = [
+    'AnyValue',
     'Path',
     'Sample',
     'SampleTree',
@@ -19,7 +20,6 @@ __all__ = [
     'Timestamp',
     'Tree',
     'Value',
-    'AnyValue',
     'ValueConvertible',
     'ValueType',
 ]

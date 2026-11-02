@@ -1,11 +1,11 @@
 from abc import abstractmethod
-from enum import Enum
-from typing import Any, override
 from base64 import b64decode, b64encode
+from enum import Enum
 from json import dumps, loads
+from typing import Any, override
 
 from ...data import Path, Sample, SampleTree, Timestamp, Value, ValueType
-from ...messaging import MessageType, MessageEncoding, Message
+from ...messaging import Message, MessageEncoding, MessageType
 
 
 class JsonKey(Enum):
@@ -350,7 +350,6 @@ class GenericJsonEncoding(MessageEncoding):
                 if rawValue is not None:
                     raise ValueError(f"Value type declares null, but value is: {rawValue}")
                 return Value(None)
-        #
 
 def _createPathFromList(rawValue: list[Any]) -> Path:
     for component in rawValue:

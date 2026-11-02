@@ -1,9 +1,9 @@
-from typing import Any, Tuple, override
 import unittest
+from typing import Any, override
 
 from soil.logging.level import LogLevel
 from soil.logging.logger import Logger
-from soil.requests import Request, CompletedRequest
+from soil.requests import CompletedRequest, Request
 
 
 class StubLogger(Logger):
@@ -11,7 +11,7 @@ class StubLogger(Logger):
 
     def __init__(self, level: LogLevel = LogLevel.WARNING):
         self.level = level
-        self.logCalls: list[Tuple[LogLevel, str, Any]] = []
+        self.logCalls: list[tuple[LogLevel, str, Any]] = []
         self.childComponents: list[str] = []
 
     @override

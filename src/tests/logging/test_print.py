@@ -4,7 +4,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 
 from soil.data import Path
-from soil.logging import LogLevel, PrintLogger, Logger
+from soil.logging import Logger, LogLevel, PrintLogger
 
 
 def captureLog(logger: Logger, level: LogLevel, message: str, *args: object) -> str:
