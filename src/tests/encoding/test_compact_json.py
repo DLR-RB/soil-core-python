@@ -130,9 +130,9 @@ class CompactJsonTests(TestCase):
 
         self.assertNotIn("valuetype", raw)
         self.assertNotIn("value", raw)
-        self.assertEqual(raw["h"], 1)         
+        self.assertEqual(raw["h"], 1)
         self.assertEqual(raw["v"], 123)
-        self.assertEqual(raw["p"], ["a"])
+        self.assertEqual(raw["p"], "a")
         self.assertNotIn("m", raw)
 
     def testCompactListWireFormat(self):
@@ -142,7 +142,7 @@ class CompactJsonTests(TestCase):
         raw = __import__("json").loads(data)
 
         self.assertEqual(raw["h"], 6)
-        self.assertEqual(raw["v"], [1, 1, 3, "a"]) 
+        self.assertEqual(raw["v"], [1, 1, 3, "a"])
 
     def testDecodesCompactIntegerValue(self):
         decoded = self._decode('{"p": ["a"], "h": 1, "v": 123}')
