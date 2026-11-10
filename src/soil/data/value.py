@@ -4,13 +4,15 @@ from .convertible import ValueConvertible
 from .path import Path
 from .type import ValueType
 
+type AnyValue = int | str | float | bytes | Path| list[Value] | dict[str, Value] | None
+
 
 class Value(ValueConvertible):
 
-    value: int | str | float | bytes | Path| list[Value] | dict[str, Value] | None
+    value: AnyValue
     """ The wrapped value """
 
-    def __init__(self, value: str | float | bytes | Path | list[Value] | dict[str, Value] | None ) -> None:
+    def __init__(self, value: AnyValue) -> None:
         self.value = value
 
     def toValue(self) -> Value:
@@ -29,7 +31,7 @@ class Value(ValueConvertible):
         TypeError
             If the argument is not a Value.
         """
-        if not isinstance(value, Value):
+        if not isinstance(value, Value): # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError(f"expected a Value, got {type(value).__name__}")
         return value
 
@@ -121,7 +123,7 @@ class Value(ValueConvertible):
         Access a map entry by string key or a list entry by index.
         Raises KeyError / IndexError like dict / list.
         """
-        if isinstance(key, str):
+        if isinstance(key, str): # pyright: ignore[reportUnnecessaryIsInstance]
             data_map = self.mapValue
             if data_map is None:
                 raise TypeError(f"Value of type {self.type} is not a map")
@@ -133,7 +135,7 @@ class Value(ValueConvertible):
             return data_list[key]
         raise TypeError(f"Invalid key type: {type(key)!r}")
 
-    def __contains__(self, key):
+    def __contains__(self, key: str):
         """"key" in value (map) or value-element in value (list)."""
         if self.mapValue is not None:
             return key in self.mapValue

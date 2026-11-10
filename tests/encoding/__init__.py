@@ -1,0 +1,1 @@
+from . import test_binary, test_compact_json, test_json

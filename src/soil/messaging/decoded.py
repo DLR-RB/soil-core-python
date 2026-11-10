@@ -92,7 +92,6 @@ class DecodedConnection(Actor, MessageConnection, FrameReceiver):
         except Exception as e:
             self.log.error(f"Failed to decode frame: {e}")
             return
-
         # Forward the decoded message to the component connection
         await self._receiver.acceptMessage(message)
 

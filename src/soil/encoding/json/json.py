@@ -1,265 +1,76 @@
-from base64 import b64decode, b64encode
-from json import dumps, loads
 from typing import Any, override
 
-from soil.data.path import Path
-from soil.data.sampletree import SampleTree
-from soil.data.timestamp import Timestamp
-from soil.data.type import ValueType
-
-from ...data.sample import Sample
-from ...data.value import Value
-from ...messaging.encoding import MessageEncoding
-from ...messaging.message import Message
+from ...data.type import ValueType
+from ...encoding.json.generic import JsonKey
 from ...messaging.message_type import MessageType
+from .generic import GenericJsonEncoding
 
 
-class JsonEncoding(MessageEncoding):
+class JsonEncoding(GenericJsonEncoding):
+    """
+    JSON wire format for soil messages.
+    """
 
     @override
-    def encode(self, message: Message) -> bytes:
-        converted = _convertMessageToDict(message)
-        return dumps(converted).encode("utf-8")
+    def _fieldName(self, key: JsonKey) -> str:
+        match key:
+            case JsonKey.MESSAGE_TYPE: return "message"
+            case JsonKey.VALUE_TYPE: return "type"
+            case JsonKey.PATH: return "path"
+            case JsonKey.COUNT: return "count"
+            case JsonKey.DEPTH: return "depth"
+            case JsonKey.TIME: return "time"
+            case JsonKey.END: return "end"
+            case JsonKey.ID: return "id"
+            case JsonKey.SAMPLES: return "samples"
+            case JsonKey.CHILDREN: return "children"
+            case JsonKey.VALUE: return "value"
 
     @override
-    def decode(self, data: bytes) -> Message:
-        raw = loads(data)
-        return _convertJsonToMessage(raw)
+    def _encodeMessageType(self, type: MessageType) -> int | str:
+        match type:
+            case MessageType.DATA: return "data"
+            case MessageType.REQUEST: return "read"
+            case MessageType.DELETION: return "delete"
+            case MessageType.SUBSCRIPTION_INCLUSION: return "include"
+            case MessageType.SUBSCRIPTION_EXCLUSION: return "exclude"
+            case MessageType.SUBSCRIPTION_DELETION: return "clear"
 
-# MARK: Encoding
+    @override
+    def _decodeMessageType(self, raw: Any) -> MessageType:
+        if not isinstance(raw, str):
+            raise ValueError(f"Invalid message type '{raw}'")
+        match raw:
+            case "data": return MessageType.DATA
+            case "read": return MessageType.REQUEST
+            case "delete": return MessageType.DELETION
+            case "include": return MessageType.SUBSCRIPTION_INCLUSION
+            case "exclude": return MessageType.SUBSCRIPTION_EXCLUSION
+            case "clear": return MessageType.SUBSCRIPTION_DELETION
+            case _: raise ValueError(f"Unknown message type '{raw}'")
 
-def _convertMessageToDict(message: Message) -> dict[str, Any]:
-    result:  dict[str, Any] = dict()
-    # Only encode message type if not a data message
-    if message.type != MessageType.DATA:
-        result["type"] = str(message.type)
-    # If the path is absent, then it defaults to an empty path
-    if not message.path.isEmpty:
-        result["path"] = message.path
+    @override
+    def _encodeValueType(self, type: ValueType) -> int | str:
+        match type:
+            case ValueType.NONE: return "null"
+            case ValueType.DATA: return "data"
+            case ValueType.INTEGER: return "integer"
+            case ValueType.DOUBLE: return "double"
+            case ValueType.STRING: return "string"
+            case ValueType.PATH: return "path"
+            case ValueType.LIST: return "list"
+            case ValueType.MAP: return "map"
 
-    # There is a possibly invalid message where the `time` is set in addition to data being present
-    # We ensure that the timestamp is not written into the message if any samples are provided
-    # so that decoding does not fail
-    _encodeTree(message.data, result, message.time is None)
-
-    if message.count is not None:
-        result["count"] = message.count
-    if message.depth is not None:
-        result["depth"] = message.depth
-    if message.time is not None:
-        result["time"] = message.time.timeIntervalSince1970 # time since 1970
-    if message.end is not None:
-        result["end"] = message.end.timeIntervalSince1970
-    if message.id is not None:
-        result["id"] = message.id
-
-    return result
-
-def _encodeTree(tree: SampleTree, container: dict[str, Any], canUseRoot: bool) -> None:
-    samples = tree.samples
-    if len(samples) == 1 and canUseRoot:
-        # Encode a single sample at the top-level of the container,
-        # but only if the 'time' field is not already used
-        _encodeSampleToContainer(samples[0], container)
-    elif len(samples) > 1:
-        container['samples'] = [_encodeSample(s) for s in samples]
-
-    children = tree.children
-    if len(children) == 0:
-        return
-    childList: dict[str, Any] = dict()
-    for name, child in children.items():
-        childContainer: dict[str, Any] = dict()
-        _encodeTree(child, childContainer, canUseRoot=True)
-        childList[name] = childContainer
-    container['children'] = childList
-
-def _encodeValueInContainer(value: Value, container: dict[str, Any]) -> None:
-    type = value.type
-    if type == ValueType.DATA:
-        container['valueType'] = str(type)
-        rawBytes: bytes = value.value # pyright: ignore[reportAssignmentType]
-        container['value'] = b64encode(rawBytes).decode('ascii')
-        return
-    if type == ValueType.INTEGER:
-        container['valueType'] = str(type)
-    container['value'] = value.value
-
-def _encodeSample(sample: Sample) -> dict[str, Any]:
-    container: dict[str, Any] = dict()
-    _encodeSampleToContainer(sample, container)
-    return container
-
-def _encodeSampleToContainer(sample: Sample, container: dict[str, Any]) -> None:
-    _encodeValueInContainer(sample.value, container)
-    if sample.timestamp is not None:
-        container['time'] = sample.timestamp.timeIntervalSince1970
-
-# MARK: Decoding
-
-def _convertJsonToMessage(raw: Any) -> Message:
-    if not isinstance(raw, dict):
-        raise ValueError("Top-level JSON is not a dict")
-    container: dict[str, Any] = raw # pyright: ignore[reportUnknownVariableType]
-    type = _decodeMessageType(container)
-    path = _decodePath(container)
-    count = _decodeInt(container, 'count')
-    depth = _decodeInt(container, 'depth')
-    time = _decodeTime(container)
-    end = _decodeTimestamp(container, 'end')
-    id = _decodeInt(container, 'id')
-    data = _decodeTree(container)
-
-    return Message(type, path, data, count, depth, time, end, id)
-
-def _decodeMessageType(container: dict[str, Any]) -> MessageType:
-    rawType = container.get('type')
-    if rawType is None:
-        return MessageType.DATA
-    if not isinstance(rawType, str):
-        raise ValueError("Message type is not a string")
-    return MessageType(rawType)
-
-def _decodePath(container: dict[str, Any]) -> Path:
-    rawPath = container.get('path')
-    if rawPath is None:
-        return Path()
-    if not isinstance(rawPath, list):
-        raise ValueError("Message path must be a list of strings")
-    return _createPathFromList(rawPath) # pyright: ignore[reportUnknownArgumentType]
-
-def _decodeInt(container: dict[str, Any], key: str) -> int | None:
-    raw = container.get(key)
-    if raw is None:
-        return None
-    if isinstance(raw, bool):
-        raise ValueError(f"Field '{key}' ({raw}) must be an integer, not bool")
-    if not isinstance(raw, int):
-        raise ValueError(f"Field '{key}' ({raw}) must be an integer, not {type(raw)}")
-    return raw
-
-def _decodeTime(container: dict[str, Any]) -> Timestamp | None:
-    if container.get('value') is not None:
-        # If a value is present, then the timestamp is decoded as part of the sample
-        return None
-    return _decodeTimestamp(container, 'time')
-
-def _decodeTimestamp(container: dict[str, Any], key: str) -> Timestamp | None:
-    raw = container.get(key)
-    if raw is None:
-        return None
-    # Check boolean, since it is a subclass of int
-    if isinstance(raw, float):
-        return Timestamp.fromTimeIntervalSince1970(raw)
-    if isinstance(raw, int):
-        return Timestamp.fromTimeIntervalSince1970(float(raw))
-    raise ValueError(f"Field 'time' ({raw}) must be a number, not {type(raw)}")
-
-def _decodeTree(container: dict[str, Any]) -> SampleTree:
-    samples = _decodeSamples(container)
-    if container.get('value') is not None:
-        # Sample present at the top level
-        sample = _decodeSample(container)
-        samples.append(sample)
-
-    samples.sort()
-
-    children = _decodeChildren(container)
-    return SampleTree(samples, children)
-
-def _decodeChildren(container: dict[str, Any]) -> dict[str, SampleTree]:
-    raw = container.get("children")
-    if raw is None:
-        return dict()
-    if not isinstance(raw, dict):
-        raise ValueError(f"Field 'children' must be a dictionary, not {type(raw)}")
-
-    children: dict[str, SampleTree] = dict()
-    for name, child in raw.items(): # pyright: ignore[reportUnknownVariableType]
-        if not isinstance(name, str):
-            raise ValueError(f"Field 'children' must have string keys, not {type(name)}") # pyright: ignore[reportUnknownArgumentType]
-        if not isinstance(child, dict):
-            raise ValueError(f"Field 'children' must have dictionary values, not {type(child)}")  # pyright: ignore[reportUnknownArgumentType]
-        children[name] = _decodeTree(child) # pyright: ignore[reportUnknownArgumentType]
-    return children
-
-def _decodeSamples(container: dict[str, Any]) -> list[Sample]:
-    raw = container.get('samples')
-    if raw is None:
-        return list()
-    if not isinstance(raw, list):
-        raise ValueError(f"Field 'samples' must be a list, not {type(raw)}")
-    return [_decodeSampleFromListElement(e) for e in raw] # pyright: ignore[reportUnknownVariableType]
-
-def _decodeSampleFromListElement(element: Any) -> Sample:
-    if not isinstance(element, dict):
-        raise ValueError(f'Sample must be represented as a dictionary, not {type(element)}')
-    return _decodeSample(element) # pyright: ignore[reportUnknownArgumentType]
-
-def _decodeSample(container: dict[str, Any]) -> Sample:
-    value = _decodeValue(container)
-    timestamp = _decodeTimestamp(container, 'time')
-    return Sample(value, timestamp)
-
-def _decodeValue(container: dict[str, Any]) -> Value:
-    rawType = container.get('valueType')
-    rawValue = container.get('value')
-    if rawType is not None:
-        return _decodeValueWithType(rawValue, rawType)
-    # Detect the type from the value alone
-    if rawValue is None:
-        return Value(None)
-    if isinstance(rawValue, (float, str)):
-        return Value(rawValue)
-    if isinstance(rawValue, bool):
-        raise ValueError("Value is a boolean")
-    if isinstance(rawValue, int):
-        return Value(float(rawValue))
-    if isinstance(rawValue, list):
-        path = _createPathFromList(rawValue) # pyright: ignore[reportUnknownArgumentType]
-        return Value(path)
-    raise ValueError(f"Field 'value' has unknown type {type(rawValue)}")
-
-def _decodeValueWithType(rawValue: Any, rawType: Any) -> Value:
-    if not isinstance(rawType, str):
-        raise ValueError(f"Field 'valueType' must be a string, not {type(rawType)}")
-    valueType = ValueType(rawType)
-    match valueType:
-        case ValueType.INTEGER:
-            if isinstance(rawValue, bool):
-                raise ValueError("Value type declares integer, but value is a boolean")
-            if not isinstance(rawValue, int):
-                raise ValueError(f"Value type declares integer, but value is {type(rawValue)}")
-            return Value(rawValue)
-        case ValueType.DOUBLE:
-            if isinstance(rawValue, float):
-                return Value(rawValue)
-            if isinstance(rawValue, bool):
-                raise ValueError("Value type declares double, but value is a boolean")
-            if isinstance(rawValue, int):
-                return Value(float(rawValue))
-            raise ValueError(f"Value type declares double, but value is {type(rawValue)}")
-        case ValueType.STRING:
-            if not isinstance(rawValue, str):
-                raise ValueError(f"Value type declares string, but value is {type(rawValue)}")
-            return Value(rawValue)
-        case ValueType.DATA:
-            if not isinstance(rawValue, str):
-                raise ValueError(f"Value type declares data, but value is {type(rawValue)}")
-            rawBytes = b64decode(rawValue)
-            return Value(rawBytes)
-        case ValueType.PATH:
-            if not isinstance(rawValue, list):
-                raise ValueError(f"Value type declares path, but value is {type(rawValue)}")
-            path = _createPathFromList(rawValue) # pyright: ignore[reportUnknownArgumentType]
-            return Value(path)
-        case ValueType.NONE:
-            if not rawValue is not None:
-                raise ValueError(f"Value type declares null, but value is {type(rawValue)}")
-            return Value(None)
-
-def _createPathFromList(rawValue: list[Any]) -> Path:
-    for component in rawValue:
-        if not isinstance(component, str):
-            raise ValueError("Paths must be a list of strings")
-    return Path(rawValue)
+    def _decodeValueType(self, raw: Any) -> ValueType:
+        if not isinstance(raw, str):
+            raise ValueError(f"Invalid value type '{raw}'")
+        match raw:
+            case "null": return ValueType.NONE
+            case "data": return ValueType.DATA
+            case "integer": return ValueType.INTEGER
+            case "double": return ValueType.DOUBLE
+            case "string": return ValueType.STRING
+            case "path": return ValueType.PATH
+            case "list": return ValueType.LIST
+            case "map": return ValueType.MAP
+            case _: raise ValueError(f"Unknown value type '{raw}'")

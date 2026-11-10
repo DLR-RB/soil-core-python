@@ -71,7 +71,6 @@ class Actor:
                 print(f"Actor: Failed to get next task ({type(e)}): {e}")
                 return
             if isinstance(item, _StopSentinel):
-                # Queue finished due to actor shutdown
                 self._failAllPendingWork()
                 return
             work, future = item
@@ -87,13 +86,9 @@ class Actor:
                 self._failAllPendingWork()
                 return
             except Exception as e:
-                # Try to set the exception for the future,
-                # catch error if the future is already completed
                 with suppress(InvalidStateError):
                     future.set_exception(e)
                 continue
-            # Try to set the result for the future,
-            # catch error if the future is already completed
             with suppress(InvalidStateError):
                 future.set_result(result)
 

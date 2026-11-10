@@ -81,7 +81,7 @@ class MessageDecoder:
 
     def decodeUnsignedInt(self) -> int:
         value = 0
-        for shift in range(0, 49, 7):
+        for shift in range(0, 56, 7):
             byte = self.nextByte()
             bits = byte & 0b01111111
             value |= (bits << shift)
@@ -118,6 +118,22 @@ class MessageDecoder:
         components = [self.decodeString() for _ in range(count)]
         return Path(components)
 
+    def decodeList(self) -> list[Value]:
+        count = self.decodeUnsignedInt()
+        return [self.decodeTypedValue() for _ in range(count)]
+
+    def decodeMap(self) -> dict[str, Value]:
+        count = self.decodeUnsignedInt()
+        entries: dict[str, Value] = dict()
+        for _ in range(count):
+            key = self.decodeString()
+            entries[key] = self.decodeTypedValue()
+        return entries
+
+    def decodeTypedValue(self) -> Value:
+        type = _decodeValueType(self.nextByte())
+        return self.decodeValue(type)
+
     def decodeTree(self) -> SampleTree:
         firstByte = self.nextByte()
         childCount = firstByte >> 4
@@ -142,7 +158,7 @@ class MessageDecoder:
         return Sample(value, timestamp)
 
     def decodeValue(self, type: ValueType) -> Value:
-        value: int | str | float | bytes | Path | None = None
+        value: int | str | float | bytes | Path | list[Value] | dict[str, Value] | None = None
         match type:
             case ValueType.NONE: pass
             case ValueType.INTEGER: value = self.decodeSignedInt()
@@ -150,6 +166,10 @@ class MessageDecoder:
             case ValueType.STRING: value = self.decodeString()
             case ValueType.DATA: value = self.decodeData()
             case ValueType.PATH: value = self.decodePath()
+            case ValueType.LIST: value = self.decodeList()
+            case ValueType.MAP: value = self.decodeMap()
+            case _:
+                raise ValueError(f"Unknown value type ({type})")
         return Value(value)
 
 # MARK: Message type
@@ -175,4 +195,6 @@ def _decodeValueType(raw: int) -> ValueType:
         case 3: return ValueType.STRING
         case 4: return ValueType.DATA
         case 5: return ValueType.PATH
+        case 6: return ValueType.LIST
+        case 7: return ValueType.MAP
         case _: raise ValueError(f"Unknown value type ({raw})")

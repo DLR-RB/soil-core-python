@@ -15,6 +15,7 @@ authors = [
 
 dependencies = [
   "requests>=2.31",
+  "ruff>=0.17.1",
   "websockets",
 ]
 
@@ -39,7 +40,7 @@ top-level-directory = "."
 
 [tool.ruff.lint.per-file-ignores]
 "**/__init__.py" = ["I001"]
-"src/tests/**/__init__.py" = ["F401"]
+"tests/**/__init__.py" = ["F401"]
 
 [tool.ruff.lint]
 ignore = [

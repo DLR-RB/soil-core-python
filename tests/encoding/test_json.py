@@ -1,48 +1,26 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from soil.data import Path, Sample, Timestamp, Value
 from soil.data.sampletree import SampleTree
-from soil.encoding.binary import BinaryEncoding
-from soil.encoding.binary.decode import MessageDecoder
-from soil.encoding.binary.encode import MessageEncoder
+from soil.encoding.json import JsonEncoding
 from soil.messaging import Message, MessageType
 
 
-class BinaryTests(TestCase):
+class JsonTests(TestCase):
 
     def _roundTrip(self, message: Message) -> Message:
-        encoding = BinaryEncoding()
+        encoding = JsonEncoding()
 
         data = encoding.encode(message)
         decoded = encoding.decode(data)
 
         if decoded == message:
             return decoded
-        self.fail(f"Decoded message doesn't match the original:\n{message}\n\nis not equal to:\n\n{decoded}")
 
-    def testUnsignedEncoding(self):
-
-        def roundTrip(expected: int):
-            encoder = MessageEncoder()
-            encoder.encodeUnsignedInt(expected)
-            encoded = encoder.bytes
-            decoder = MessageDecoder(encoded)
-            actual = decoder.decodeUnsignedInt()
-            self.assertEqual(expected, actual)
-
-        roundTrip(123)
-        roundTrip(0)
-        roundTrip(234)
-        roundTrip(666666)
-
-    def testStringEncoding(self):
-        expected = "abc"
-        encoder = MessageEncoder()
-        encoder.encodeString(expected)
-        encoded = encoder.bytes
-        decoder = MessageDecoder(encoded)
-        actual = decoder.decodeString()
-        self.assertEqual(expected, actual)
+        print(message)
+        print(data.decode())
+        print(decoded)
+        self.fail("Decoded message doesn't match the original")
 
     def testBasicValueMessage(self):
         message = Message.value(Value(123), Path.of("some", "path"), Timestamp.current())
@@ -123,12 +101,51 @@ class BinaryTests(TestCase):
         )
         self._roundTrip(message)
 
-    def testEmptyBinary(self):
-        data = b''
-        decoded = BinaryEncoding().decode(data)
+    def testEmptyJson(self):
+        data = b'{}'
+        decoded = JsonEncoding().decode(data)
         expected = Message(type=MessageType.DATA, path=Path())
         self.assertEqual(decoded, expected)
 
+    def testPathValue(self):
+        message = Message.value(Value(Path.of("x", "y")), Path.of("a"))
+        self._roundTrip(message)
 
-if __name__ == "__main__":
-    main()
+    def testNullValue(self):
+        message = Message.value(Value(None), Path.of("a"))
+        self._roundTrip(message)
+
+    def testListValue(self):
+        value = Value([Value(1), Value("a"), Value(Path.of("x"))])
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testMapValue(self):
+        value = Value({
+            "one": Value(1),
+            "two": Value("zwei"),
+        })
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testNestedListValue(self):
+        value = Value([Value([Value(1), Value("a")]), Value(None)])
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testNestedMapValue(self):
+        value = Value({"outer": Value({"inner": Value(1)})})
+        self._roundTrip(Message.value(value, Path.of("a")))
+
+    def testListValueWireFormat(self):
+        message = Message.value(Value([Value(1), Value("a")]), Path.of("a"))
+
+        data = JsonEncoding().encode(message)
+
+        import json as _json
+        raw = _json.loads(data)
+        self.assertEqual(raw["type"], "list")
+        self.assertEqual(raw["value"], ["integer", 1, "string", "a"])
+
+    def testEncodeValueTypeOnlyIfNeeded(self):
+        message = Message.value(Value(3.14), path = Path.of("a", "b"))
+        encoding = JsonEncoding()
+        data = encoding.encode(message).decode()
+        self.assertEqual(data, '{"path": ["a", "b"], "value": 3.14}')
