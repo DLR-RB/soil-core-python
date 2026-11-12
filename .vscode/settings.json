@@ -6,5 +6,6 @@
     "-s", "src/tests",
     "-t", "src",
     "-p", "test_*.py"
-  ]
+  ],
+  "markdown.preview.scrollEditorWithPreview": false
 }
