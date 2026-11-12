@@ -1,19 +1,106 @@
-# Best Practice
+# Best Practice for SOIL-CORE-PYTHON - V1.0
 
 The following document provides best practice examples for using the `SOIL-CORE-PYTHON` library.
 
 
+## Table of contents
+
+- **[1. Introduction](#1-introduction)**
+
+- **[2. SOIL-CORE-PYTHON](#2-soil-core-python)**
+  - **[2.1 Data Handling](#21-data-handling)**
+    - [2.1.1 Value & Convertibles](#211-value--convertibles)
+    - [2.1.2 Sample & Timestamp](#212-sample--timestamp)
+    - [2.1.3 SampleTree](#213-sampletree)
+    - [2.1.4 Path](#214-path)
+    - [2.1.5 Best Practices for Data Handling](#215-best-practices-for-data-handling)
+  - **[2.2 Messaging](#22-messaging)**
+    - [2.2.1 Message Structure](#221-message-structure)
+    - [2.2.2 Creating Messages](#222-creating-messages)
+    - [2.2.3 Message Transmission & Connection](#223-message-transmission--connection)
+    - [2.2.4 Best Practices for Messaging](#224-best-practices-for-messaging)
+  - **[2.3 Transport Stack](#23-transport-stack)**
+    - [2.3.1 Framing](#231-framing)
+    - [2.3.2 Choosing an Encoding](#232-choosing-an-encoding)
+    - [2.3.3 Network Protocols (TCP, UDP, WebSocket)](#233-network-protocols-tcp-udp-websocket)
+    - [2.3.4 Assembling a Decoded Connection](#234-assembling-a-decoded-connection)
+    - [2.3.5 Connection Lifecycle](#235-connection-lifecycle)
+    - [2.3.6 Best Practices for Transport Stack](#236-best-practices-for-transport-stack)
+  - **[2.4 Components & Storage](#24-components--storage)**
+    - [2.4.1 Component Interfaces](#241-component-interfaces)
+    - [2.4.2 Provider - Reading Data](#242-provider---reading-data)
+    - [2.4.3 Receiver - Accepting Data](#243-receiver---accepting-data)
+    - [2.4.4 Storage - Combining Read and Write](#244-storage---combining-read-and-write)
+    - [2.4.5 Observable - Notifying Receivers](#245-observable---notifying-receivers)
+    - [2.4.6 Best Practices for Components & Storage](#246-best-practices-for-components--storage)
+    - [2.4.7 SOIL Component Catalog](#247-soil-component-catalog)
+  - **[2.5 Practical Patterns](#25-practical-patterns)**
+    - [2.5.1 Request/Response over TCP](#251-pattern-requestresponse-over-tcp)
+    - [2.5.2 Telemetry Streaming over UDP](#252-pattern-telemetry-streaming-over-udp)
+    - [2.5.3 Pub/Sub with Observable](#253-pattern-pubsub-with-observable)
+    - [2.5.4 Remote Storage](#254-pattern-remote-storage)
+    - [2.5.5 Reconnection Handling](#255-pattern-reconnection-handling)
+
+> **Note:** Click any link to jump to that section.
+
+---
+
 ## 1. Introduction
 
-...
+**SOIL** is not a new protocol, it´s built upon principles you already know and use every day.
 
-## 2. SOIL-CORE
+### Why SOIL feels familiar
+
+SOIL's core concepts mirror patterns found throughout computer science and everyday technology:
+
+| SOIL Concept | Real-World Analogy |
+|--------------|-------------------|
+| **SampleTree** (hierarchical data) | File explorer folder structure, DOM trees, JSON/XML documents |
+| **Samples with Timestamps** | Git commits, database transactions, sensor logs |
+| **Path-based addressing** | File paths (`/home/user/file.txt`), URLs (`https://.../path/to/resource`), MQTT topics |
+| **Publish/Subscribe** | MQTT topics, RSS feeds, event emitters, React state |
+| **Message-based communication** | HTTP requests, CoAP, WebSockets, microservices |
+| **Layered architecture** | OSI model, TCP/IP stack, middleware patterns |
+
+### Design goals
+
+1. **Intuitive**: If you've ever used a file explorer, you understand SampleTree. If you've ever sent an HTTP request, you understand SOIL messages.
+
+2. **Protocol-agnostic**: SOIL is **not** a protocol. It's a layer **above** protocols. 
+
+3. **Composable**: Components follow consistent interfaces (`Provider`, `Receiver`, `Storage`, `Observable`). Swap implementations without changing your application logic.
+
+4. **Time-aware**: Every sample carries a timestamp. History queries, time-range subscriptions, and temporal data operations are built-in.
+
+5. **Modular**: SOIL is built from independent, single-purpose layers. Each layer has a narrow interface and can be swapped without affecting others:
+   - Swap the **transport** (TCP -> UDP -> WebSocket) without changing your message handling. 
+   - Swap the **encoding** (JSON -> Binary -> Protobuf) without changing your application logic.
+   - Swap the **storage** (in-memory -> database -> remote) without changing your data access code.
+
+   This modularity means you can optimize each layer independently, depending what your usecase requires.
+   And if your specific use case needs a custom encoding- or transport-layer; just implement the interface - all layers are agnostic, so as long as you follow the contract, it works out of the box.
+
+### XKCD 927
+
+![](https://imgs.xkcd.com/comics/standards.png)
+
+SOIL is **not** trying to replace MQTT, CoAP, HTTP, or any other protocol. Instead, it provides a **unified data model** that works **with** these protocols. Think of SOIL as the **common language** your components speak, regardless of which transport they use.
+
+```
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│     App      │───>│   SOIL       │───>│   TCP/UDP/   │
+│  (business   │    │  (data model │    │   WebSocket  │
+│   logic)     │    │ + messaging) │    |  (transport) │
+└──────────────┘    └──────────────┘    └──────────────┘
+```
+
+## 2. SOIL-CORE-PYTHON
 
 ### 2.1. Data handling
 
 The `soil.data` package provides the fundamental data types of `SOIL`. They all work together according to one principle:
 
-**SampleTree** is a hierarchical, time-indexed store. Each node can hold **Samples** (which consist of **Values** with a **Timestamp**) and named child nodes.
+**SampleTree** is a hierarchical, time-indexed store. Each node can hold **Samples** (which consist of **Values** with a **Timestamp**) and named child nodes. It is as simple as that.
 
 ```python
 SampleTree (node "station")
@@ -25,9 +112,11 @@ SampleTree (node "station")
 
 #### 2.1.1 Value & Convertibles
 
-`Value` is the universal container for a single piece of data. It can hold simple types (`int`, `str`, `float`, `bytes`) as well as complex types (`Path`, `list[Value]`, `dict[str, Value]`).
+`Value` is the universal container for a single piece of data. It can hold so called `Value.Type`s (`none`, `int`, `str`, `double`, `bytes`) as well as complex types (`Path`, `list[Value]`, `dict[str, Value]`). As this has previously caused some confusion: there is NO `bool` DataType. But `bool` can be easily done via `int` (0,1) or `str` ("False","True").
 
 ```python
+from soil.data import Value, ValueType
+
 value = Value(42)
 value = Value("Berlin")
 value = Value([Value("temperature"), Value("humidity")])
@@ -43,11 +132,12 @@ value.isNull        # False
 
 location = Value({"city": Value("Berlin"), "lat": Value(52.52)})
 location["city"]            # -> Value("Berlin")
+location["city"].value      # -> "Berlin"
 "name" in location          # -> False
 list(location)              # -> ["city", "lat"]
 ```
 
-`Convertibles` are there to bridge between your own classes and these containers, `SOIL` needs two types:
+`Convertibles` are there to bridge between your own classes and these containers, `SOIL` has two types:
 
 - `ValueConvertible`: convert a type from and to a single `Value`. Implement `toValue()` and `fromValue()`.
 - `SampleTreeConvertible`: convert a type from and to a `SampleTree`. Implement `toTree()` and `fromTree()`.
@@ -98,8 +188,6 @@ tree = log.toTree()                          # convert the whole log into a Samp
 restored = WeatherLog.fromTree(tree)         # and back into a WeatherLog object
 ```
 
-
-
 #### 2.1.2 Sample & Timestamp
 
 A `Sample` is a `Value` together with a `Timestamp`. Often samples are created implicitly: `childWithValue(name, value)` automatically attaches `Timestamp.current()`.
@@ -110,13 +198,12 @@ sample.value
 sample.timestamp
 ```
 
-A `Timestamp` represents a point in time (seconds since 1970, similar to a UTC `datetime`).`
-
+A `Timestamp` represents a point in time.`
 ```python
 now = Timestamp.current()
 
 specific = Timestamp(2026, 10, 9, 16, 10, 45)
-seconds = specific.timeIntervalSince1970
+seconds = specific.timeIntervalSince1970    # seconds = 1,791,562,245 [s]
 ```
 
 #### 2.1.3 SampleTree
@@ -124,25 +211,40 @@ seconds = specific.timeIntervalSince1970
 A `SampleTree` is a tree of nodes. Each node holds a list of `Samples` and named children.
 
 ```python
-from soil.data import SampleTree
+from soil.data import Path, Sample, SampleTree, Timestamp, Value
 
-tree = SampleTree()
+# Create a tree with samples
+tree = SampleTree.ofValue(Value(21.5), timestamp=Timestamp.current())
 
-tree.childWithValue("city", Value("Berlin"))     # write a sample (current timestamp)
-child = tree.child("history")                    # get or create a child node
-tree.add(subtree, "location")                    # attach an existing tree as child (replaces)
-tree.merge(other_tree)                           # merge samples & children in (appends)
+# Add a child with a value (returns the child node)
+child = tree.childWithValue("city", Value("Berlin"))
 
-tree.children                                    # dict[str, SampleTree]
-node = tree.existingChild("city")                # child or None
-node.newestSample                                # latest sample (even if in the future)
-node.currentSample                               # latest sample NOT in the future
-node.samples                                     # all samples (sorted history)
+# Attach an existing tree as a child (replaces any existing child)
+location_tree = SampleTree.ofValue(Value(52.5200), Timestamp.current())
+tree.add(location_tree, "location")
 
-tree.isEmpty                                     # no samples anywhere?
-tree.totalNumberOfSamples                        # count across the subtree
-print(tree)                                      # built-in multi-line description
-```                                  
+# Merge another tree into this one
+other_tree = SampleTree.ofValue(Value(13.4050), Timestamp.current())
+tree.merge(other_tree)
+
+# Access nodes
+node = tree.existingNode(Path.of("city"))  # child or None
+
+print(tree)                                         # built-in multi-line description
+```    
+```python
+#--Output--#
+samples:
+  21.5 (11.11.2026 08:31:23)
+  13.4049999999999994 (11.11.2026 08:31:23)
+children:
+  city:
+    samples:
+      'Berlin' (11.11.2026 08:31:23)
+  location:
+    samples:
+      52.5200000000000031 (11.11.2026 08:31:23)
+```                              
 
 #### 2.1.4 Path
 
@@ -151,619 +253,188 @@ A `Path` is an array of strings identifying a state, input or output inside a tr
 ```python
 from soil.data import Path
 
+# Create a path
 path = Path.of("history", "temperature")   # ["history", "temperature"]
 path = Path(["history", "temperature"])    # equivalent construction
 
 print(path)                                # "history > temperature"
-path.size                                  # 2
-path.isEmpty                               # False
+print("Size:", path.size)                  # 2
+print("Is empty:", path.isEmpty)           # False
 
 longer = path.appending("max")             # ["history", "temperature", "max"]
 prefix = Path.of("history")
 
-path.hasPrefix(prefix)                     # True
-path.removingPrefix(prefix)                # ["temperature"]
-Path.of("a", "b").commonPrefix(Path.of("a", "c"))   # ["a"]
-
-node = tree.existingNode(path)             # node at the path, or None
-node = tree.findOrCreateNode(path)         # node at the path, created if missing
-tree.insert(samples, path)                 # insert samples at the path
-tree.mergeAtPath(subtree, path)            # merge a tree in at the path
+print("Has prefix 'history':", path.hasPrefix(prefix))           # True
+print("Removing prefix:", path.removingPrefix(prefix))           # ["temperature"]
+print("Common prefix:", Path.of("a", "b").commonPrefix(Path.of("a", "c")))   # ["a"]
 ```
+```python
+#--Output--#
+OUTPUT:
+history > temperature
+Size: 2
+Is empty: False
+Has prefix 'history': True
+Removing prefix: temperature
+Common prefix: a
+```      
 
 
 #### 2.1.5 Best Practices for Data handling
 
 ##### 2.1.5.1 Weather Station
 
+Minimal example showing `SampleTreeConvertible`:
+
 ```python
 from soil.data import SampleTree, SampleTreeConvertible, Value
 
 class WeatherStation(SampleTreeConvertible):
-    
-    def __init__(self, name: str, location: SampleTree):
-        self._name: str = name
-        self._temperature: Value | None = None
-        self._humidity: Value | None = None
-        self._location: SampleTree = location
-        self.history: SampleTree = SampleTree()
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def temperature(self) -> Value | None:
-        return self._temperature
-
-    @property
-    def humidity(self) -> Value | None:
-        return self._humidity
-
-    @property
-    def location(self) -> SampleTree | None:
-        return self._location
+    def __init__(self, name: str):
+        self.name = name
+        self.history = SampleTree()
 
     def set_temperature(self, value: Value):
-        self._temperature = value
         self.history.childWithValue("temperature", value)
 
-    def set_humidity(self, value: Value):
-        self._humidity = value
-        self.history.childWithValue("humidity", value)
-
     def toTree(self) -> SampleTree:
-        """ Convert the station into a SampleTree """
         tree = SampleTree()
-
-        tree.childWithValue("name", Value(self._name))
-
-        tree.add(self._location, "location")
+        tree.childWithValue("name", Value(self.name))
         tree.add(self.history, "history")
-
         return tree
 
     @classmethod
     def fromTree(cls, tree: SampleTree) -> "WeatherStation":
-        """ Create a station from a SampleTree """
-        nameNode = tree.existingChild("name")
-        locationNode = tree.existingChild("location")
-        historyNode = tree.existingChild("history")
-
-        if nameNode is None or locationNode is None or historyNode is None:
-            raise ValueError("The tree does not have the structure of a WeatherStation")
-
-        nameSample = nameNode.newestSample
-        if nameSample is None:
-            raise ValueError("The tree does not have the structure of a WeatherStation")
-        
-        name = str(nameSample.value.value)
-
-        station = cls(name, locationNode)
-        station.history = historyNode
-
-        temperatureNode = historyNode.existingChild("temperature")
-        if temperatureNode is not None and temperatureNode.newestSample is not None:
-            station._temperature = temperatureNode.newestSample.value
-
-        humidityNode = historyNode.existingChild("humidity")
-        if humidityNode is not None and humidityNode.newestSample is not None:
-            station._humidity = humidityNode.newestSample.value
-
+        name = str(tree.existingChild("name").newestSample.value.value)
+        station = cls(name)
+        station.history = tree.existingChild("history")
         return station
 
+# Usage
+station = WeatherStation("Station-01")
+station.set_temperature(Value(21.5))
+tree = station.toTree()
+restored = WeatherStation.fromTree(tree)
 
-def main():
-
-    location = SampleTree()
-    location.childWithValue("city", Value("Berlin"))
-    location.childWithValue("lat", Value(52.52))
-    location.childWithValue("lon", Value(13.405))
-
-    station = WeatherStation("Station-01", location)
-    station.set_temperature(Value(21.5))
-    station.set_humidity(Value(63))
-    station.set_temperature(Value(23.8))
-
-    tree = station.toTree()
-    print("=== toTree() ===")
-    visualize(tree) # only for visualization purposes -> see below
-
-
-    restored = WeatherStation.fromTree(tree)
-    print("\n=== fromTree() ===")
-    print(f"name        = {restored.name}")
-    print(f"temperature = {float(restored.temperature.value):.1f}")
-    print(f"humidity    = {restored.humidity}")
-
-    assert restored.name == station.name
-
-    temperature = restored.temperature
-    assert temperature is not None and temperature.value is not None
-    assert float(temperature.value) == 23.8
-
-    humidity = restored.humidity
-    assert humidity is not None and humidity.value is not None
-    assert float(humidity.value) == 63
-
-    assert restored.history is tree.existingChild("history")
-
-#--Output--#
-"""
-=== toTree() ===
-├─ name: Station-01
-├─ location: –
-│  ├─ city: Berlin
-│  ├─ lat: 52.52
-│  ├─ lon: 13.405
-├─ history: –
-│  ├─ temperature: 23.8
-│  │  ├─ 21.5  (t=1791786478.282746)
-│  │  ├─ 23.8  (t=1791786478.282751)  ← now
-│  ├─ humidity: 63
-
-=== fromTree() ===
-name        = Station-01
-temperature = 23.8
-humidity    = 63
-"""
+print(tree)
 ```
+```python
+#--Output--#
+children:
+  name:
+    samples:
+      'Station-01' (11.11.2026 08:36:36)
+  history:
+    children:
+      temperature:
+        samples:
+          21.5 (11.11.2026 08:36:36)
+```     
+
+> **Full example:** See [`examples/data/weather_station.py`](examples\data\weather_station.py) for a complete implementation with location data, humidity, and assertions.
 
 ##### 2.1.5.2 Library with Books
+
+Minimal example showing `ValueConvertible` and `SampleTreeConvertible`:
 
 ```python
 from soil.data import SampleTree, SampleTreeConvertible, Value, ValueConvertible
 
-
 class Book(ValueConvertible):
-    """ An object which is convertible into a single value. """
-
     def __init__(self, isbn: str, title: str, author: str):
-        self._isbn: str = isbn
-        self._title: str = title
-        self._author: str = author
-
-    @property
-    def isbn(self) -> str:
-        return self._isbn
-
-    @property
-    def title(self) -> str:
-        return self._title
-
-    @property
-    def author(self) -> str:
-        return self._author
+        self.isbn, self.title, self.author = isbn, title, author
 
     def toValue(self) -> Value:
-        """ Convert the book into a single Value """
-        return Value(f"{self._isbn}|{self._title}|{self._author}")
+        return Value(f"{self.isbn}|{self.title}|{self.author}")
 
     @classmethod
     def fromValue(cls, value: Value) -> "Book":
-        """ Create a book from a single Value """
-        raw = value.value
-        if not isinstance(raw, str):
-            raise ValueError("The value does not have the structure of a Book")
-
-        parts = raw.split("|")
-        if len(parts) != 3:
-            raise ValueError("The value does not have the structure of a Book")
-
-        isbn, title, author = parts
-        return cls(isbn, title, author)
-
+        parts = value.value.split("|")
+        return cls(parts[0], parts[1], parts[2])
 
 class Library(SampleTreeConvertible):
-    """ A structured object which stores the books in a SampleTree. """
-
     def __init__(self, name: str):
-        self._name: str = name
-        self._books: SampleTree = SampleTree()
-        self.history: SampleTree = SampleTree()
-        self._visitor_count: Value | None = None
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def books(self) -> SampleTree:
-        return self._books
-
-    @property
-    def visitor_count(self) -> Value | None:
-        return self._visitor_count
+        self.name = name
+        self.books = SampleTree()
 
     def add_book(self, book: Book):
-        book_value = book.toValue()
-        self._books.childWithValue(book.isbn, book_value)
-
-    def set_visitor_count(self, value: Value):
-        self._visitor_count = value
-        self.history.childWithValue("visitor_count", value)
+        self.books.childWithValue(book.isbn, book.toValue())
 
     def toTree(self) -> SampleTree:
-        """ Convert the library into a SampleTree """
         tree = SampleTree()
-
-        tree.childWithValue("name", Value(self._name))
-
-        tree.add(self._books, "books")
-        tree.add(self.history, "history")
-
+        tree.childWithValue("name", Value(self.name))
+        tree.add(self.books, "books")
         return tree
 
     @classmethod
     def fromTree(cls, tree: SampleTree) -> "Library":
-        """ Create a library from a SampleTree """
-        nameNode = tree.existingChild("name")
-        booksNode = tree.existingChild("books")
-        historyNode = tree.existingChild("history")
+        lib = cls(str(tree.existingChild("name").newestSample.value.value))
+        lib.books = tree.existingChild("books")
+        return lib
 
-        if nameNode is None or booksNode is None or historyNode is None:
-            raise ValueError("The tree does not have the structure of a Library")
-
-        nameSample = nameNode.newestSample
-        if nameSample is None:
-            raise ValueError("The tree does not have the structure of a Library")
-
-        name = str(nameSample.value.value)
-
-        library = cls(name)
-        library._books = booksNode
-        library.history = historyNode
-
-        visitorNode = historyNode.existingChild("visitor_count")
-        if visitorNode is not None and visitorNode.newestSample is not None:
-            library._visitor_count = visitorNode.newestSample.value
-
-        return library
-
-    def get_book(self, isbn: str) -> Book | None:
-        bookNode = self._books.existingChild(isbn)
-        if bookNode is None or bookNode.newestSample is None:
-            return None
-        return Book.fromValue(bookNode.newestSample.value)
-
-def main():
-    library = Library("Münchner Stadtbibliothek")
-
-    library.add_book(Book("978-3-16-148410-0", "Der Prozess", "Franz Kafka"))
-    library.add_book(Book("978-3-499-13550-2", "Der Alchimist", "Paulo Coelho"))
-    library.add_book(Book("978-3-15-009958-4", "Faust I", "Johann W. Goethe"))
-
-    library.set_visitor_count(Value(1200))
-    library.set_visitor_count(Value(1350))
-
-    tree = library.toTree()
-    print("=== toTree() ===")
-    visualize(tree) # only for visualization purposes -> see below
-
-    restored = Library.fromTree(tree)
-    print("\n=== fromTree() ===")
-    print(f"name          = {restored.name}")
-    print(f"visitor_count = {restored.visitor_count}")
-
-    book = restored.get_book("978-3-16-148410-0")
-    print(f"book          = {book.title} von {book.author} ({book.isbn})")
-
-    assert restored.name == library.name
-
-    visitors = restored.visitor_count
-    assert visitors is not None and visitors.value is not None
-
-    assert book is not None
-    assert book.title == "Der Prozess"
-    assert book.author == "Franz Kafka"
-
-    assert restored.history is tree.existingChild("history")
-
-#--Output--#
-"""
-=== toTree() ===
-├─ name: Münchner Stadtbibliothek
-├─ books: –
-│  ├─ 978-3-16-148410-0: 978-3-16-148410-0|Der Prozess|Franz Kafka
-│  ├─ 978-3-499-13550-2: 978-3-499-13550-2|Der Alchimist|Paulo Coelho
-│  ├─ 978-3-15-009958-4: 978-3-15-009958-4|Faust I|Johann W. Goethe
-├─ history: –
-│  ├─ visitor_count: (2 Samples)
-│  │  ├─ 1200  (t=1791786222.003431)
-│  │  ├─ 1350  (t=1791786222.003434)  ← now
-
-=== fromTree() ===
-name          = Münchner Stadtbibliothek
-visitor_count = 1350
-book          = Der Prozess von Franz Kafka (978-3-16-148410-0)
-"""
+# Usage
+library = Library("City Library")
+library.add_book(Book("978-0-123456-78-9", "Example Book", "Author Name"))
+tree = library.toTree()
 ```
 
+> **Full example:** See [`examples/data/library.py`](examples/data/library.py) for complete implementation with visitor count history and assertions.
+
 ##### 2.1.5.3 Device Management
+
+Minimal example showing map-Values and list-Values:
 
 ```python
 from soil.data import SampleTree, SampleTreeConvertible, Value, ValueConvertible
 
 class DeviceSpec(ValueConvertible):
-    """ A convertible which stores heterogeneous data inside a single Value (a map). """
-
     def __init__(self, manufacturer: str, model: str, firmware: str):
-        self._manufacturer: str = manufacturer
-        self._model: str = model
-        self._firmware: str = firmware
-
-    @property
-    def manufacturer(self) -> str:
-        return self._manufacturer
-
-    @property
-    def model(self) -> str:
-        return self._model
-
-    @property
-    def firmware(self) -> str:
-        return self._firmware
+        self.manufacturer, self.model, self.firmware = manufacturer, model, firmware
 
     def toValue(self) -> Value:
-        """ Convert the specification into a single Value holding a map """
         return Value({
-            "manufacturer": Value(self._manufacturer),
-            "model":       Value(self._model),
-            "firmware":    Value(self._firmware),
+            "manufacturer": Value(self.manufacturer),
+            "model": Value(self.model),
+            "firmware": Value(self.firmware),
         })
 
     @classmethod
     def fromValue(cls, value: Value) -> "DeviceSpec":
-        """ Create a specification from a Value holding a map """
-        raw = value.value
-        if not isinstance(raw, dict):
-            raise ValueError("The value does not have the structure of a DeviceSpec")
+        d = value.value
+        return cls(d["manufacturer"].value, d["model"].value, d["firmware"].value)
 
-        manufacturer = raw.get("manufacturer")
-        model = raw.get("model")
-        firmware = raw.get("firmware")
-        if not all(isinstance(x, Value) for x in (manufacturer, model, firmware)):
-            raise ValueError("The value does not have the structure of a DeviceSpec")
-
-        return cls(
-            str(manufacturer.value),
-            str(model.value),
-            str(firmware.value),
-        )
-
-
-class Sensor(ValueConvertible):
-    """ A single sensor, convertible into a map-Value. """
-
-    def __init__(self, kind: str, unit: str, accuracy: float):
-        self._kind: str = kind
-        self._unit: str = unit
-        self._accuracy: float = accuracy
-
-    @property
-    def kind(self) -> str:
-        return self._kind
-
-    @property
-    def unit(self) -> str:
-        return self._unit
-
-    @property
-    def accuracy(self) -> float:
-        return self._accuracy
-
-    def toValue(self) -> Value:
-        """ Convert the sensor into a single Value holding a map """
-        return Value({
-            "kind":     Value(self._kind),
-            "unit":     Value(self._unit),
-            "accuracy": Value(self._accuracy),
-        })
-
-    @classmethod
-    def fromValue(cls, value: Value) -> "Sensor":
-        """ Create a sensor from a Value holding a map """
-        raw = value.value
-        if not isinstance(raw, dict):
-            raise ValueError("The value does not have the structure of a Sensor")
-
-        kind = raw.get("kind")
-        unit = raw.get("unit")
-        accuracy = raw.get("accuracy")
-        if not all(isinstance(x, Value) for x in (kind, unit, accuracy)):
-            raise ValueError("The value does not have the structure of a Sensor")
-
-        acc = accuracy.value
-        if not isinstance(acc, (int, float)):
-            raise ValueError("The value does not have the structure of a Sensor")
-
-        return cls(str(kind.value), str(unit.value), float(acc))
-
-
-class DeviceManagement(SampleTreeConvertible):
-    """ A structured object which combines maps, lists and samples in one tree. """
-
+class Device(SampleTreeConvertible):
     def __init__(self, name: str):
-        self._name: str = name
-        self._spec: Value | None = None
-        self._sensors: Value | None = None
-        self._sensor_list: list[Sensor] = list()
-        self.history: SampleTree = SampleTree()
-        self._power: Value | None = None
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def spec(self) -> Value | None:
-        return self._spec
-
-    @property
-    def sensors(self) -> Value | None:
-        return self._sensors
-
-    @property
-    def power(self) -> Value | None:
-        return self._power
+        self.name = name
+        self.history = SampleTree()
 
     def set_spec(self, spec: DeviceSpec):
-        """ A complex object becomes a map-Value inside the tree """
-        self._spec = spec.toValue()
-        self.history.childWithValue("spec", self._spec)
-
-    def add_sensor(self, sensor: Sensor):
-        """ Add a sensor object; it is stored as a map-Value inside the list """
-        self._sensor_list.append(sensor)
-        self._sensors = Value([s.toValue() for s in self._sensor_list])
-        self.history.childWithValue("sensors", self._sensors)
-
-    def get_sensor(self, index: int) -> Sensor | None:
-        """ Read a sensor back from the stored list-Value """
-        if self._sensors is None or not isinstance(self._sensors.value, list):
-            return None
-        if index >= len(self._sensors.value):
-            return None
-        return Sensor.fromValue(self._sensors.value[index])
-
-    def set_power(self, watts: float):
-        """ A measurement becomes a history sample (auto timestamp) """
-        self._power = Value(watts)
-        self.history.childWithValue("power", self._power)
+        self.history.childWithValue("spec", spec.toValue())
 
     def toTree(self) -> SampleTree:
-        """ Convert the device into a SampleTree """
         tree = SampleTree()
-
-        tree.childWithValue("name", Value(self._name))
+        tree.childWithValue("name", Value(self.name))
         tree.add(self.history, "history")
-
         return tree
 
     @classmethod
-    def fromTree(cls, tree: SampleTree) -> "DeviceManagement":
-        """ Create a device from a SampleTree """
-        nameNode = tree.existingChild("name")
-        historyNode = tree.existingChild("history")
-
-        if nameNode is None or historyNode is None:
-            raise ValueError("The tree does not have the structure of DeviceManagement")
-
-        nameSample = nameNode.newestSample
-        if nameSample is None:
-            raise ValueError("The tree does not have the structure of DeviceManagement")
-
-        device = cls(str(nameSample.value.value))
-        device.history = historyNode
-
-        for attribute in ("spec", "sensors", "power"):
-            node = historyNode.existingChild(attribute)
-            if node is not None and node.newestSample is not None:
-                setattr(device, f"_{attribute}", node.newestSample.value)
-
+    def fromTree(cls, tree: SampleTree) -> "Device":
+        device = cls(str(tree.existingChild("name").newestSample.value.value))
+        device.history = tree.existingChild("history")
         return device
 
-
-def main():
-    device = DeviceManagement("Thermostat Living Room")
-
-    device.set_spec(DeviceSpec("Ikea Home", "MT-200", "v1.4.2"))
-
-    device.add_sensor(Sensor("temperature", "°C", 0.5))
-    device.add_sensor(Sensor("humidity", "%", 2.0))
-    device.add_sensor(Sensor("presence", "bool", 0.0))
-
-    device.set_power(12.5)
-    device.set_power(13.1)
-
-    tree = device.toTree()
-    print("=== toTree() ===")
-    visualize(tree) # only for visualization purposes -> see below
-
-    restored = DeviceManagement.fromTree(tree)
-    print("\n=== fromTree() ===")
-    print(f"name  = {restored.name}")
-    print(f"power = {restored.power.value:.2f}")
-
-    spec = DeviceSpec.fromValue(restored.spec)
-    print(f"spec  = {spec.manufacturer} {spec.model} ({spec.firmware})")
-
-    assert restored.name == device.name
-
-    power = restored.power
-    assert power is not None and power.value is not None
-
-    assert restored.spec is not None
-    spec2 = DeviceSpec.fromValue(restored.spec)
-    assert spec2.manufacturer == "Ikea Home"
-    assert spec2.model == "MT-200"
-    assert spec2.firmware == "v1.4.2"
-
-    sensors = restored.sensors
-    assert sensors is not None
-    assert isinstance(sensors.value, list)
-    assert len(sensors.value) == 3
-
-    sensor = restored.get_sensor(0)
-    assert sensor is not None
-    assert sensor.kind == "temperature"
-    assert sensor.unit == "°C"
-
-    sensor2 = restored.get_sensor(1)
-    assert sensor2 is not None
-    assert sensor2.kind == "humidity"
-
-    assert restored.history is tree.existingChild("history")
-
-#--Output--#
-"""
-=== toTree() ===
-├─ name: Thermostat Living Room
-├─ history: –
-│  ├─ spec: {
-│  │  ├─ manufacturer: Ikea Home
-│  │  ├─ model: MT-200
-│  │  ├─ firmware: v1.4.2
-│  │  }
-│  ├─ sensors: [
-│  │  ├─ Sensor(kind=temperature, unit=°C, accuracy=0.5)
-│  │  ├─ Sensor(kind=humidity, unit=%, accuracy=2.0)
-│  │  ├─ Sensor(kind=presence, unit=bool, accuracy=0.0)
-│  │  ]
-│  ├─ power: (2 Samples)
-│  │  ├─ 12.5  (t=1791788839.263524)
-│  │  ├─ 13.1  (t=1791788839.263526)  ← now
-
-=== fromTree() ===
-name  = Thermostat Living Room
-power = 13.10
-spec  = Ikea Home MT-200 (v1.4.2)
-"""
+# Usage
+device = Device("Thermostat")
+device.set_spec(DeviceSpec("Ikea Home", "MT-200", "v1.4.2"))
+tree = device.toTree()
 ```
+
+> **Full example:** See [`examples/data/device_management.py`](examples/data/device_management.py) for complete implementation with sensors list and power history.
 
 ##### 2.1.5.4 Visualizer
 
 These are not needed for fuctionality but are nice to have for debugging or visualization purposes.
 `SOIL-CORE-PYTHON` also delivers a built-in unctionality with the normal `print()`-Statement which which shows all samples per node with formatted timestamps, but is less compact and does not render maps and lists structurally.
-An example for a simple SampleTree-Visualizer (used in 3.1 & 3.2) is shown below:
-
-```python
-def visualize(tree: SampleTree, indent: str = "") -> None:
-        for cname, child in tree.children.items():
-            sample = child.newestSample
-            value = sample.value.value if sample is not None else "–"
-            print(f"{indent}├─ {cname}: {value}")
-
-            if len(child.samples) > 1:
-                for s in child.samples:
-                    ts = s.timestamp.timeIntervalSince1970 if s.timestamp is not None else "?"
-                    marker = "  ← now" if s is child.newestSample else ""
-                    print(f"{indent}│  ├─ {s.value.value}  (t={ts}){marker}")
-
-            visualize(child, indent + "│  ")
-```
-
-Another more complex visualizer (used in 3.3) which also uses SampleTree is specialized on the specific task.
 
 ```python
 def visualize(tree: SampleTree, indent: str = "") -> None:
@@ -846,7 +517,6 @@ children:
 ```
 
 
-
 ### 2.2. Messaging
 
 Components in SOIL exchange data via **Messages**. A single `Message` class covers all message types (data, requests, deletions, subscriptions) through optional fields – the `type` field determines how the other fields are interpreted.
@@ -894,7 +564,7 @@ A `Message` is an immutable dataclass. All types share the same structure – th
  | `id` | `int \| None` | *Request/subscription identifier* or *Data message:* the request this message corresponds to |
 
 ```python
-from soil.message import Message, MessageType
+from soil.messaging import Message, MessageType, Value, SampleTree, Path
 
 message = Message(
     type=MessageType.DATA,
@@ -908,8 +578,9 @@ message = Message(
 `Message` provides factory methods for each message type. Prefer them over manual construction – they set the correct `MessageType` automatically:
 
 ```python
-from soil.message import Message
+from soil.messaging import Message, MessageType
 from soil.data import Path, Sample, SampleTree, Timestamp, Value
+
 
 # -- Data messages --
 Message.value(Value(21.5), Path.of("history", "temperature"))
@@ -919,8 +590,15 @@ samples = [Sample(Value(1)), Sample(Value(2))]
 Message.samples(samples, Path.of("history", "temperature"))
 # a list of samples
 
-tree = library.toTree()
-Message.tree(tree, Path.of("library"))
+# Create a simple library tree for the tree() example
+class Library(SampleTree):
+    def toTree(self) -> SampleTree:
+        tree = SampleTree()
+        tree.childWithValue("name", Value("My Library"))
+        return tree
+
+library = Library()
+Message.tree(library.toTree(), Path.of("library"))
 # a complete SampleTree, e.g. from a SampleTreeConvertible -> example Library
 
 Message.acknowledge(request=1, path=Path.of("history", "temperature"))
@@ -943,8 +621,39 @@ Message.delete(Path.of("history", "temperature"), depth=None)
 Message.include(Path.of("device"), depth=2)      # subscribe to a path with depth=2
 Message.exclude(Path.of("device", "power"))      # exclude a sub-path
 Message.deleteRules(Path.of("device"))           # remove all rules for a path
-```
 
+# Print a few examples to verify they work
+print("Data message:")
+print(Message.value(Value(21.5), Path.of("history", "temperature")))
+print()
+
+print("Request message:")
+print(Message.request(Path.of("history", "temperature"), limit=100, id=42))
+print()
+
+print("Subscription include:")
+print(Message.include(Path.of("device"), depth=2))
+```
+```python
+#--Output--#
+Data message:
+type: data
+path: history > temperature
+data:
+  samples:
+    21.5 (now)
+
+Request message:
+type: read
+path: history > temperature
+count: 100
+id: 42
+
+Subscription include:
+type: include
+path: device
+depth: 2
+```     
 
 #### 2.2.3 Message Transmission & Connection
 
@@ -954,16 +663,7 @@ Messages are exchanged over a transport layer through four building blocks:
 Message  ──encode──>  msg_encoded  ──FrameConnection──>  msg_encoded  ──decode──>  Message
 ```
 
-**`MessageEncoding`** is the abstract interface for encoding algorithms. It defines the two directions of the conversion between messages and transport data:
-
-- `encode(message)` – convert a message into encoded data for transmission
-- `decode(data)` – extract a message from encoded data
-
-Currently there are 3 supported encoding types in SOIL-CORE-PYTHON:
-- `BINARY`: Messages are serialized into a fixed byte structure, which makes it the most efficient encoding regarding size and encoding speed.
-- `JSON`: Is a readable JSON representation of the message fields. The content of a transmitted message remains human-readable and easily inspectable with any standard tool.
-- `COMPACT JSON`: A compact JSON variant with a minimized footprint.
-There is also an optional library for `Protobuf` support. 
+**`MessageEncoding`** is the abstract interface for encoding algorithms. It defines the two directions of the conversion between messages and transport data. 
 
 All encodings implement the same `MessageEncoding` interface, making them fully interchangeable – an encoding can be replaced at any time without any changes to the surrounding components.
 
@@ -990,157 +690,44 @@ Because `MessageConnection` also implements the `Receiver` interface, it accepts
 
 #### 2.2.4 Best Practices for Messaging
 
-##### 2.2.4.1 WeatherHub
+##### 2.2.4.1 Use Factory Methods
+
+The `Message` class provides factory methods for each message type. Prefer them over manual construction - they set the correct `MessageType` automatically:
+
+| Factory Method | Use Case |
+|----------------|----------|
+| `Message.value(value, path)` | Send a single sample |
+| `Message.samples(samples, path)` | Send multiple samples |
+| `Message.tree(tree, path)` | Send a complete `SampleTree` |
+| `Message.acknowledge(request, path)` | Acknowledge a request |
+| `Message.request(path, ...)` | Query data (read request) |
+| `Message.delete(path, ...)` | Delete data |
+| `Message.include(path, depth)` | Add subscription inclusion rule |
+| `Message.exclude(path, depth)` | Add subscription exclusion rule |
+| `Message.deleteRules(path)` | Remove subscription rules |
+
+##### 2.2.4.2 Basic Example
 
 ```python
-from soil.data import Path, SampleTree, Timestamp, Value
-from soil.message import Message, MessageType
+from soil.data import Path, Sample, SampleTree, Value
+from soil.messaging import Message
 
+# Create a data message for a single value
+msg = Message.value(Value(21.5), Path.of("weather", "temperature"))
 
-class WeatherHub:
-    """ A component that receives messages, stores data and answers requests. """
+# Create a request message
+msg = Message.request(
+    Path.of("history", "temperature"),
+    limit=100,
+    id=42
+)
 
-    def __init__(self):
-        self.data: SampleTree = SampleTree()
-        self.subscriptions: list[Path] = list()
-        self.outbox: list[Message] = list()
-
-
-    def acceptMessage(self, message: Message) -> None:
-        """ Process an incoming message. """
-        match message.type:
-
-            case MessageType.DATA:
-                self.data.mergeAtPath(message.data, message.path)
-
-                if message.id is not None:
-                    self.outbox.append(
-                        Message.acknowledge(request=message.id, path=message.path)
-                    )
-
-            case MessageType.REQUEST:
-                node = self.data.existingNode(message.path)
-                if node is not None:
-                    samples = node.getSamples(message.time, message.end, message.count)
-                else:
-                    samples = list()
-
-                self.outbox.append(
-                    Message.samples(samples, message.path, request=message.id, totalMessages=1)
-                )
-
-            case MessageType.DELETION:
-                node = self.data.existingNode(message.path)
-                if node is not None:
-                    node.deleteSamples(message.time, message.end)
-
-            case MessageType.SUBSCRIPTION_INCLUSION:
-                self.subscriptions.append(message.path)
-
-            case MessageType.SUBSCRIPTION_EXCLUSION:
-                self.subscriptions = [p for p in self.subscriptions if not p.hasPrefix(message.path)]
-
-            case MessageType.SUBSCRIPTION_DELETION:
-                self.subscriptions = [p for p in self.subscriptions if not p.hasPrefix(message.path)]
-
-
-def main():
-    hub = WeatherHub()
-
-    hub.acceptMessage(Message.value(Value(21.5), Path.of("weather", "temperature")))
-    hub.acceptMessage(Message.value(Value(23.8), Path.of("weather", "temperature")))
-
-    station = SampleTree()
-    station.childWithValue("humidity", Value(63))
-    hub.acceptMessage(Message.tree(station, Path.of("weather"), request=42))
-
-    hub.acceptMessage(Message.request(Path.of("weather", "temperature"), id=1, limit=10))
-
-    hub.acceptMessage(Message.include(Path.of("weather")))
-    hub.acceptMessage(Message.exclude(Path.of("weather", "humidity")))
-    hub.acceptMessage(Message.deleteRules(Path.of("weather")))
-
-    print("=== Stored data ===")
-    print(hub.data)
-
-    print("=== Outbox ===")
-    for message in hub.outbox:
-        print(message, end="\n---\n")
-
-#--Output--#
-=== Stored data ===
-children:
-  weather:
-    children:
-      temperature:
-        samples:
-          21.5 (now)
-          23.8000000000000007 (now)
-      humidity:
-        samples:
-          63 (12.10.2026 09:30:40)
-
-=== Outbox ===
-type: data
-path: weather
-id: 42
----
-type: data
-path: weather > temperature
-count: 1
-id: 1
-data:
-  samples:
-    21.5 (now)
-    23.8000000000000007 (now)
----
-```
-##### 2.2.4.1 Connection with PrintReceiver
-
-```python
-
-class LoopbackConnection(MessageConnection):
-    """ A minimal in-memory connection: sent messages go directly to the receiver. """
-
-    def __init__(self):
-        self._receiver: MessageReceiver | None = None
-
-    async def send(self, message: Message) -> None:
-        if self._receiver is not None:
-            await self._receiver.acceptMessage(message)
-
-    async def setReceiver(self, receiver: MessageReceiver | None) -> None:
-        self._receiver = receiver
-
-    async def getReceiver(self) -> MessageReceiver | None:
-        return self._receiver
-
-
-class PrintReceiver:
-    """ A minimal receiver: prints every incoming message. """
-
-    async def acceptMessage(self, message: Message) -> None:
-        print(f"received: {message.type} for {message.path}")
-
-def main():
-    connection = LoopbackConnection()
-
-    await connection.setReceiver(PrintReceiver())
-    receiver = await connection.getReceiver()
-
-    await connection.send(
-        Message.value(Value(21.5), Path.of("weather", "temperature"))
-    )
-
-    await connection.accept(
-        SampleTree.ofValue(Value(63)), Path.of("weather", "humidity")
-    )
-
-#--Output--#
-received: MessageType.DATA for weather > temperature
-received: MessageType.DATA for weather > humidity
+# Create subscription messages
+include = Message.include(Path.of("device"), depth=2)
+exclude = Message.exclude(Path.of("device", "power"))
 ```
 
+> **Full example:** See [`examples/messaging/messaging.py`](examples\messaging\messaging.py) for a complete working example with output.
 
 ### 2.3. Transport Stack
 
@@ -1163,66 +750,15 @@ Framing                 adds message boundaries to the byte stream
 Transport               a raw byte stream (e.g. a TCP socket)
 ```
 
-### 2.3.0 Synchronous and Asynchronous Usage
-
-SOIL is built on Python's `asyncio`. The data model (2.1) is mostly synchronous — but as soon as components exchange data (2.2) or connections come into play (2.3), asynchronous execution becomes the norm. This section explains the model once, so the rest of the chapter can use it freely.
-
-**Event loop and tasks.** A SOIL application runs an event loop (`asyncio.run(main())`). Concurrent work happens in tasks; SOIL components are Actors — each one processes its work in its own background task, created in its constructor. Two consequences:
-
-- Actors (framing, connections, storages, …) must be constructed where a loop is running — inside `async def` code (e.g. your `connect()`), never in synchronous constructors.
-- Accessing an Actor after it was shut down raises `ActorClosedError`.
-
-
-**Two flavors of methods.**
-
-```python
-client = TcpSocketClient(host, port)     # synchronous: stores host/port, no I/O yet
-stream = await client.connect()          # asynchronous: waits for the TCP handshake
-
-socket = UdpSocket(localPort)            # spawns a task -> needs a running loop
-conn   = socket.connect(host, port)      # synchronous: UDP has no handshake to wait for
-```
-
-The pattern is consistent: setup that can succeed immediately is synchronous; setup that has to wait for the outside world is `async`.
-
-**Requests — awaiting is opt-in.** Operations that hand data over (e.g. `send()`) do not block your code: they return a request handle you may either ignore or await:
-
-```python
-connection.send(message)         # fire and forget — transmission happens in the background
-await connection.send(message)  # continue once the message was transmitted
-```
-
-Awaiting a transmission means the message was handed to the transport, **not** that the peer received it.
-
-**Failures: `await` vs `.wait()`.**  
-
-A request handle can be consumed in two ways with different consequences:
-
-- `await request` — re-raises the exception if the operation failed.
-- `request.wait()` — swallows the exception and simply returns.
-
-Prefer plain `await` unless you deliberately ignore failures — `wait()` turns errors into silence.
-
-**Back-to-back operations.** 
-
-Multiple sends in a row without an `await` in between can lose the second message **and** jam the component so that even incoming data is no longer processed. Yield between rapid consecutive operations:
-
-```python
-param.set(1.0)
-await asyncio.sleep(0)   # yield to the event loop
-param.set(2.0)
-```
-
-
 #### 2.3.1 Framing
 
-A TCP connection is a raw byte stream. It carries no information about where one message ends and the next one begins — if a component sends two messages back to back, the peer cannot split them apart. Framing adds these boundaries: it wraps a raw stream connection into a ``FrameConnection`` whose units are complete, self-delimiting frames.
+A TCP connection is a raw byte stream. It carries no information about where one message ends and the next one begins - if a component sends two messages back to back, the peer cannot split them apart. Framing adds these boundaries: it wraps a raw stream connection into a ``FrameConnection`` whose units are complete, self-delimiting frames.
 
 ``SyncByteLengthFraming``  is SOIL's synchronous framing algorithm. Each frame is prefixed with a configurable sync sequence (default 0xAA 0x55) followed by a 2-byte big-endian length field, so the receiver can extract frames of arbitrary size from the stream without ambiguity. The maximum payload is 65,535 bytes (the largest value that fits the length field); a larger payload raises a ``FramingError`` on encoding.
 
-Framing is defined by the StreamFraming interface — two async directions:
-- ``encodeForStream(message: bytes) -> bytes`` — add framing information to an encoded message
-- ``processStreamBytes(data: bytes) -> list[bytes]`` — extract every complete frame from newly received stream bytes; incomplete frames stay in an internal ring buffer until the rest arrives
+Framing is defined by the StreamFraming interface - two async directions:
+- ``encodeForStream(message: bytes) -> bytes`` - add framing information to an encoded message
+- ``processStreamBytes(data: bytes) -> list[bytes]`` - extract every complete frame from newly received stream bytes; incomplete frames stay in an internal ring buffer until the rest arrives
 
 
 ````
@@ -1235,7 +771,7 @@ framing = SyncByteLengthFraming(
 
 #### 2.3.2 Choosing an Encoding
 
-All encodings implement the same `MessageEncoding` interface (see 2.2.3) and are therefore interchangeable — switching never touches the surrounding components.
+All encodings implement the same `MessageEncoding` interface (see 2.2.3) and are therefore interchangeable - switching never touches the surrounding components.
    Encoding | Size / Speed | Human-Readability | Recommended for |
  |---|---|---|---|
  | `BINARY` | best | none | production, high message rates |
@@ -1245,72 +781,48 @@ All encodings implement the same `MessageEncoding` interface (see 2.2.3) and are
 
 Both sides of a connection **must** use the same encoding.
 
-**Recommendation:** develop and debug with `JSON` — you can inspect live frames with any standard tool, which makes wire-level problems immediately visible. Switch to `BINARY` when message size or encoding speed matter; it is a one-line change at stack construction.
+**Recommendation:** develop and debug with `JSON` - you can inspect live frames with any standard tool, which makes wire-level problems immediately visible. Switch to `BINARY` when message size or encoding speed matter; it is a one-line change at stack construction.
 
 If you are interested in a performance-comparison of these, have a look at the SOIL-PERFORMANCE-PYTHON Repository.
 
 
 #### 2.3.3 Network Protocols (TCP, UDP, WebSocket)
-The bottom layer of the stack is the network transport. SOIL provides interfaces for the common protocols — TCP, UDP and WebSocket. All of them sit behind the same connection interface, so the layers above (encoding, message layer) remain unchanged. What differs per protocol is whether framing is needed and which lifecycle guarantees exist.
-
-**TCP — reliable, ordered byte stream.**
-
-- Guaranteed delivery and ordering; connection-oriented lifecycle (connect, EOF, shutdown).
-- The stream carries no message boundaries → framing is required (2.3.1).
-- The default choice for request/response traffic and whenever every single message matters. 
-
-**UDP — connectionless datagrams.**
-
-- Each datagram is self-delimiting → no framing needed; one datagram = one frame.
-- No delivery guarantee, no ordering, no connection lifecycle — a dead peer is simply silent (there is no EOF).
-- Well suited for high-rate telemetry where the newest value matters and occasional loss is acceptable.
-- Datagram size is bounded (practical MTU limit ≈ 1.4 kB) — keep individual messages small. Note (source): incoming datagrams are silently truncated to the socket's maximumPayloadLength — choose that limit deliberately.
-- UdpSocket covers both roles (UDP has no client/server distinction): connect(host, port) is synchronous and sends nothing — no handshake exists — while onConnection(consumer) receives incoming remotes. There is one connection per remote address.
-- Like the Actors above, UdpSocket(...) spawns a task in its constructor → needs a running event loop (2.3.0).
-
-**WebSocket — message-based stream over HTTP.**
-
-- Message boundaries are part of the protocol → no additional framing needed; one WebSocket message = one frame. 
-- Delivery and ordering are guaranteed by the underlying TCP stream; lifecycle (open/close) is visible.
-- HTTP-based handshake and URL addressing → fits web integrations and environments where only HTTP(S) ports are reachable.
+The bottom layer of the stack is the network transport. SOIL provides interfaces for the common protocols - TCP, UDP and WebSocket. All of them sit behind the same connection interface, so the layers above (encoding, message layer) remain unchanged. What differs per protocol is whether framing is needed and which lifecycle guarantees exist.
 
 | Property | TCP | UDP | WebSocket |
 | --- | --- | --- | --- |
 | Delivery & ordering | guaranteed | neither | guaranteed |
-| Message boundaries | no → framing required | yes (datagrams) | yes |
+| Message boundaries | no -> framing required | yes (datagrams) | yes |
 | Connection lifecycle | yes (EOF / shutdown) | none | yes (open / close) |
-| Framing needed | `SyncByteLengthFraming` | not required ⚠ | not required ⚠ |
-| Typical use | commands, models, responses | high-rate telemetry | web & HTTP integration |
+| Framing needed | `SyncByteLengthFraming` | not required | not required |
+|
     
 ````python
-# TCP — stream connection, framing required (2.3.1)
+# TCP - stream connection, framing required (2.3.1)
 client = TcpSocketClient(host, port)
-connection = await client.connect(logger=None)
+stream = await client.connect()
+connection = await stream.apply(SyncByteLengthFraming())
 
-# UDP — datagram connection, self-delimiting frames
+# UDP - datagram connection, self-delimiting frames
 socket = UdpSocket(localPort, maximumPayloadLength=65_535)
 connection = socket.connect(host, port)
 
-# WebSocket — message-based stream, HTTP handshake
+# WebSocket - message-based stream, HTTP handshake
 client = WebSocketClient(host="localhost", port=8080, path=None)
-connection = await client.connect(receiver=None, logger=None)
+connection = await client.connect()
 ````
 
-Encoding still applies everywhere. Whichever transport is chosen, messages are encoded exactly as before (2.3.2) — the encoding neither knows nor cares which transport carries its bytes.
-Out-of-order delivery is largely absorbed by the data model. UDP may deliver datagrams out of order — but every Sample carries its own Timestamp, and a SampleTree keeps samples in timestamp order (see 2.1). A late-arriving sample is therefore placed into the history correctly instead of overwriting the newer value.
+Encoding still applies everywhere. Whichever transport is chosen, messages are encoded exactly as before (2.3.2) - the encoding neither knows nor cares which transport carries its bytes.
 
 As said before: If you are interested in a performance-comparison of these, have a look at the SOIL-PERFORMANCE-PYTHON Repository.
 
 #### 2.3.4 Assembling a Decoded Connection
 
-The three layers above are combined through a single method that every
-connection interface offers: `apply()`. Each call wraps the connection into
-the next layer of the stack and returns the wrapped connection. Over a TCP
-connection the full assembly takes two hops:
+The three layers above are combined through a single method that every connection interface offers: `apply()`. Each call wraps the connection into the next layer of the stack and returns the wrapped connection. Over a TCP connection the full assembly takes two hops:
 
 ```python
 from soil.framing import SyncByteLengthFraming
-from soil.messaging import JsonEncoding
+from soil.encoding.json import JsonEncoding
 
 client = TcpSocketClient(host, port)
 stream = await client.connect()                      # StreamConnection
@@ -1321,7 +833,7 @@ connection = await frames.apply(JsonEncoding())      # -> MessageConnection
 
 - `StreamConnection.apply(framing)` applies the framing to the raw stream and
   returns a `FrameConnection` (`DecodedStream`). This hop exists only for
-  stream transports — TCP. UDP and WebSocket connections are already
+  stream transports - TCP. UDP and WebSocket connections are already
   frame-based and start at the second hop:
   ```python
   socket = UdpSocket(localPort)
@@ -1335,18 +847,8 @@ The same wrapping happens symmetrically on the server side: a server hands
 you the incoming transport connection, and you apply framing (for TCP) and
 encoding exactly as above.
 
-**Buffers.** Until a receiver is set, the layers buffer incoming data — but
-not all of them do. `DecodedConnection` keeps undecoded frames in an internal
-buffer and delivers them as soon as a message receiver is registered via
-`setReceiver()`. The framing layer below it, however, silently drops frames
-that arrive before a frame receiver is set. When you assemble a stack
-yourself with the building blocks of this chapter, attach the receivers
-before data starts flowing — the convenience method `apply()` covers this
-for the standard stack, hand-built stacks do not get this guarantee
-automatically.
-
 **Delivery is not guaranteed.** `send()` returns a request handle that
-completes once the message was handed to the transport layer — not once the
+completes once the message was handed to the transport layer - not once the
 peer received it (see 2.3.0). Failures during encoding or transmission are
 reported through the optional logger passed to `apply()`, not raised to the
 caller; a failed `send()` therefore does not stop your application, but it
@@ -1355,24 +857,24 @@ protocol on the message layer.
 
 #### 2.3.5 Connection Lifecycle
 
-The connection-oriented transports — TCP and WebSocket — have a visible
+The connection-oriented transports - TCP and WebSocket - have a visible
 lifecycle: connect, open, close. This section collects how SOIL exposes that
 lifecycle, and where it stays silent. UDP has no lifecycle at all (2.3.3):
 a dead peer is simply quiet.
 
-**Closing: `shutdown()`.** Every connection offers `shutdown()` — it closes
+**Closing: `close()`.** Every connection offers `close()` - it closes
 the message layer and the underlying transport connection. Call it on every
 shutdown path of your application; connections do not close themselves:
 
 ```python
 try:
-    ...                                  # application logic
+    ...     # application logic
 finally:
-    await connection.shutdown()
+    await connection.close()
 ```
 
-**Being notified: `onClose()`.** To react after a connection closed — from
-either side — register an async callback:
+**Being notified: `onClose()`.** To react after a connection closed - from
+either side - register an async callback:
 
 ```python
 async def handle_close() -> None:
@@ -1385,7 +887,7 @@ await connection.onClose(handle_close)
 
 The two examples below stay at the frame level on purpose: it keeps them
 minimal and isolates the transport concerns of this chapter. Full
-message-level flows — subscriptions, reconnect with re-subscription —
+message-level flows - subscriptions, reconnect with re-subscription -
 are the topic of 2.5.
 
 ##### 2.3.6.1 A Minimal TCP Frame Exchange
@@ -1404,13 +906,15 @@ import asyncio
 from soil.framing import SyncByteLengthFraming
 from soil.interfaces.tcp.client import TcpSocketClient
 from soil.interfaces.tcp.server import TcpSocketServer
+from soil.requests import CompletedRequest, Request
 
 
 class PrintFrame:
     """Prints every frame that arrives over the connection."""
 
-    async def acceptFrame(self, frame: bytes) -> None:
+    def acceptFrame(self, frame: bytes) -> Request:
         print(f"received: {frame.decode()}")
+        return CompletedRequest()
 
 
 async def main() -> None:
@@ -1448,18 +952,738 @@ received: hello frame
 
 ### 2.4. Components & Storage
 
-#### 2.4.1 Component A
+SOIL components are the building blocks of applications. They follow consistent patterns for data flow, state management, and inter-component communication.
 
-#### 2.4.1 Component B
+#### 2.4.1 Component Interfaces
 
-#### 2.4.5 Best Practices for Components & Storage
+SOIL defines several core component interfaces:
+
+| Interface | Purpose | Key Methods |
+|-----------|---------|-------------|
+| `Provider` | Read data from a source | `tree()`, `samples()`, `currentValue()` |
+| `Receiver` | Accept incoming data | `acceptMessage()`, `accept()` |
+| `Storage` | Store and retrieve data | Combines `Provider` + `Receiver` + `delete()` |
+| `Observable` | Notify receivers of changes | `setReceiver()`, `notifyReceivers()` |
+| `Connection` | Send and receive messages | `send()`, `setReceiver()` |
+
+**Design Principle:** Components are *actors* - each runs in its own async task and processes work independently. This means:
+
+- Components must be constructed where an event loop is running (inside `async def` code)
+- Accessing a component after it was shut down raises `ActorClosedError`
+- Communication between components happens via messages or direct method calls
+
+#### 2.4.2 Provider - Reading Data
+
+A `Provider` is a component that can provide values. It does not send data by itself but makes data available when requested. The central method is `tree()` - all other read methods are convenience wrappers:
+
+```python
+@abstractmethod
+async def tree(
+    self,
+    path: Path,
+    start: Timestamp | None,
+    end: Timestamp | None,
+    depth: int | None,
+    limitPerNode: int | None
+) -> SampleTree:
+    """Read a data tree for a given path within a given interval."""
+```
+
+**Parameters:**
+- `path`: The root path to read
+- `start`: Exclusive start of the time interval (`None` = beginning of time)
+- `end`: Inclusive end of the time interval (`None` = end of time)
+- `depth`: Number of levels below the path to include (`0` = no children)
+- `limitPerNode`: Maximum samples per node (`None` = no limit)
+
+**Sort order:**
+- Ascending, if `end = nil`
+- Descending, if `end != nil` and `start = nil`
+- Ascending, if `start < end`
+- Descending, if `start > end`
+
+**Convenience methods:**
+
+```python
+# Get current value at a path
+value = await provider.currentValue(Path.of("sensor", "temperature"))
+
+# Get current sample (with timestamp)
+sample = await provider.currentSample(Path.of("sensor", "temperature"))
+
+# Get entire current tree up to depth=2
+tree = await provider.currentTree(Path.of("sensor"), depth=2)
+
+# Get samples in a time range
+samples = await provider.samples(
+    Path.of("history", "temperature"),
+    start=Timestamp(2026, 1, 1),
+    end=Timestamp.current(),
+    limit=100
+)
+
+# Get value at a specific point in time
+tree = await provider.treeAtTime(
+    Path.of("sensor"),
+    time=Timestamp(2026, 10, 9, 16, 10, 45),
+    depth=1
+)
+```
+
+#### 2.4.3 Receiver - Accepting Data
+
+A `Receiver` accepts incoming data via messages or direct sample trees:
+
+```python
+@abstractmethod
+def accept(self, tree: SampleTree, path: Path) -> Request:
+    """
+    Receive a tree for a path.
+    
+    Returns a Request handle that can be awaited to wait for completion.
+    """
+
+async def acceptMessage(self, message: Message) -> None:
+    """Process an incoming message (default implementation wraps in accept())."""
+```
+
+**Important:** `accept()` is **synchronous** - it returns immediately with a `Request` handle. The actual ingestion happens asynchronously in the background.
+
+**Example: Logging Receiver**
+
+```python
+from soil.components import Receiver
+from soil.messaging import Message
+
+class LoggingReceiver(Receiver):
+    """Logs all incoming messages."""
+
+    async def acceptMessage(self, message: Message) -> None:
+        print(f"Received: {message.type} at {message.path}")
+        if message.data:
+            print(f"  Data: {message.data}")
+```
+
+#### 2.4.4 Storage - Combining Read and Write
+
+A `Storage` combines `Provider` and `Receiver` with the ability to delete data:
+
+```python
+class Storage(Provider, Receiver):
+    @abstractmethod
+    def delete(
+        self,
+        path: Path = Path(),
+        start: Timestamp | None = None,
+        end: Timestamp | None = None,
+        depth: int | None = None
+    ) -> Request:
+        """Delete data from the storage."""
+```
+
+**Example: In-Memory Storage**
+
+```python
+import asyncio
+
+from soil.data import Path, SampleTree, Value
+from soil.messaging import Message, MessageType
+from soil.storage import InMemoryStorage
 
 
+async def main():
+    storage = InMemoryStorage()
 
-### 2.5. Networking
+    # Store data using accept() from Receiver interface
+    # This returns a Request that can be handled in three ways
 
-#### 2.5.1 Component A
+    # Option 1: Fire and forget (data will be ingested in background)
+    tree = SampleTree.ofValue(Value(21.5), timestamp=None)
+    storage.accept(tree, Path.of("weather", "temperature"))
+    print("Option 1: Fire and forget - accepted without waiting")
 
-#### 2.5.1 Component B
+    # Option 2: Await the request directly
+    tree = SampleTree.ofValue(Value(23.8), timestamp=None)
+    request = storage.accept(tree, Path.of("weather", "temperature"))
+    await request
+    print("Option 2: Await request - storage accepted value")
 
-#### 2.5.5 Best Practices for Networking
+    # Option 3: Await request.wait() explicitly
+    tree = SampleTree.ofValue(Value(25.2), timestamp=None)
+    request = storage.accept(tree, Path.of("weather", "temperature"))
+    await request.wait()
+    print("Option 3: Await request.wait() - storage accepted value")
+
+    # Read current value using Provider interface
+    current = await storage.currentValue(Path.of("weather", "temperature"))
+    print(f"Current temperature: {current.value if current else 'None'}")
+
+    # Read history using Provider interface
+    samples = await storage.samples(
+        Path.of("weather", "temperature"),
+        limit=10
+    )
+    print(f"Temperature history: {[s.value.value for s in samples]}")
+
+    # Delete data using Storage interface
+    request = storage.delete(Path.of("weather", "temperature"))
+    await request
+    print("After deletion:")
+    samples = await storage.samples(Path.of("weather", "temperature"), limit=10)
+    print(f"Temperature history: {[s.value.value for s in samples]}")
+    print("Delete completed")
+
+    await storage.shutdown()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+```python
+#--Output--#
+Option 1: Fire and forget - accepted without waiting
+Option 2: Await request - storage accepted value
+Option 3: Await request.wait() - storage accepted value
+Current temperature: 25.2
+Temperature history: [21.5, 23.8, 25.2]
+After deletion
+Temperature history: []
+Delete completed
+```
+
+#### 2.4.5 Observable - Notifying Receivers
+
+An `Observable` manages subscriptions and filters data trees based on subscription rules before forwarding to receivers.
+
+```python
+class Observable(Distributor):
+    # Subscription management
+    def include(self, path: Path, depth: int | None) -> Request: ...
+    def exclude(self, path: Path, depth: int | None) -> Request: ...
+    def deleteRules(self, path: Path, depth: int | None = None) -> Request: ...
+    
+    # Check if path is covered by subscription
+    async def isSubscribed(self, path: Path) -> bool: ...
+    
+    # Filter tree based on subscription rules
+    async def reduce(self, tree: SampleTree, path: Path) -> SampleTree | None: ...
+    
+    # Distribute data to receiver (if subscribed)
+    async def distribute(self, tree: SampleTree, path: Path) -> None: ...
+```
+
+**Key concept:** `Observable` doesn't broadcast to "all receivers" - it has **one receiver** (set via `setReceiver()`), and only sends data that matches the subscription rules.
+
+
+#### 2.4.6 Best Practices for Components & Storage
+
+##### 2.4.6.1 Component Lifecycle
+
+Components are actors that run in their own async tasks. Always:
+
+1. **Construct inside async code** - Components need a running event loop
+2. **Shutdown on exit** - Call `shutdown()` on every exit path
+3. **Handle `ActorClosedError`** - Accessing a shut-down component raises this
+
+```python
+async def main():
+    storage = InMemoryStorage()  # Spawns a task internally
+
+    try:
+        # Use the component
+        await storage.acceptMessage(message)
+    finally:
+        # Always shut down
+        await storage.shutdown()
+```
+
+##### 2.4.6.2 Combining Components
+
+Components can be combined to build complex behaviors:
+
+```
+┌─────────────┐     ┌─────────────┐     ┌────────────┐
+│  Observable │ ──> │   Storage   │ ──> │  Provider  │
+│  (notifies) │     │  (stores)   │     │  (reads)   │
+└─────────────┘     └─────────────┘     └────────────┘
+```
+
+```python
+class ObservableStorage(Storage):
+    """Storage that notifies receivers on every write."""
+
+    def __init__(self):
+        super().__init__()
+        self._data = SampleTree()
+        self._receivers = []
+
+    async def acceptMessage(self, message: Message) -> None:
+        if message.type == MessageType.DATA:
+            self._data.mergeAtPath(message.data, message.path)
+            await self.notifyReceivers(message)
+
+    # ... implement Provider and delete() ...
+```
+
+**Prefer plain `await`** unless you deliberately want to ignore failures - `wait()` turns errors into silence.
+
+---
+
+### 2.4.7 SOIL Component Catalog
+
+#### Extract of current implementations
+
+| Component | Purpose | Location |
+|-----------|---------|----------|
+| **Storage** | In-memory or remote data storage | `soil.components.storage` |
+| **ObservableStorage** | Storage with subscription support | `soil.components.observable_storage` |
+| **HostedStorage** | Storage that hosts data locally | `soil.connection.hosted_storage` |
+| **RemoteStorage** | Proxy to remote storage | `soil.connection.remote_storage` |
+| **RemoteObservable** | Observable over network | `soil.connection.remote_observable` |
+| **RemoteTransmitter** | Forwards data to remote | `soil.connection.remote_transmitter` |
+| **DataMessageSplitter** | Splits large trees into chunks | `soil.connection.data_message_splitter` |
+| **ReconnectingConnection** | Auto-reconnect wrapper | `soil.connection.re_connection` |
+
+#### Encoding Implementations
+
+| Encoding | Use Case | Location |
+|----------|----------|----------|
+| **BinaryEncoding** | Production, minimal overhead | `soil.encoding.binary` |
+| **JsonEncoding** | Debugging, human-readable | `soil.encoding.json` |
+| **CompactJsonEncoding** | Balance between size & readability | `soil.encoding.json.min` |
+
+#### Transport Implementations
+
+| Transport | Protocol | Location |
+|-----------|----------|----------|
+| **TcpSocketClient/Server** | Reliable stream | `soil.interfaces.tcp` |
+| **UdpSocket** | Connectionless datagrams | `soil.interfaces.udp` |
+| **WebSocketClient/Server** | Message-based over HTTP | `soil.interfaces.websocket` |
+
+#### Framing Implementations
+
+| Framing | Purpose | Location |
+|---------|---------|----------|
+| **SyncByteLengthFraming** | Sync bytes + length prefix | `soil.framing.sync` |
+| **LoggingFraming** | Debug framing with logging | `soil.framing.logger` |
+
+### Building Your Own Components
+
+SOIL's modularity means you can create custom components by implementing the interfaces. Eg. for a storage component:
+
+```python
+from soil.components import Storage
+from soil.data import Path, SampleTree, Timestamp
+
+class MyCustomStorage(Storage):
+    """Example: Database-backed storage."""
+    
+    def __init__(self, db_connection):
+        self._db = db_connection
+    
+    async def tree(self, path, start, end, depth, limitPerNode):
+        # Query database and return SampleTree
+        ...
+    
+    async def acceptMessage(self, message: Message) -> None:
+        # Store incoming message in database
+        ...
+    
+    def delete(self, path, start, end, depth):
+        # Delete from database
+        ...
+```
+---
+
+### 2.5. Practical Patterns
+
+This section shows **how to combine SOIL components** for real-world use cases — pulling together the transports, encodings and components from the previous sections into complete, runnable flows.
+
+#### 2.5.1 Pattern: Request/Response over TCP
+
+**Use case:** Commands, configuration, queries — when you need guaranteed delivery.
+
+```python
+import asyncio
+
+from soil.data import Path, SampleTree, Value
+from soil.encoding.json import JsonEncoding
+from soil.framing import SyncByteLengthFraming
+from soil.interfaces.tcp import TcpSocketClient, TcpSocketServer
+from soil.messaging import Message, MessageReceiver, MessageType
+from soil.requests import CompletedRequest
+
+
+# -- Server: remember received values, reply to read requests -- #
+class WeatherServer(MessageReceiver):
+    def __init__(self):
+        self.data = SampleTree()
+
+    def acceptMessage(self, message: Message) -> CompletedRequest:
+        if message.type == MessageType.REQUEST:
+            node = self.data.existingNode(message.path)
+            samples = node.getSamples(message.time, message.end, message.count) if node else []
+            asyncio.ensure_future(
+                self.connection.send(
+                    Message.samples(samples, message.path, request=message.id, totalMessages=1)
+                )
+            )
+        elif message.type == MessageType.DATA:
+            self.data.mergeAtPath(message.data, message.path)
+        return CompletedRequest()
+
+
+# -- Client: remember only the response whose id matches the request -- #
+class ResponseCollector(MessageReceiver):
+    def __init__(self, request_id: int):
+        self.request_id = request_id
+        self.response = None
+
+    async def acceptMessage(self, message: Message) -> CompletedRequest:
+        if message.type == MessageType.DATA and message.id == self.request_id:
+            self.response = message
+        return CompletedRequest()
+
+
+async def main():
+    server = TcpSocketServer(port=0)
+
+    async def handle_connection(connection):
+        framed = await connection.apply(SyncByteLengthFraming())
+        decoded = await framed.apply(JsonEncoding())
+        server_obj = WeatherServer()
+        server_obj.connection = decoded
+        await decoded.setReceiver(server_obj)
+
+    server.onConnection(handle_connection)
+    assert await server.start()
+    port = await server.waitForPort()
+
+    client = TcpSocketClient("localhost", port)
+    stream = await client.connect()
+    framed = await stream.apply(SyncByteLengthFraming())
+    connection = await framed.apply(JsonEncoding())
+
+    collector = ResponseCollector(request_id=1)
+    await connection.setReceiver(collector)
+
+    # Seed the server with values (DATA messages are stored by path).
+    await connection.send(Message.value(Value(21.5), Path.of("temperature")))
+    await connection.send(Message.value(Value(63), Path.of("humidity")))
+
+    # Read a value back from the server.
+    await connection.send(Message.request(Path.of("temperature"), id=1))
+    await asyncio.sleep(0.2)  # give the round-trip time to complete
+
+    if collector.response:
+        # The response carries the requested samples at its root,
+        # and the requested path in `message.path`.
+        sample = collector.response.data.newestSample
+        value = str(sample.value.value) if sample else "n/a"
+        print(f"Received value: {value}")
+    else:
+        print("No response received")
+
+    await connection.shutdown()
+    assert await server.stop()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+```python
+#--Output--#
+Received value: 21.5
+```
+
+
+#### 2.5.2 Pattern: Telemetry Streaming over UDP
+
+**Use case:** High-rate sensor data — newest value matters, occasional loss is acceptable.
+
+```python
+import asyncio
+
+from soil.data import Path, SampleTree, Value
+from soil.encoding.json import JsonEncoding
+from soil.interfaces.udp import UdpSocket
+from soil.messaging import Message, MessageType, MessageReceiver
+
+
+class TelemetryCollector(MessageReceiver):
+    """Stores the newest sample seen at each path."""
+
+    def __init__(self):
+        self.data = SampleTree()
+        self.seen = 0
+
+    async def acceptMessage(self, message: Message) -> None:
+        if message.type == MessageType.DATA:
+            self.data.mergeAtPath(message.data, message.path)
+            self.seen += 1
+            print(f"Telemetry: {message.path} = {message.data.newestSample.value.value}")
+
+
+async def main():
+    # UDP has no server — just a socket that both sides share.
+    # The receiver answers any inbound datagram, so it uses onConnection()
+    # to wrap a fresh connection and install its decoder + receiver.
+    collector = TelemetryCollector()
+
+    async def handle_incoming(connection):
+        decoded = await connection.apply(JsonEncoding())
+        await decoded.setReceiver(collector)
+
+    receiver = UdpSocket(localPort=8080)
+    receiver.onConnection(handle_incoming)
+    await receiver.ready()
+
+    # The sender (on this or another machine).
+    sender = UdpSocket(localPort=0)
+    await sender.ready()
+    sender_conn = sender.connect("127.0.0.1", 8080)
+    encoded = await sender_conn.apply(JsonEncoding())
+
+    for value in [21.5, 22.1, 23.0]:
+        await encoded.send(Message.value(Value(value), Path.of("sensor", "temperature")))
+        await asyncio.sleep(0.05)
+
+    # Wait until the collector has seen all values (UDP is lossy, so poll).
+    for _ in range(50):
+        if collector.seen >= 3:
+            break
+        await asyncio.sleep(0.05)
+
+    print(f"Received {collector.seen} telemetry messages")
+
+    receiver.close()
+    sender.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+```python
+#--Output--#
+Telemetry: sensor > temperature = 21.5
+Telemetry: sensor > temperature = 22.1
+Telemetry: sensor > temperature = 23.0
+Received 3 telemetry messages
+```
+
+#### 2.5.3 Pattern: Pub/Sub with Observable
+
+**Use case:** Subscription-based updates — clients choose which data they want.
+
+```python
+import asyncio
+
+from soil.components.receiver import Receiver
+from soil.connection import HostedObservableStorage, RemoteObservableStorage
+from soil.data import Path, SampleTree, Value
+from soil.encoding.json import JsonEncoding
+from soil.framing import SyncByteLengthFraming
+from soil.interfaces.tcp import TcpSocketClient, TcpSocketServer
+from soil.messaging import Message
+from soil.requests import CompletedRequest, Request
+from soil.storage import InMemoryStorage, ObservingStorage
+
+
+# -- Server: a storage that can be subscribed to -- #
+async def handle_server_connection(connection):
+    framed = await connection.apply(SyncByteLengthFraming())
+    decoded = await framed.apply(JsonEncoding())
+    storage = ObservingStorage(InMemoryStorage())
+    await HostedObservableStorage.create(storage, decoded)
+    # Publish a value now that clients can subscribe to it.
+    await asyncio.sleep(0.2)
+    await decoded.send(Message.value(Value(25.0), Path.of("weather", "temperature")))
+    return storage
+
+
+# -- Client: collect updates that match the subscription -- #
+class UpdateCollector(Receiver):
+    def __init__(self):
+        self.values = []
+
+    def accept(self, tree: SampleTree, path: Path = Path()) -> Request:
+        node = tree.existingNode(Path.of("weather", "temperature"))
+        sample = node.newestSample if node is not None else tree.newestSample
+        if sample is None:
+            return CompletedRequest()
+        self.values.append(str(sample.value.value))
+        print(f"Subscribed update: {sample.value.value}")
+        return CompletedRequest()
+
+
+async def main():
+    server = TcpSocketServer(port=0)
+
+    async def handle_connection(connection):
+        await handle_server_connection(connection)
+
+    server.onConnection(handle_connection)
+    assert await server.start()
+    port = await server.waitForPort()
+
+    client = TcpSocketClient("localhost", port)
+    stream = await client.connect()
+    framed = await stream.apply(SyncByteLengthFraming())
+    decoded = await framed.apply(JsonEncoding())
+
+    remote = await RemoteObservableStorage.create(decoded)
+
+    collector = UpdateCollector()
+    await remote.setReceiver(collector)
+
+    # Choose which data to receive.
+    await remote.include(Path.of("weather"), depth=2)
+    await remote.exclude(Path.of("weather", "humidity"), depth=1)
+
+    await asyncio.sleep(0.5)  # wait for the published update to arrive
+    print(f"Collected {len(collector.values)} updates")
+    await decoded.close()
+    assert await server.stop()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+```
+```python
+#--Output--#
+Subscribed update: 25.0
+Collected 1 updates
+```
+
+
+#### 2.5.4 Pattern: Remote Storage
+
+**Use case:** Client-server data storage — central repository accessible over network.
+
+```python
+import asyncio
+
+from soil.connection import HostedStorage, RemoteStorage
+from soil.data import Path, SampleTree, Value
+from soil.encoding.json import JsonEncoding
+from soil.framing import SyncByteLengthFraming
+from soil.interfaces.tcp import TcpSocketClient, TcpSocketServer
+from soil.storage import InMemoryStorage
+
+
+async def main():
+    server = TcpSocketServer(port=0)
+
+    async def handle_connection(connection):
+        framed = await connection.apply(SyncByteLengthFraming())
+        decoded = await framed.apply(JsonEncoding())
+        # Expose a local storage over the connection.
+        await HostedStorage.create(InMemoryStorage(), decoded)
+
+    server.onConnection(handle_connection)
+    assert await server.start()
+    port = await server.waitForPort()
+
+    client = TcpSocketClient("localhost", port)
+    stream = await client.connect()
+    framed = await stream.apply(SyncByteLengthFraming())
+    decoded = await framed.apply(JsonEncoding())
+
+    remote = await RemoteStorage.create(decoded)
+
+    # Write a value to the remote storage.
+    await remote.accept(SampleTree.ofValue(Value(21.5), timestamp=None), Path.of("weather", "temperature"))
+    await asyncio.sleep(0.1)
+
+    # Read it back. Request the exact path, so the sample is returned at the tree root.
+    tree = await remote.tree(Path.of("weather", "temperature"), start=None, end=None, depth=None, limitPerNode=None)
+    sample = tree.newestSample
+    value = str(sample.value.value) if sample else "n/a"
+    print(f"Remote value: {value}")
+
+    await decoded.close()
+    assert await server.stop()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+```python
+#--Output--#
+Remote value: 21.5
+```
+
+
+#### 2.5.5 Pattern: Reconnection Handling
+
+**Use case:** Resilient connections — auto-reconnect after failures.
+
+```python
+import asyncio
+
+from soil.connection import ReconnectingConnection
+from soil.data import Path, SampleTree, Value
+from soil.encoding.json import JsonEncoding
+from soil.framing import SyncByteLengthFraming
+from soil.interfaces.tcp import TcpSocketClient, TcpSocketServer
+from soil.messaging import Message, MessageReceiver, MessageType
+
+
+async def make_connect(port: int):
+    """Factory: build a fresh decoded connection to the server at a given port."""
+    async def connect():
+        client = TcpSocketClient("127.0.0.1", port)
+        stream = await client.connect()
+        framed = await stream.apply(SyncByteLengthFraming())
+        return await framed.apply(JsonEncoding())
+    return connect
+
+
+# -- Server side: print whatever arrives over each new connection -- #
+class PrintReceiver(MessageReceiver):
+    async def acceptMessage(self, message: Message):
+        if message.type == MessageType.DATA:
+            sample = message.data.newestSample
+            value = str(sample.value.value) if sample else "n/a"
+            print(f"Server received [{message.path}] = {value}")
+
+
+async def main():
+    server = TcpSocketServer(port=0)
+
+    async def handle_connection(connection):
+        framed = await connection.apply(SyncByteLengthFraming())
+        decoded = await framed.apply(JsonEncoding())
+        await decoded.setReceiver(PrintReceiver())
+
+    server.onConnection(handle_connection)
+    assert await server.start()
+
+    # The server starts on port 0, so we set the real port before connecting.
+    port = await server.waitForPort()
+
+    connect = await make_connect(port)
+    reconnection = ReconnectingConnection(connect, retryInterval=0.1)
+    reconnection.start()
+
+    # Send through the reconnection wrapper.
+    message = Message.tree(SampleTree.ofValue(Value(42)), Path.of("data"))
+    reconnection.send(message)
+
+    await asyncio.sleep(0.3)
+
+    reconnection.stop()
+    assert await server.stop()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+```python
+#--Output--#
+Server received [data] = 42
+```
+
+---
+

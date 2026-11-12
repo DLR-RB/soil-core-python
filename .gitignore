@@ -3,3 +3,4 @@ __pycache__
 /src/soil_core.egg-info
 build/
 dist/
+.vscode/settings.json
