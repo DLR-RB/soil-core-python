@@ -1,3 +1,4 @@
+from asyncio import CancelledError
 from typing import override
 
 from ..components import ObservableStorage
@@ -49,6 +50,10 @@ class HostedObservableStorage(ObservableStorage, MessageReceiver):
                 observable,
                 connection,
             )
+        except (CancelledError, KeyboardInterrupt):
+            # Re-raise cancellation and keyboard interrupts
+            await _observable.shutdown()
+            raise
         except Exception:
             # Clean up observable if storage creation fails
             await _observable.shutdown()
