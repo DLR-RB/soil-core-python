@@ -3,6 +3,7 @@ from typing import Self
 
 from .convertible import ValueConvertible
 from .timestamp import Timestamp
+from .value import AnyValue, Value
 
 
 @total_ordering
@@ -11,8 +12,11 @@ class Sample:
     A value with a timestamp.
     """
 
-    def __init__(self, value: ValueConvertible, timestamp: Timestamp | None = None) -> None:
-        self.value = value.toValue()
+    def __init__(self, value: ValueConvertible | AnyValue, timestamp: Timestamp | None = None) -> None:
+        if isinstance(value, ValueConvertible):
+            self.value = value.toValue()
+        else:
+            self.value = Value(value)
         self.timestamp = timestamp
 
     @property
