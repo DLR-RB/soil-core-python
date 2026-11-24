@@ -34,6 +34,46 @@ class Path(list[str]):
         else:
             return Path(self + suffix)
 
+    def prepending(self, prefix: 'str | list[str] | Path') -> 'Path':
+        if isinstance(prefix, str):
+            return Path([prefix] + self)
+        elif isinstance(prefix, Path):
+            return Path(prefix + self)
+        else:
+            return Path(prefix + self)
+
+    def dropFirst(self, count: int = 1) -> 'Path':
+        """
+        Create a new path without the first `count` components.
+
+        Parameters
+        ----------
+        count: int
+            Number of components to drop from the beginning (default: 1)
+
+        Returns
+        -------
+        Path
+            A new path with the first `count` components removed
+        """
+        return Path(self[count:])
+
+    def dropLast(self, count: int = 1) -> 'Path':
+        """
+        Create a new path without the last `count` components.
+
+        Parameters
+        ----------
+        count: int
+            Number of components to drop from the end (default: 1)
+
+        Returns
+        -------
+        Path
+            A new path with the last `count` components removed
+        """
+        return Path(self[:-count])
+
     def hasPrefix(self, prefix: 'Path') -> bool:
         """
         Check if the path starts with another path.
