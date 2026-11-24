@@ -225,11 +225,11 @@ class RemoteStorage(MessageReceiver, Storage):
     @override
     async def tree(
         self,
-        path: Path,
-        start: Timestamp | None,
-        end: Timestamp | None,
-        depth: int | None,
-        limitPerNode: int | None,
+        path: Path = Path(),
+        start: Timestamp | None = None,
+        end: Timestamp | None = None,
+        depth: int | None = None,
+        limitPerNode: int | None = None,
     ) -> SampleTree:
         return await self._tree(
             path=path,

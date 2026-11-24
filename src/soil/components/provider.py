@@ -14,7 +14,7 @@ class Provider(ABC):
     """
 
     @abstractmethod
-    async def tree(self, path: Path, start: Timestamp | None, end: Timestamp | None, depth: int | None, limitPerNode: int | None) -> SampleTree:
+    async def tree(self, path: Path = Path(), start: Timestamp | None = None, end: Timestamp | None = None, depth: int | None = None, limitPerNode: int | None = None) -> SampleTree:
         """
         Read a data tree for a given path within a given interval.
 
@@ -31,7 +31,7 @@ class Provider(ABC):
         Parameters
         ----------
         path: Path
-            The requested path.
+            The requested path (defaults to empty path, meaning the root)
         start: Timestamp | None
             The start of the requested interval (exclusive, defaults to `nil`, meaning from beginning of time)
         end: Timestamp | None
@@ -50,7 +50,7 @@ class Provider(ABC):
         It could be retrieved over a network, from an otherwise slow database, or from other components.
         """
 
-    async def treeAtTime(self, path: Path, time: Timestamp, depth: int | None = None) -> SampleTree:
+    async def treeAtTime(self, path: Path = Path(), time: Timestamp = Timestamp.current(), depth: int | None = None) -> SampleTree:
         """
         Get the values of a path at a specific point in time, including sub-paths
 
@@ -106,7 +106,7 @@ class Provider(ABC):
         """
         return (await self.tree(path, start, end, 0, limit)).samples
 
-    async def sample(self, path: Path, time: Timestamp | None) -> Sample | None:
+    async def sample(self, path: Path = Path(), time: Timestamp | None = None) -> Sample | None:
         """
         Get the value for a path at a specific point in time.
 

@@ -254,7 +254,7 @@ class HostedStorage(Actor, Storage, MessageReceiver, Connection):
     @override
     async def tree(
         self,
-        path: Path,
+        path: Path = Path(),
         start: Timestamp | None = None,
         end: Timestamp | None = None,
         depth: int | None = None,

@@ -123,7 +123,7 @@ class HostedObservableStorage(Storage, MessageReceiver):
 
     async def tree(
         self,
-        path: Path,
+        path: Path = Path(),
         start: Timestamp | None = None,
         end: Timestamp | None = None,
         depth: int | None = None,

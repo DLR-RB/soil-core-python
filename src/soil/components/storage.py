@@ -33,7 +33,7 @@ class Storage(Provider, Receiver):
             A request that can be used to wait until completion
         """
 
-    def deleteAtRoot(self, start: Timestamp | None, end: Timestamp | None, depth: int | None) -> Request:
+    def deleteAtRoot(self, start: Timestamp | None = None, end: Timestamp | None = None, depth: int | None = None) -> Request:
         """
         Delete data from the storage.
 

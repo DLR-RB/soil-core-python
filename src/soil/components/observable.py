@@ -19,7 +19,7 @@ class Observable(Distributor):
     """
 
     @abstractmethod
-    def include(self, path: Path, depth: int | None) -> Request:
+    def include(self, path: Path, depth: int | None = None) -> Request:
         """
         Include a path in the subscription.
 
@@ -37,7 +37,7 @@ class Observable(Distributor):
         """
 
     @abstractmethod
-    def exclude(self, path: Path, depth: int | None) -> Request:
+    def exclude(self, path: Path, depth: int | None = None) -> Request:
         """
         Exclude a path from the subscription.
 

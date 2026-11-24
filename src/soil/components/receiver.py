@@ -23,7 +23,7 @@ class Receiver(ABC):
     """
 
     @abstractmethod
-    def accept(self, tree: SampleTree, path: Path) -> Request:
+    def accept(self, tree: SampleTree, path: Path = Path()) -> Request:
         """
         Receive a request to ingest a tree for a path.
 
