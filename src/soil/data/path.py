@@ -72,6 +72,8 @@ class Path(list[str]):
         Path
             A new path with the last `count` components removed
         """
+        if count == 0:
+            return self
         return Path(self[:-count])
 
     def hasPrefix(self, prefix: 'Path') -> bool:
