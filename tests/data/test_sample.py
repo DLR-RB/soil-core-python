@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from soil.data import Sample, Timestamp, Value
+from soil.data import Path, Sample, Timestamp, Value, AnyValue, ValueType
 
 # Helper
 
@@ -111,6 +111,64 @@ class testSample(TestCase):
 
         expected = f"Sample(value={val!r}, timestamp={ts!r})"
         expected_no_ts = f"Sample(value={val!r}, timestamp=None)"
-        
+
         self.assertEqual(repr(sample), expected)
         self.assertEqual(repr(sample_no_ts), expected_no_ts)
+
+
+# Tests for Sample with AnyValue support (new convenience)
+class testSampleWithAnyValue(TestCase):
+    """Test Sample can be created with AnyValue (raw types)"""
+
+    def test_sample_with_int(self):
+        sample = Sample(42)
+        self.assertEqual(sample.value, Value(42))
+        self.assertIsNone(sample.timestamp)
+
+    def test_sample_with_string(self):
+        sample = Sample("hello")
+        self.assertEqual(sample.value, Value("hello"))
+
+    def test_sample_with_float(self):
+        sample = Sample(3.14)
+        self.assertEqual(sample.value, Value(3.14))
+
+    def test_sample_with_bytes(self):
+        sample = Sample(b"test")
+        self.assertEqual(sample.value, Value(b"test"))
+
+    def test_sample_with_path(self):
+        path = Path.of("a", "b")
+        sample = Sample(path)
+        self.assertEqual(sample.value, Value(path))
+
+    def test_sample_with_list(self):
+        sample = Sample([1, 2, 3])
+        self.assertEqual(sample.value, Value([1, 2, 3]))
+
+    def test_sample_with_dict(self):
+        sample = Sample({"key": "value"})
+        # Check the type and that it's a Value containing a dict
+        self.assertEqual(sample.value.type, ValueType.MAP)
+        # The dict values are stored as-is (strings in this case)
+        self.assertEqual(sample.value.mapValue["key"], "value")
+
+    def test_sample_with_none(self):
+        sample = Sample(None)
+        self.assertEqual(sample.value, Value(None))
+
+    def test_sample_with_timestamp(self):
+        # Timestamp is a ValueConvertible, so it should be converted to Value
+        ts = Timestamp(2026, 11, 24, 10, 30, 0)
+        sample = Sample(ts)
+        self.assertIsNotNone(sample.value)
+
+    def test_sample_with_value_still_works(self):
+        sample = Sample(Value(100))
+        self.assertEqual(sample.value, Value(100))
+
+    def test_sample_with_timestamp(self):
+        # Timestamp is a ValueConvertible, so it should be converted to Value
+        ts = Timestamp(2026, 11, 24, 10, 30, 0)
+        sample = Sample(ts)
+        self.assertIsNotNone(sample.value)

@@ -127,3 +127,59 @@ class testPath(TestCase):
         self.assertEqual(list(p), ["a", "b", "c"])
         self.assertIsInstance(p, Path)
 
+    # MARK: Prepending tests
+
+    def test_prepending_string(self):
+        p = Path.of("b", "c")
+        result = p.prepending("a")
+        self.assertEqual(list(result), ["a", "b", "c"])
+        self.assertIsInstance(result, Path)
+
+    def test_prepending_list(self):
+        p = Path.of("c")
+        result = p.prepending(["a", "b"])
+        self.assertEqual(list(result), ["a", "b", "c"])
+        self.assertIsInstance(result, Path)
+
+    def test_prepending_path(self):
+        p = Path.of("b", "c")
+        result = p.prepending(Path.of("a"))
+        self.assertEqual(list(result), ["a", "b", "c"])
+        self.assertIsInstance(result, Path)
+
+    def test_prepending_empty(self):
+        p = Path.of("a", "b")
+        result = p.prepending([])
+        self.assertEqual(list(result), ["a", "b"])
+        self.assertIsInstance(result, Path)
+
+    def test_dropFirst_default(self):
+        p = Path.of("a", "b", "c", "d")
+        result = p.dropFirst()
+        self.assertEqual(list(result), ["b", "c", "d"])
+
+    def test_dropFirst_count(self):
+        p = Path.of("a", "b", "c", "d")
+        result = p.dropFirst(2)
+        self.assertEqual(list(result), ["c", "d"])
+
+    def test_dropFirst_all(self):
+        p = Path.of("a")
+        result = p.dropFirst(1)
+        self.assertEqual(list(result), [])
+
+    def test_dropLast_default(self):
+        p = Path.of("a", "b", "c", "d")
+        result = p.dropLast()
+        self.assertEqual(list(result), ["a", "b", "c"])
+
+    def test_dropLast_count(self):
+        p = Path.of("a", "b", "c", "d")
+        result = p.dropLast(2)
+        self.assertEqual(list(result), ["a", "b"])
+
+    def test_dropLast_all(self):
+        p = Path.of("a")
+        result = p.dropLast(1)
+        self.assertEqual(list(result), [])
+
