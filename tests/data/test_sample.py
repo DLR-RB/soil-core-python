@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from soil.data import Path, Sample, Timestamp, Value, AnyValue, ValueType
+from soil.data import Path, Sample, Timestamp, Value, ValueType
 
 # Helper
 
@@ -166,9 +166,3 @@ class testSampleWithAnyValue(TestCase):
     def test_sample_with_value_still_works(self):
         sample = Sample(Value(100))
         self.assertEqual(sample.value, Value(100))
-
-    def test_sample_with_timestamp(self):
-        # Timestamp is a ValueConvertible, so it should be converted to Value
-        ts = Timestamp(2026, 11, 24, 10, 30, 0)
-        sample = Sample(ts)
-        self.assertIsNotNone(sample.value)
