@@ -7,8 +7,8 @@ when data changes.
 
 import asyncio
 
-from soil.data import Path, SampleTree, Timestamp, Value
 from soil.components import Observable, Receiver
+from soil.data import Path, SampleTree, Value
 from soil.messaging import Message
 
 

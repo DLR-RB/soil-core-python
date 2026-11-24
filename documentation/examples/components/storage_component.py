@@ -6,8 +6,8 @@ Demonstrates how to use the Storage component to store, retrieve, and delete dat
 
 import asyncio
 
+from soil.components import Receiver, Storage
 from soil.data import Path, SampleTree, Timestamp, Value
-from soil.components import Storage, Provider, Receiver
 from soil.messaging import Message, MessageType
 
 
@@ -41,7 +41,7 @@ class InMemoryStorage(Storage):
 
         # Include children up to the requested depth
         if depth is None or depth > 0:
-            for childName, child in node.children.items():
+            for childName in node.children:
                 childPath = path.appending(childName)
                 childTree = await self.tree(childPath, start, end,
                                           depth - 1 if depth else None,
