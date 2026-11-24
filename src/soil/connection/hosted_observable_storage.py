@@ -1,6 +1,6 @@
 from typing import override
 
-from ..components import ObservableStorage, Storage
+from ..components import ObservableStorage
 from ..data import Path, SampleTree, Timestamp
 from ..messaging import Message, MessageConnection, MessageReceiver, MessageType
 from ..requests import Request
@@ -8,7 +8,7 @@ from .hosted_observable import HostedObservable
 from .hosted_storage import HostedStorage
 
 
-class HostedObservableStorage(Storage, MessageReceiver):
+class HostedObservableStorage(ObservableStorage, MessageReceiver):
     """
     Expose an observable storage over an interface.
 
@@ -44,10 +44,15 @@ class HostedObservableStorage(Storage, MessageReceiver):
             observable,
             connection,
         )
-        _storage = await HostedStorage.create(
-            observable,
-            connection,
-        )
+        try:
+            _storage = await HostedStorage.create(
+                observable,
+                connection,
+            )
+        except Exception:
+            # Clean up observable if storage creation fails
+            await _observable.shutdown()
+            raise
 
         self = cls(_observable, _storage)
 

@@ -141,7 +141,7 @@ class RemoteObservable(Actor, MessageReceiver, Observable, Connection):
     def include(
         self,
         path: Path,
-        depth: int | None = None,
+        depth: int | None,
     ) -> Request:
         """
         Internal function called by a subscription object to include a path in
@@ -164,7 +164,7 @@ class RemoteObservable(Actor, MessageReceiver, Observable, Connection):
     def exclude(
         self,
         path: Path,
-        depth: int | None = None,
+        depth: int | None,
     ) -> Request:
         """
         Internal function called by a subscription object to exclude a path
@@ -187,7 +187,7 @@ class RemoteObservable(Actor, MessageReceiver, Observable, Connection):
     def deleteRules(
         self,
         path: Path,
-        depth: int | None = None,
+        depth: int | None,
     ) -> Request:
         """
         Internal function called by a subscription object to delete rules of a

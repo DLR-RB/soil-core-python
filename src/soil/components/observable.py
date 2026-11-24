@@ -19,7 +19,7 @@ class Observable(Distributor):
     """
 
     @abstractmethod
-    def include(self, path: Path, depth: int | None = None) -> Request:
+    def include(self, path: Path, depth: int | None) -> Request:
         """
         Include a path in the subscription.
 
@@ -37,7 +37,7 @@ class Observable(Distributor):
         """
 
     @abstractmethod
-    def exclude(self, path: Path, depth: int | None = None) -> Request:
+    def exclude(self, path: Path, depth: int | None) -> Request:
         """
         Exclude a path from the subscription.
 
@@ -55,7 +55,7 @@ class Observable(Distributor):
         """
 
     @abstractmethod
-    def deleteRules(self, path: Path, depth: int | None = None) -> Request:
+    def deleteRules(self, path: Path, depth: int | None) -> Request:
         """
         Delete subscription rules at a path with a given depth
 
