@@ -14,14 +14,13 @@ authors = [
 ]
 
 dependencies = [
-  "requests>=2.31",
-  "ruff>=0.17.1",
   "websockets",
 ]
 
 [project.optional-dependencies]
 dev = [
-  "pytest"
+  "pytest",
+  "ruff>=0.17.1",
 ]
 
 [tool.setuptools.packages.find]
