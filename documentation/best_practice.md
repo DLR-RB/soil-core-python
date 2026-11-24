@@ -331,7 +331,7 @@ children:
           21.5 (11.11.2026 08:36:36)
 ```     
 
-> **Full example:** See [`examples/data/weather_station.py`](examples\data\weather_station.py) for a complete implementation with location data, humidity, and assertions.
+> **Full example:** See [`examples/data/weather_station.py`](examples/data/weather_station.py) for a complete implementation with location data, humidity, and assertions.
 
 ##### 2.1.5.2 Library with Books
 
@@ -433,8 +433,9 @@ tree = device.toTree()
 
 ##### 2.1.5.4 Visualizer
 
-These are not needed for fuctionality but are nice to have for debugging or visualization purposes.
-`SOIL-CORE-PYTHON` also delivers a built-in unctionality with the normal `print()`-Statement which which shows all samples per node with formatted timestamps, but is less compact and does not render maps and lists structurally.
+These are not needed for functionality, but are nice to have for debugging or visualization purposes.
+The library also delivers a built-in, simpler alternative: printing a `SampleTree` directly with the normal `print()` statement.
+It shows all samples per node with formatted timestamps, but is less compact and does not render maps and lists structurally.
 
 ```python
 def visualize(tree: SampleTree, indent: str = "") -> None:
@@ -472,12 +473,12 @@ def visualize(tree: SampleTree, indent: str = "") -> None:
         visualize(child, indent + "│  ")
 ```
 
-Depending on the implementation there a different need and fucntions which each visualizer has to achieve.
+Different use cases have different needs, so a visualizer can choose which of these to render.
 
-Comparison between visualizer and normal print:
+Comparison between the custom `visualize(tree)` and the built-in `print(tree)`:
 
 ##### visualize(tree)
-```python
+```text
 ├─ name: Thermostat Living Room
 ├─ history: –
 │  ├─ spec: {
@@ -495,7 +496,7 @@ Comparison between visualizer and normal print:
 │  │  ├─ 13.1  (t=1791790210.661747)  ← now
 ```
 ##### print(tree)
-```python
+```text
 children:
   name:
     samples:
@@ -655,7 +656,7 @@ path: device
 depth: 2
 ```     
 
-#### 2.2.3 Message Transmission & Connection
+#### 2.3.1 Message Transmission & Connection
 
 Messages are exchanged over a transport layer through four building blocks:
 
@@ -727,7 +728,7 @@ include = Message.include(Path.of("device"), depth=2)
 exclude = Message.exclude(Path.of("device", "power"))
 ```
 
-> **Full example:** See [`examples/messaging/messaging.py`](examples\messaging\messaging.py) for a complete working example with output.
+> **Full example:** See [`examples/messaging/messaging.py`](examples/messaging/messaging.py) for a complete working example with output.
 
 ### 2.3. Transport Stack
 
@@ -849,7 +850,7 @@ encoding exactly as above.
 
 **Delivery is not guaranteed.** `send()` returns a request handle that
 completes once the message was handed to the transport layer - not once the
-peer received it (see 2.3.0). Failures during encoding or transmission are
+peer received it. Failures during encoding or transmission are
 reported through the optional logger passed to `apply()`, not raised to the
 caller; a failed `send()` therefore does not stop your application, but it
 also does not retry. If delivery matters, build acknowledgment into your
@@ -896,7 +897,7 @@ A server that wraps every incoming client connection with framing, and a
 client that builds the same stack and sends one frame. It shows the three
 rules that matter in practice:
 
-- build the stack **inside async code** (Actors need a running event loop, 2.3.0),
+- build the stack **inside async code** (the connection APIs are coroutines),
 - attach the receiver **before** data starts flowing (2.3.4),
 - shut the stack down **on every exit path** (2.3.5).
 
@@ -997,8 +998,8 @@ async def tree(
 - `limitPerNode`: Maximum samples per node (`None` = no limit)
 
 **Sort order:**
-- Ascending, if `end = nil`
-- Descending, if `end != nil` and `start = nil`
+- Ascending, if `end is None`
+- Descending, if `end is not None` and `start is None`
 - Ascending, if `start < end`
 - Descending, if `start > end`
 
