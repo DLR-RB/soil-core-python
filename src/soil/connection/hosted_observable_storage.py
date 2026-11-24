@@ -1,10 +1,10 @@
 from asyncio import CancelledError
 from typing import override
 
-from ..components import ObservableStorage
+from ..components import ObservableStorage, Receiver
 from ..data import Path, SampleTree, Timestamp
 from ..messaging import Message, MessageConnection, MessageReceiver, MessageType
-from ..requests import Request
+from ..requests import CompletedRequest, Request
 from .hosted_observable import HostedObservable
 from .hosted_storage import HostedStorage
 
@@ -192,3 +192,127 @@ class HostedObservableStorage(ObservableStorage, MessageReceiver):
 
     async def shutdown(self):
         await self._storage.shutdown()
+
+    # MARK: Observable
+
+    @override
+    def setReceiver(
+        self,
+        receiver: Receiver | None,
+    ) -> Request:
+        """
+        Set the receiver for subscription data.
+
+        On the hosted (server) side, subscription updates are always
+        forwarded to the connection via the wrapped ``HostedObservable``,
+        so setting a local receiver is a no-op.
+
+        Args:
+            receiver: The receiver of subscription updates, or ``None``.
+
+        Returns:
+            A request that is already completed.
+        """
+        return CompletedRequest()
+
+    @override
+    async def getReceiver(self) -> Receiver | None:
+        """
+        Get the current receiver of subscription data.
+
+        Returns:
+            ``None``; updates are always routed to the connection by the
+            wrapped ``HostedObservable``.
+        """
+        return None
+
+    @override
+    def include(
+        self,
+        path: Path,
+        depth: int | None,
+    ) -> Request:
+        """
+        Include a path in the subscription.
+
+        Args:
+            path: The path to include.
+            depth: The depth of the inclusion (``None`` indicates the full
+                sub-tree).
+
+        Returns:
+            A request to wait for completion of the inclusion.
+        """
+        return self._observable.include(path, depth=depth)
+
+    @override
+    def exclude(
+        self,
+        path: Path,
+        depth: int | None,
+    ) -> Request:
+        """
+        Exclude a path from the subscription.
+
+        Args:
+            path: The path to exclude.
+            depth: The depth of the exclusion (``None`` indicates the full
+                sub-tree).
+
+        Returns:
+            A request to wait for completion of the exclusion.
+        """
+        return self._observable.exclude(path, depth=depth)
+
+    @override
+    def deleteRules(
+        self,
+        path: Path,
+        depth: int | None,
+    ) -> Request:
+        """
+        Delete subscription rules at a path with a given depth.
+
+        Args:
+            path: The path for which to delete rules.
+            depth: The depth of the deletion.
+
+        Returns:
+            A request to wait for completion of the deletion.
+        """
+        return self._observable.deleteRules(path, depth=depth)
+
+    @override
+    async def isSubscribed(
+        self,
+        path: Path,
+    ) -> bool:
+        """
+        Check if a path is covered by the subscription rules.
+
+        Args:
+            path: The path to check.
+
+        Returns:
+            ``True`` if the path is subscribed.
+        """
+        return await self._observable.isSubscribed(path)
+
+    @override
+    async def reduce(
+        self,
+        tree: SampleTree,
+        path: Path,
+    ) -> SampleTree | None:
+        """
+        Use the subscription rules to remove all excluded parts of a tree.
+
+        Args:
+            tree: The original tree to strip.
+            path: The path of the tree in relation to the subscription tree.
+
+        Returns:
+            The reduced tree, if any inclusion rule matches, otherwise
+            ``None``.
+        """
+        return await self._observable.reduce(tree, path)

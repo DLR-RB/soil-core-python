@@ -55,6 +55,98 @@ class HostedObservable(MessageReceiver, Receiver):
                  # Non-subscription requests handled elsewhere
                 return CompletedRequest()
 
+    # MARK: Subscription control
+
+    @override
+    def include(
+        self,
+        path: Path,
+        depth: int | None,
+    ) -> Request:
+        """
+        Include a path in the subscription.
+
+        Args:
+            path: The path to include.
+            depth: The depth of the inclusion (``None`` indicates the full
+                sub-tree).
+
+        Returns:
+            A request to wait for completion of the inclusion.
+        """
+        return self._observable.include(path, depth=depth)
+
+    @override
+    def exclude(
+        self,
+        path: Path,
+        depth: int | None,
+    ) -> Request:
+        """
+        Exclude a path from the subscription.
+
+        Args:
+            path: The path to exclude.
+            depth: The depth of the exclusion (``None`` indicates the full
+                sub-tree).
+
+        Returns:
+            A request to wait for completion of the exclusion.
+        """
+        return self._observable.exclude(path, depth=depth)
+
+    @override
+    def deleteRules(
+        self,
+        path: Path,
+        depth: int | None,
+    ) -> Request:
+        """
+        Delete subscription rules at a path with a given depth.
+
+        Args:
+            path: The path for which to delete rules.
+            depth: The depth of the deletion.
+
+        Returns:
+            A request to wait for completion of the deletion.
+        """
+        return self._observable.deleteRules(path, depth=depth)
+
+    @override
+    async def isSubscribed(
+        self,
+        path: Path,
+    ) -> bool:
+        """
+        Check if a path is covered by the subscription rules.
+
+        Args:
+            path: The path to check.
+
+        Returns:
+            ``True`` if the path is subscribed.
+        """
+        return await self._observable.isSubscribed(path)
+
+    @override
+    async def reduce(
+        self,
+        tree: SampleTree,
+        path: Path,
+    ) -> SampleTree | None:
+        """
+        Use the subscription rules to remove all excluded parts of a tree.
+
+        Args:
+            tree: The original tree to strip.
+            path: The path of the tree in relation to the subscription tree.
+
+        Returns:
+            The reduced tree, if any inclusion rule matches, otherwise ``None``.
+        """
+        return await self._observable.reduce(tree, path)
+
     # MARK: - Message Receiver
 
     @override
