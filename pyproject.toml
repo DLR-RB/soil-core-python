@@ -31,7 +31,7 @@ namespaces = true
 asyncio_mode = "auto"
 
 [tool.unittest]
-# unittest-spezifische Einstellungen für VS Code und andere Tools
+# unittest-specific settings for VS Code and other tools
 start-discovery = true
 verbose = 2
 pattern = "test_*.py"
