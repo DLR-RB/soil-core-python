@@ -16,8 +16,7 @@ class HierarchicalLogger(DefaultStringStorageNode, Logger):
 
     Note:
         The `log(messageLevel, message)` function always creates the message,
-        even if it is discarded due to the log level. This mirrors the Swift
-        implementation, where formatting occurs before the level check.
+        even if it is discarded due to the log level.
     """
 
     defaultLevel: LogLevel = LogLevel.WARNING

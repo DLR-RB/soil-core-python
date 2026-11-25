@@ -19,11 +19,7 @@ class PrintReceiver(Receiver):
         self._dateFormat = dateFormat
 
     @override
-    def accept(
-        self,
-        tree: SampleTree,
-        path: Path,
-    ) -> Request:
+    def accept(self, tree: SampleTree, path: Path = Path()) -> Request:
         self._print(tree, path)
         return CompletedRequest()
 

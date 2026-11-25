@@ -224,7 +224,7 @@ class HostedStorage(Actor, Storage, MessageReceiver, Connection):
     # MARK: - Storage
 
     @override
-    def accept(self, tree: SampleTree, path: Path) -> Request:
+    def accept(self, tree: SampleTree, path: Path = Path()) -> Request:
         """
         Receive a request to store a tree for a path.
 
@@ -242,9 +242,9 @@ class HostedStorage(Actor, Storage, MessageReceiver, Connection):
             A request handle, to optionally wait until the data is stored.
 
         Note:
-            This function is not marked ``async`` in Swift because it is viewed
+            This function is not marked ``async`` in Python because it is viewed
             as a request to store data. To wait until the data is stored, use
-            ``commit()``.
+            ``await``.
 
         See Also:
             ``commit()``

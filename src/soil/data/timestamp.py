@@ -62,8 +62,6 @@ class Timestamp(datetime, ValueConvertible):
         ValueError
             If ``value`` is not a DOUBLE.
         """
-        if not isinstance(value, Value):
-            raise TypeError(f"expected a Value, got {type(value).__name__}")
         seconds = value.doubleValue
         if seconds is None:
             raise ValueError(f"expected a DOUBLE value, got {value.type}")

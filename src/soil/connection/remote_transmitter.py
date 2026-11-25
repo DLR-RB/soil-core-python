@@ -93,5 +93,5 @@ class RemoteTransmitter(Distributor, Receiver):
     # MARK: Receiver
 
     @override
-    def accept(self, tree: SampleTree, path: Path) -> Request:
+    def accept(self, tree: SampleTree, path: Path = Path()) -> Request:
         return self.connection.accept(tree, path)

@@ -52,11 +52,11 @@ class HostedObservableStorage(Storage, MessageReceiver):
             )
         except (CancelledError, KeyboardInterrupt):
             # Re-raise cancellation and keyboard interrupts
-            await _observable.shutdown()
+            # await _observable.shutdown()
             raise
         except Exception:
             # Clean up observable if storage creation fails
-            await _observable.shutdown()
+            # await _observable.shutdown()
             raise
 
         self = cls(_observable, _storage)
@@ -107,7 +107,7 @@ class HostedObservableStorage(Storage, MessageReceiver):
     # MARK: - Storage
 
     @override
-    def accept(self, tree: SampleTree, path: Path) -> Request:
+    def accept(self, tree: SampleTree, path: Path = Path()) -> Request:
         """
         Receive a request to store a tree for a path.
 
@@ -122,9 +122,8 @@ class HostedObservableStorage(Storage, MessageReceiver):
             path: The path of the root node of the provided tree.
 
         Note:
-            In Swift this function is non-async because it represents a request
-            to store data. In Python this implementation simply forwards the
-            request asynchronously.
+            This function is non-async because it represents a request
+            to store data. You may await the returned request.
 
         See Also:
             commit()

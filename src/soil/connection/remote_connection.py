@@ -60,7 +60,7 @@ class RemoteConnection(Receiver, Distributor):
     # MARK: - Receiver
 
     @override
-    def accept(self, tree: SampleTree, path: Path) -> Request:
+    def accept(self, tree: SampleTree, path: Path = Path()) -> Request:
         """
         Forward a tree to the remote component.
 

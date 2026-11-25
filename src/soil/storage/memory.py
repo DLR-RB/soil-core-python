@@ -86,7 +86,7 @@ class InMemoryStorage(Actor, Storage):
     # MARK: Storage
 
     @override
-    def accept(self, tree: SampleTree, path: Path) -> Request:
+    def accept(self, tree: SampleTree, path: Path = Path()) -> Request:
         """
         Save the samples of a tree at a path.
 

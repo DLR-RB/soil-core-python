@@ -148,11 +148,7 @@ class ObservingStorage(Actor, ObservableStorage):
 
     @override
     @synchronized
-    async def accept(
-        self,
-        tree: SampleTree,
-        path: Path,
-    ) -> None:
+    async def accept(self, tree: SampleTree, path: Path = Path()) -> None:
         """
         Receive a tree for a path.
 

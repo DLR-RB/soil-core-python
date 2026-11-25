@@ -293,8 +293,7 @@ class SubscriptionTree:
         """
         Insert a depth into a sorted list.
 
-        ``None`` is treated as larger than any integer, matching the Swift
-        implementation.
+        ``None`` is treated as larger than any integer.
         """
         def isInOrder(lhs: int | None, rhs: int | None) -> bool:
             if lhs is None:

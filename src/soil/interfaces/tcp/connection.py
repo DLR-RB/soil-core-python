@@ -175,8 +175,6 @@ class TcpSocketConnection(Actor, StreamConnection):
     async def _startDispatching(self) -> None:
         while True:
             data = await self._dispatchQueue.get()
-            if data is None:
-                return
             if self._receiver is None:
                 continue
             try:

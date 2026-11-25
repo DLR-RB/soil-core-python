@@ -90,7 +90,7 @@ class HostedObservable(MessageReceiver, Receiver):
     # MARK: - Receiver
 
     @override
-    def accept(self, tree: SampleTree, path: Path) -> Request:
+    def accept(self, tree: SampleTree, path: Path = Path()) -> Request:
         """
         Receive updates matching the subscriptions from the wrapped observable
         to send over the connection.

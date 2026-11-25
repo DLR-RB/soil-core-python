@@ -197,7 +197,7 @@ class RemoteStorage(MessageReceiver, Storage):
            and should return as fast as possible.
     """
     @override
-    def accept(self, tree: SampleTree, path: Path) -> Request:
+    def accept(self, tree: SampleTree, path: Path = Path()) -> Request:
         return self.connection.accept(tree, path)
 
     """

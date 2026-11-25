@@ -522,7 +522,7 @@ class Message:
         Compare two messages for equality.
 
         Timestamp fields are compared with a tolerance of
-        1 millisecond to match the Swift implementation.
+        1 millisecond.
         """
         if not isinstance(other, Message):
             return NotImplemented
