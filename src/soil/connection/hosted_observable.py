@@ -46,10 +46,10 @@ class HostedObservable(MessageReceiver, Receiver):
                 return self._observable.include(request.path, depth=request.depth)
 
             case MessageType.SUBSCRIPTION_DELETION:
-                return self._observable.exclude(request.path, depth=request.depth)
+                return self._observable.deleteRules(request.path, depth=request.depth)
 
             case MessageType.SUBSCRIPTION_EXCLUSION:
-                return self._observable.deleteRules(request.path, depth=request.depth)
+                return self._observable.exclude(request.path, depth=request.depth)
 
             case _:
                  # Non-subscription requests handled elsewhere

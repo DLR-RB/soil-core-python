@@ -3,7 +3,7 @@ import asyncio
 from soil.data import Path, SampleTree, Value
 from soil.encoding.json import JsonEncoding
 from soil.interfaces.udp import UdpSocket
-from soil.messaging import Message, MessageType, MessageReceiver
+from soil.messaging import Message, MessageReceiver, MessageType
 
 
 class TelemetryCollector(MessageReceiver):

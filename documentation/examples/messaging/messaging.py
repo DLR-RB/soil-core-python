@@ -68,7 +68,7 @@ def create_data_messages():
     )
     print(msg)
     assert msg.type == MessageType.DATA
-    assert len(msg.data.children) == 1  # One node for the path
+    assert len(msg.data.samples) == 3  # Samples stored at the tree root
     assert msg.id == 100
 
     # Complete sample tree message
@@ -109,8 +109,8 @@ def create_request_messages():
 
     # Request with time range
     print("\n--- Request with Time Range ---")
-    start = Timestamp.from_seconds_since_1970(1700000000)
-    end = Timestamp.from_seconds_since_1970(1700003600)
+    start = Timestamp.fromTimeIntervalSince1970(1700000000)
+    end = Timestamp.fromTimeIntervalSince1970(1700003600)
 
     msg = Message.request(
         path=Path.of("history", "temperature"),
@@ -222,8 +222,8 @@ def create_deletion_messages():
 
     # Deletion with time range
     print("\n--- Deletion with Time Range ---")
-    start = Timestamp.from_seconds_since_1970(1699999999)
-    end = Timestamp.from_seconds_since_1970(1700003600)
+    start = Timestamp.fromTimeIntervalSince1970(1699999999)
+    end = Timestamp.fromTimeIntervalSince1970(1700003600)
 
     msg = Message.delete(
         path=Path.of("weather", "temperature"),
@@ -306,8 +306,8 @@ def test_message_equality():
 
     # Different timestamps
     print("\n--- Different Timestamps ---")
-    ts1 = Timestamp.from_seconds_since_1970(1700000000)
-    ts2 = Timestamp.from_seconds_since_1970(1700000001)
+    ts1 = Timestamp.fromTimeIntervalSince1970(1700000000)
+    ts2 = Timestamp.fromTimeIntervalSince1970(1700000001)
     a = Message.request(Path.of("data"), start=ts1)
     b = Message.request(Path.of("data"), start=ts2)
     assert a != b
@@ -315,8 +315,8 @@ def test_message_equality():
 
     # Tolerant timestamp comparison (within 1ms)
     print("\n--- Timestamp Tolerance (within 1ms) ---")
-    ts1 = Timestamp.from_seconds_since_1970(1700000000)
-    ts2 = Timestamp.from_seconds_since_1970(1700000000.0005)  # 0.5ms difference
+    ts1 = Timestamp.fromTimeIntervalSince1970(1700000000)
+    ts2 = Timestamp.fromTimeIntervalSince1970(1700000000.0005)  # 0.5ms difference
     a = Message.request(Path.of("data"), start=ts1)
     b = Message.request(Path.of("data"), start=ts2)
     assert a == b
@@ -333,11 +333,11 @@ def test_message_string_representation():
 
     # Request with all fields
     print("\n--- Complete Message String ---")
-    ts = Timestamp.from_seconds_since_1970(1700000000)
+    ts = Timestamp.fromTimeIntervalSince1970(1700000000)
     msg = Message.request(
         path=Path.of("weather", "temperature"),
         start=ts,
-        end=Timestamp.from_seconds_since_1970(1700003600),
+        end=Timestamp.fromTimeIntervalSince1970(1700003600),
         limit=100,
         depth=2,
         id=42,
@@ -432,14 +432,14 @@ def message_processing_workflow():
     # Create hub and process messages
     hub = SimpleHub()
 
-    # Send some data
+    # Send some data. Each carries a `request` id so the hub replies with an ack.
     print("\n--- Sending Temperature Data ---")
-    hub.send(Message.value(Value(21.5), Path.of("weather", "temperature")))
-    hub.send(Message.value(Value(22.8), Path.of("weather", "temperature")))
+    hub.send(Message.value(Value(21.5), Path.of("weather", "temperature"), request=1))
+    hub.send(Message.value(Value(22.8), Path.of("weather", "temperature"), request=2))
 
     # Send humidity data
     print("\n--- Sending Humidity Data ---")
-    hub.send(Message.value(Value(63), Path.of("weather", "humidity")))
+    hub.send(Message.value(Value(63), Path.of("weather", "humidity"), request=3))
 
     # Request the data
     print("\n--- Requesting Temperature History ---")
@@ -458,10 +458,14 @@ def message_processing_workflow():
     print("\n" + "-" * 40)
     hub.print_state()
 
-    # Verify results
-    assert len(hub.data.children) == 2  # temperature and humidity
+    # Verify results. The nested paths `weather > temperature` and
+    # `weather > humidity` collapse into a single top-level node `weather`,
+    # so the store holds one child node. The three data messages each carry a
+    # `request` id, so the hub answers each with an ack, plus one reply to the
+    # request message: four responses in total.
+    assert len(hub.data.children) == 1  # just the `weather` node
     assert len(hub.subscriptions) == 1  # Only weather (humidity was excluded)
-    assert len(hub.responses) == 4  # 2 acks + 1 response + 1 include ack
+    assert len(hub.responses) == 4  # 3 acks + 1 request reply
 
     print("\nOK Complete workflow executed successfully")
 

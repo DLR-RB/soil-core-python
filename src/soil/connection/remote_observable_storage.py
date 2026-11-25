@@ -167,7 +167,7 @@ class RemoteObservableStorage(MessageReceiver, ObservableStorage, Connection):
         A request to wait for completion of the deletion
     """
     @override
-    def deleteRules(self, path: Path, depth: int | None = None) -> Request:
+    def deleteRules(self, path: Path, depth: int | None) -> Request:
         return AsyncRequest(self._observable.deleteRules(path, depth=depth))
 
     """

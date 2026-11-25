@@ -91,7 +91,7 @@ class TcpSocketTest(IsolatedAsyncioTestCase):
 
         logger = printer.loggerAtPath(LogLevel.DEBUG, Path.of())
 
-        server = TcpSocketServer(port = 12345)
+        server = TcpSocketServer(port = 0)
         serverHandler = TestServer()
 
         server.onConnection(serverHandler.accept)
@@ -99,7 +99,7 @@ class TcpSocketTest(IsolatedAsyncioTestCase):
         self.assertTrue(await server.start())
 
         port = await server.waitForPort()
-        self.assertGreaterEqual(port, 12345)
+        self.assertGreaterEqual(port, 0)
 
         await sleep(1)
 

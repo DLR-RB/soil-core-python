@@ -84,7 +84,7 @@ class SubscriptionTree:
     def include(
         self,
         path: Path,
-        depth: int | None = None,
+        depth: int | None,
     ):
         """
         Include a path in the subscription.
@@ -99,7 +99,7 @@ class SubscriptionTree:
     def exclude(
         self,
         path: Path,
-        depth: int | None = None,
+        depth: int | None,
     ):
         """
         Exclude a path from the subscription.
@@ -114,7 +114,7 @@ class SubscriptionTree:
     def deleteRules(
         self,
         path: Path,
-        depth: int | None = None,
+        depth: int | None,
     ):
         """
         Delete subscription rules at a path with a given depth.

@@ -143,7 +143,12 @@ class RemoteStorage(MessageReceiver, Storage):
 
         self._requests.add(request, requestId)
 
-        return await future
+        try:
+            return await future
+        except CancelledError:
+            # Cancel the timeout task if the future is cancelled
+            timeoutTask.cancel()
+            raise
 
     # MARK: Message receiver
 

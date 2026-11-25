@@ -56,7 +56,7 @@ class ObservingStorage(Actor, ObservableStorage):
     async def include(
         self,
         path: Path,
-        depth: int | None = None,
+        depth: int | None,
     ) -> None:
         """
         Include a path in the subscription.
@@ -76,7 +76,7 @@ class ObservingStorage(Actor, ObservableStorage):
     async def exclude(
         self,
         path: Path,
-        depth: int | None = None,
+        depth: int | None,
     ) -> None:
         """
         Exclude a path from the subscription.
@@ -96,7 +96,7 @@ class ObservingStorage(Actor, ObservableStorage):
     async def deleteRules(
         self,
         path: Path,
-        depth: int | None = None,
+        depth: int | None,
     ) -> None:
         """
         Delete subscription rules at a path with a given depth.
